@@ -89,4 +89,5 @@ Sau đó, mỗi lần **push vào `main`** (khi có thay đổi trong thư mục
 |-----------------------------------|-------------------------------------|
 | Push to `main` (frontend changes) | Cloudflare Pages auto-rebuilds ✅   |
 | Push to `main` (backend changes)  | GitHub Actions deploys Worker ✅    |
+Thằng Kiệt NGU
 

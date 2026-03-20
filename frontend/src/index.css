@@ -1,0 +1,104 @@
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #0f172a;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  margin: 0;
+  background: linear-gradient(to right, #60a5fa, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: #94a3b8;
+  font-size: 1.2rem;
+}
+
+.status-card {
+  background-color: #1e293b;
+  padding: 1.5rem 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #334155;
+  min-width: 300px;
+}
+
+.status-card h2 {
+  font-size: 1.1rem;
+  margin-top: 0;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.success { color: #4ade80; }
+.error { color: #f87171; }
+.loading { color: #fbbf24; }
+
+.small {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.url {
+  font-family: monospace;
+  background-color: #0f172a;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.info-section {
+  text-align: left;
+  background: #1e293b;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #60a5fa;
+}
+
+code {
+  background: #334155;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+}
+
+footer {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
