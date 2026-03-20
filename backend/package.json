@@ -10,7 +10,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "hono": "^4.6.0",
-    "mongodb": "^6.9.0"
+    "mongodb": "^7.1.0"
   },
   "devDependencies": {
     "wrangler": "^3.78.12"

@@ -7,9 +7,17 @@ const app = new Hono()
 
 // CORS configuration
 app.use('*', async (c, next) => {
-  const frontendUrl = c.env.FRONTEND_URL || 'https://questly.pages.dev'
   const corsMiddleware = cors({
-    origin: [frontendUrl, 'https://questly.pages.dev', 'http://localhost:5173'],
+    origin: (origin) => {
+      if (
+        origin === 'http://localhost:5173' ||
+        origin === 'https://questly.pages.dev' ||
+        origin?.endsWith('.questly.pages.dev')
+      ) {
+        return origin
+      }
+      return null
+    },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
