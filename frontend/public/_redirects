@@ -1,6 +1,1 @@
-/*
-  This file is for Cloudflare Pages SPA routing.
-  It redirects all requests to index.html so React Router can handle them.
-  Place this file in the `public/` folder of your Vite project.
-*/
-/* index.html 200 */
+/*  /index.html  200
