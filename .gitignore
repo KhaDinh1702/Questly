@@ -1,0 +1,25 @@
+# .gitignore for MERN stack on Cloudflare
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Environment variables (NEVER commit secrets!)
+.env
+.env.local
+.env.production
+
+# Wrangler (Cloudflare Workers)
+.wrangler/
+
+# Vite / React build output
+dist/
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
