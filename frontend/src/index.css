@@ -20,7 +20,35 @@
         inset -2px -2px 0 0 #483200;
   }
   .parchment-texture {
-    background-image: radial-gradient(#fcf3d8 1px, transparent 1px);
-    background-size: 20px 20px;
+      background-color: #fff9ed;
+      background-image: 
+          radial-gradient(circle at 2px 2px, rgba(122, 89, 7, 0.05) 1px, transparent 0);
+      background-size: 40px 40px;
+  }
+  .stone-wall {
+      background-color: #1b1c1c;
+      background-image: 
+          linear-gradient(90deg, #2c2c2c 2px, transparent 2px),
+          linear-gradient(#2c2c2c 2px, transparent 2px);
+      background-size: 100px 50px;
+  }
+  .pixel-border {
+      box-shadow: 
+          0 -4px 0 0 #483200,
+          0 4px 0 0 #483200,
+          -4px 0 0 0 #483200,
+          4px 0 0 0 #483200;
+  }
+  .carved-bevel {
+      box-shadow: inset 2px 2px 0px 0px #ffdea5, inset -2px -2px 0px 0px #483200;
+  }
+  .bevel-wood {
+      box-shadow: inset 2px 2px 0px 0px #ffdea5, inset -2px -2px 0px 0px #483200;
+  }
+  .bevel-stone {
+      box-shadow: inset 2px 2px 0px 0px #c7c6c6, inset -2px -2px 0px 0px #1b1c1c;
+  }
+  .parchment-shadow {
+      box-shadow: 15px 15px 40px rgba(0,0,0,0.6);
   }
 }

@@ -1,6 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
+  };
+
   return (
     <div className="bg-surface-dim font-body text-on-surface">
       {/* TopAppBar */}
@@ -31,12 +49,26 @@ const Home = () => {
           </a>
         </nav>
         <div className="flex items-center gap-4">
-          <button className="text-yellow-100/80 hover:text-yellow-200 font-serif font-bold uppercase tracking-wide text-lg px-4 py-1 hover:bg-amber-800 transition-all active:translate-y-0.5">
-            Login
-          </button>
-          <button className="bg-primary text-on-primary font-serif font-bold uppercase tracking-wide text-lg px-6 py-2 border-2 border-yellow-600 shadow-[2px_2px_0_0_#483200] active:translate-y-0.5 active:shadow-none transition-all">
-            Register
-          </button>
+          {user ? (
+            <>
+              <span className="text-yellow-100 font-serif italic">Welcome, {user.username}</span>
+              <button 
+                onClick={handleLogout}
+                className="bg-primary text-on-primary font-serif font-bold uppercase tracking-wide text-lg px-6 py-2 border-2 border-yellow-600 shadow-[2px_2px_0_0_#483200] active:translate-y-0.5 active:shadow-none transition-all"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-yellow-100/80 hover:text-yellow-200 font-serif font-bold uppercase tracking-wide text-lg px-4 py-1 hover:bg-amber-800 transition-all active:translate-y-0.5">
+                Login
+              </Link>
+              <Link to="/register" className="bg-primary text-on-primary font-serif font-bold uppercase tracking-wide text-lg px-6 py-2 border-2 border-yellow-600 shadow-[2px_2px_0_0_#483200] active:translate-y-0.5 active:shadow-none transition-all">
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
