@@ -15,7 +15,7 @@ export const SUBSCRIPTION_TIERS = {
 
 // ---- Daily limits ----
 export const DAILY_LIMITS = {
-  APTITUDE_TESTS_FREE: 4,
+  APTITUDE_TESTS_FREE: 8,
   APTITUDE_TESTS_PREMIUM: 8,
   FREE_CHEST_ADS: 3,          // ad-supported free chests per day
 }

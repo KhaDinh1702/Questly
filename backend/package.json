@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "tsx watch src/index.js",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.11",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
     "hono": "^4.6.0",
     "mongodb": "^7.1.0"
   },
   "devDependencies": {
+    "tsx": "^4.21.0",
     "wrangler": "^4.0.0"
   }
 }

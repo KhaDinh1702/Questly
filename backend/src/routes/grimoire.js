@@ -33,6 +33,94 @@ grimoire.get('/', async (c) => {
   return c.json({ sets, page, limit })
 })
 
+// Get user's own and acquired sets
+grimoire.get('/my', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const dbUser = await db.collection('users').findOne({ _id: toObjectId(user.id) })
+  
+  const acquiredIds = dbUser?.acquiredGrimoires || []
+  const progressMap = dbUser?.grimoireProgress?.reduce((acc, p) => {
+    acc[String(p.setId)] = p.progress
+    return acc
+  }, {}) || {}
+
+  const filter = {
+    $or: [
+      { creatorId: toObjectId(user.id) },
+      { _id: { $in: acquiredIds } }
+    ]
+  }
+
+  const sets = await db.collection('flashcard_sets')
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .toArray()
+
+  // Attach progress
+  const enrichedSets = sets.map(set => ({
+    ...set,
+    progress: progressMap[String(set._id)] || 0,
+    acquired: String(set.creatorId) !== String(user.id) // True if acquired, false if owned
+  }))
+
+  return c.json({ sets: enrichedSets })
+})
+
+// Acquire a public set
+grimoire.post('/:id/acquire', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const _id = toObjectId(c.req.param('id'))
+  if (!_id) return c.json({ error: 'Invalid ID' }, 400)
+
+  const set = await db.collection('flashcard_sets').findOne({ _id })
+  if (!set || !set.isPublic) return c.json({ error: 'Set not found or not public' }, 404)
+  if (String(set.creatorId) === String(user.id)) return c.json({ error: 'Cannot acquire your own set' }, 400)
+
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    { $addToSet: { acquiredGrimoires: _id } }
+  )
+  await db.collection('flashcard_sets').updateOne(
+    { _id },
+    { $inc: { studiedCount: 1 } }
+  )
+
+  return c.json({ message: 'Set acquired successfully' })
+})
+
+// Update study progress
+grimoire.post('/:id/progress', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const _id = toObjectId(c.req.param('id'))
+  if (!_id) return c.json({ error: 'Invalid ID' }, 400)
+
+  const { progress } = await c.req.json()
+  if (typeof progress !== 'number') return c.json({ error: 'Progress must be a number' }, 400)
+
+  const dbUser = await db.collection('users').findOne({ _id: toObjectId(user.id) })
+  const progressList = dbUser?.grimoireProgress || []
+  
+  const existing = progressList.find(p => String(p.setId) === String(_id))
+  if (existing) {
+    if (progress > existing.progress) {
+      await db.collection('users').updateOne(
+        { _id: toObjectId(user.id), 'grimoireProgress.setId': _id },
+        { $set: { 'grimoireProgress.$.progress': Math.min(100, progress), 'grimoireProgress.$.lastStudied': new Date() } }
+      )
+    }
+  } else {
+    await db.collection('users').updateOne(
+      { _id: toObjectId(user.id) },
+      { $push: { grimoireProgress: { setId: _id, progress: Math.min(100, progress), lastStudied: new Date() } } }
+    )
+  }
+
+  return c.json({ message: 'Progress updated' })
+})
+
 // Get a single set with all cards
 grimoire.get('/:id', async (c) => {
   const db  = await getDb(c)
@@ -58,7 +146,7 @@ grimoire.post('/', requireAuth, async (c) => {
   const { title, description, isPublic = true, cards = [] } = body
 
   if (!title) return c.json({ error: 'Title is required' }, 400)
-  if (!Array.isArray(cards) || cards.length === 0) return c.json({ error: 'At least one card is required' }, 400)
+  if (!Array.isArray(cards) || cards.length < 20) return c.json({ error: 'A Grimoire must have at least 20 cards to be created.' }, 400)
 
   const user = c.get('user')
   const doc  = createFlashcardSetDocument({
@@ -82,6 +170,10 @@ grimoire.put('/:id', requireAuth, async (c) => {
   if (String(set.creatorId) !== String(user.id)) return c.json({ error: 'Forbidden' }, 403)
 
   const { title, description, isPublic, cards } = await c.req.json()
+  // If caller passes cards array, enforce minimum
+  if (cards !== undefined && (!Array.isArray(cards) || cards.length < 20)) {
+    return c.json({ error: 'A Grimoire must have at least 20 cards.' }, 400)
+  }
   await db.collection('flashcard_sets').updateOne(
     { _id },
     { $set: { ...(title && { title }), ...(description !== undefined && { description }), ...(isPublic !== undefined && { isPublic }), ...(cards && { cards }), updatedAt: new Date() } },

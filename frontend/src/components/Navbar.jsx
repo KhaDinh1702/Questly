@@ -19,6 +19,12 @@ export default function Navbar() {
     else navigate('/login');
   }
 
+  function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  }
+
   return (
     <header className="bg-orange-50 border-b-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
       {/* Brand */}
@@ -66,6 +72,13 @@ export default function Navbar() {
                 title={user.username}
               >
                 account_circle
+              </button>
+              <button
+                onClick={handleLogout}
+                className="material-symbols-outlined text-yellow-900 p-2 active:translate-y-0.5 transition-transform hover:bg-error-container hover:text-error rounded-none ml-2"
+                title="Logout"
+              >
+                logout
               </button>
             </>
           ) : (

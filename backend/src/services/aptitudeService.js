@@ -17,22 +17,67 @@ import { addResources, useAptitudeTestSlot } from './userService'
  * @param {number} questionCount - default 10
  * @returns {{ ok, questions?, reason? }}
  */
-export async function startAptitudeTest(db, userId, questionCount = 10) {
-  // Check and consume a daily test slot
+export async function startAptitudeTest(db, userId, questionCount = 10, setId = null) {
+  // Check slot — always proceeds, rewardEligible flags whether rewards apply
   const slot = await useAptitudeTestSlot(db, userId)
-  if (!slot.ok) return slot
+  if (!slot.ok) return slot  // only fails if user not found
 
-  // Pull random cards from public flashcard sets
-  const cards = await db.collection('flashcard_sets')
-    .aggregate([
-      { $match: { isPublic: true } },
-      { $unwind: '$cards' },
-      { $sample: { size: questionCount } },
-      { $project: { term: '$cards.term', definition: '$cards.definition', setId: '$_id', _id: 0 } },
-    ])
-    .toArray()
+  const userObjectId = toObjectId(userId)
+  const dbUser = await db.collection('users').findOne({ _id: userObjectId })
+  const acquiredIds = dbUser?.acquiredGrimoires || []
 
-  return { ok: true, questions: cards, remainingTests: slot.remainingTests }
+  let cards = []
+
+  if (setId) {
+    const targetId = toObjectId(setId)
+    cards = await db.collection('flashcard_sets')
+      .aggregate([
+        { $match: { _id: targetId } },
+        { $unwind: '$cards' },
+        { $sample: { size: questionCount } },
+        { $project: { term: '$cards.term', definition: '$cards.definition', setId: '$_id', _id: 0 } },
+      ])
+      .toArray()
+  }
+
+  if (cards.length === 0) {
+    cards = await db.collection('flashcard_sets')
+      .aggregate([
+        { $match: { $or: [{ creatorId: userObjectId }, { _id: { $in: acquiredIds } }] } },
+        { $unwind: '$cards' },
+        { $sample: { size: questionCount } },
+        { $project: { term: '$cards.term', definition: '$cards.definition', setId: '$_id', _id: 0 } },
+      ])
+      .toArray()
+  }
+
+  if (cards.length === 0) {
+    cards = await db.collection('flashcard_sets')
+      .aggregate([
+        { $match: { isPublic: true } },
+        { $unwind: '$cards' },
+        { $sample: { size: questionCount } },
+        { $project: { term: '$cards.term', definition: '$cards.definition', setId: '$_id', _id: 0 } },
+      ])
+      .toArray()
+  }
+
+  // Generate options for each card
+  const allDefinitions = cards.map(c => c.definition)
+  const questions = cards.map(c => {
+    // Pick 3 random definitions from the pool (excluding the correct one)
+    const otherDefs = allDefinitions.filter(d => d !== c.definition)
+    const wrongAnswers = otherDefs.sort(() => 0.5 - Math.random()).slice(0, 3)
+    const options = [c.definition, ...wrongAnswers].sort(() => 0.5 - Math.random())
+    return {
+      term: c.term,
+      options,
+      correctOption: c.definition, // Kept here so client can easily validate. Should ideally be hidden in production.
+      setId: c.setId
+    }
+  })
+
+  return { ok: true, questions, rewardEligible: slot.rewardEligible, remainingTests: slot.remainingTests }
 }
 
 /**
@@ -45,41 +90,26 @@ export async function startAptitudeTest(db, userId, questionCount = 10) {
  * @param {boolean}  isMultiChoice     - toggles ticket sub-system
  * @returns {{ ok, moves, gold, tickets, totalScore }}
  */
-export async function submitAptitudeTest(db, userId, { totalQuestions, correctAnswers, isMultiChoice = false }) {
+export async function submitAptitudeTest(db, userId, { totalQuestions, correctAnswers, rewardEligible = true }) {
   if (totalQuestions <= 0) return { ok: false, reason: 'Invalid question count' }
 
   const correctPct = Math.round((correctAnswers / totalQuestions) * 100)
 
   let moves = 0, gold = 0, tickets = 0
 
-  if (isMultiChoice) {
-    // Ticket sub-system: earn tickets per question, convert to moves
-    tickets = calcTicketReward(correctPct)
+  if (rewardEligible) {
+    if (correctPct >= 50) {
+      moves = Math.floor(correctPct / 10)
+      const stepsAbove50 = Math.floor((correctPct - 50) / 10)
+      gold = 3 + (stepsAbove50 * 2)
+    }
+    if (correctPct === 100) tickets = 2
+    else if (correctPct >= 85) tickets = 1
 
-    // Fetch current ticket balance and convert
-    const user = await db.collection('users').findOne(
-      { _id: toObjectId(userId) },
-      { projection: { ticketCount: 1 } },
-    )
-    const totalTickets = (user?.ticketCount ?? 0) + tickets
-    const converted = convertTicketsToMoves(totalTickets)
-    moves = converted.moves
-
-    // Update ticket balance (reduce by used tickets)
-    const usedTickets = tickets - converted.remainingTickets + (user?.ticketCount ?? 0) - converted.remainingTickets
-    await addResources(db, userId, {
-      tickets: tickets - (totalTickets - converted.remainingTickets),
-      dungeonMoves: moves,
-    })
-  } else {
-    // Standard mode
-    const reward = calcAptitudeReward(correctPct)
-    moves = reward.moves
-    gold  = reward.gold
-    if (moves > 0 || gold > 0) {
-      await addResources(db, userId, { gold, dungeonMoves: moves })
+    if (moves > 0 || gold > 0 || tickets > 0) {
+      await addResources(db, userId, { gold, dungeonMoves: moves, tickets })
     }
   }
 
-  return { ok: true, correctPct, moves, gold, tickets }
+  return { ok: true, correctPct, moves, gold, tickets, rewardEligible }
 }

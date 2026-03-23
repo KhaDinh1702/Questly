@@ -18,15 +18,21 @@ export async function getDb(c) {
   // Deduplicate concurrent connection attempts
   if (!connecting) {
     connecting = (async () => {
-      client = new MongoClient(mongoUri, {
-        serverSelectionTimeoutMS: 15000,
-        connectTimeoutMS: 15000,
-        socketTimeoutMS: 45000,
-        maxPoolSize: 5,
-        minPoolSize: 1,
-      })
-      await client.connect()
-      connecting = null
+      try {
+        client = new MongoClient(mongoUri, {
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 5000,
+          socketTimeoutMS: 15000,
+          maxPoolSize: 5,
+          minPoolSize: 1,
+        })
+        await client.connect()
+      } catch (err) {
+        client = null
+        throw err
+      } finally {
+        connecting = null
+      }
     })()
   }
 

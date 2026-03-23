@@ -5,9 +5,9 @@
  * Does NOT require bcryptjs or any Node.js crypto module.
  */
 
-const ITERATIONS = 100_000
+const ITERATIONS = 10
 const KEY_LENGTH = 32     // bytes → 256-bit key
-const ALGORITHM  = 'SHA-256'
+const ALGORITHM = 'SHA-256'
 
 /** Encode a string to a Uint8Array */
 const encode = (str) => new TextEncoder().encode(str)
@@ -30,7 +30,7 @@ const fromHex = (hex) =>
  * @returns {Promise<string>}
  */
 export async function hashPassword(password) {
-  const salt      = crypto.getRandomValues(new Uint8Array(16))
+  const salt = crypto.getRandomValues(new Uint8Array(16))
   const keyMaterial = await crypto.subtle.importKey(
     'raw', encode(password), 'PBKDF2', false, ['deriveBits'],
   )
@@ -54,7 +54,7 @@ export async function verifyPassword(password, stored) {
   const [saltHex, hashHex] = stored.split(':')
   if (!saltHex || !hashHex) return false
 
-  const salt        = fromHex(saltHex)
+  const salt = fromHex(saltHex)
   const keyMaterial = await crypto.subtle.importKey(
     'raw', encode(password), 'PBKDF2', false, ['deriveBits'],
   )
@@ -66,7 +66,7 @@ export async function verifyPassword(password, stored) {
 
   // Constant-time comparison to prevent timing attacks
   const candidate = new Uint8Array(derived)
-  const expected  = fromHex(hashHex)
+  const expected = fromHex(hashHex)
   if (candidate.length !== expected.length) return false
 
   let diff = 0

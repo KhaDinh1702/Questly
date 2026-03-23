@@ -65,7 +65,7 @@ export async function addResources(db, userId, { gold = 0, dungeonMoves = 0, tic
   await db.collection('users').updateOne({ _id }, { $inc: inc, $set: { updatedAt: new Date() } })
 }
 
-/** Increment aptitude test count; returns false if quota reached */
+/** Increment aptitude test count; always allows the test but returns rewardEligible=false when over limit */
 export async function useAptitudeTestSlot(db, userId) {
   const col = db.collection('users')
   const _id = toObjectId(userId)
@@ -77,12 +77,18 @@ export async function useAptitudeTestSlot(db, userId) {
   const isPremium = user.subscriptionTier !== SUBSCRIPTION_TIERS.FREE
   const limit = isPremium ? DAILY_LIMITS.APTITUDE_TESTS_PREMIUM : DAILY_LIMITS.APTITUDE_TESTS_FREE
 
-  if (user.daily.aptitudeTestsTaken >= limit) {
-    return { ok: false, reason: `Daily limit of ${limit} aptitude tests reached` }
-  }
+  const aptitudeTestsTaken = user.daily?.aptitudeTestsTaken ?? 0
+  const rewardEligible = aptitudeTestsTaken < limit
 
+  // Always increment the counter (tracks all attempts)
   await col.updateOne({ _id }, { $inc: { 'daily.aptitudeTestsTaken': 1 } })
-  return { ok: true, remainingTests: limit - user.daily.aptitudeTestsTaken - 1 }
+
+  return {
+    ok: true,
+    rewardEligible,
+    remainingTests: Math.max(0, limit - aptitudeTestsTaken - 1),
+    limit,
+  }
 }
 
 /** Equip an item — validates slot compatibility before updating */

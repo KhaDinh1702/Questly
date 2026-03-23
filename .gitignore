@@ -5,9 +5,7 @@ node_modules/
 npm-debug.log*
 
 # Environment variables (NEVER commit secrets!)
-.env
-.env.local
-.env.production
+
 
 # Wrangler (Cloudflare Workers)
 .wrangler/

@@ -102,6 +102,11 @@ export function createUserDocument({
     // ── Community ─────────────────────────────────────────────
     guildId: null,
 
+    // ── Grimoire / Learning ───────────────────────────────────
+    acquiredGrimoires: [],          // [ObjectId] of sets acquired from others
+    grimoireProgress: [],           // [{ setId: ObjectId, progress: Number, lastStudied: Date }]
+
+
     // ── Leaderboard ───────────────────────────────────────────
     totalScore: 0,           // sum of exp or a separate score
 
