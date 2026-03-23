@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { authApi } from '../../services/api';
+import Navbar from '../../components/Navbar';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -9,18 +10,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await axios.post(`${apiUrl}/api/auth/login`, {
-        username,
-        password,
-      });
+      const response = await authApi.login({ username, password });
 
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
@@ -35,8 +31,9 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-stone-900 font-body text-on-surface m-0 p-0 min-h-screen flex items-center justify-center stone-wall overflow-hidden">
-      <main className="relative z-10 w-full max-w-lg px-4 flex justify-center">
+    <div className="bg-stone-900 font-body text-on-surface m-0 p-0 min-h-screen flex flex-col stone-wall overflow-hidden">
+      <Navbar />
+      <main className="relative z-10 w-full max-w-lg px-4 flex justify-center mx-auto mt-12">
         <div className="relative w-full parchment-texture p-12 parchment-shadow border-x-[12px] border-surface-container-highest">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-tertiary rounded-full shadow-inner flex items-center justify-center border-2 border-stone-800">
             <div className="w-1 h-1 bg-stone-400 rounded-full"></div>

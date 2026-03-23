@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { authApi } from '../../services/api';
+import Navbar from '../../components/Navbar';
 
 const Register = () => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -12,8 +14,6 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,12 +34,7 @@ const Register = () => {
     }
 
     try {
-      // Backend uses 'username' as the unique identifier, so we map 'email' to 'username'
-      await axios.post(`${apiUrl}/api/auth/register`, {
-        username: email,
-        password,
-        fullName, // Optional: backend doesn't store this yet but it's good practice
-      });
+      await authApi.register({ username, email, fullName, password });
 
       setSuccess('Ghi danh thành công! Đang chuyển hướng tới Tavern...');
       setTimeout(() => {
@@ -55,19 +50,7 @@ const Register = () => {
   return (
     <div className="bg-surface-dim font-body text-on-surface min-h-screen flex flex-col">
       {/* TopAppBar */}
-      <header className="bg-amber-900 dark:bg-stone-900 border-b-4 border-amber-950 dark:border-black shadow-[0_4px_0_0_rgba(0,0,0,0.3)] flex justify-between items-center w-full px-6 py-4 mx-auto sticky top-0 z-50">
-        <div className="text-2xl font-black text-yellow-500 dark:text-yellow-400 drop-shadow-sm font-headline uppercase tracking-wide">
-          Crest & Chronicle
-        </div>
-        <div className="flex gap-4">
-          <Link
-            className="font-headline font-bold uppercase tracking-wide text-sm text-yellow-100/80 hover:text-yellow-200 transition-colors duration-150 active:translate-y-0.5"
-            to="/login"
-          >
-            Login
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="flex-grow flex items-center justify-center p-4 sm:p-8 parchment-texture relative">
         {/* Background Imagery Decor */}
@@ -113,9 +96,9 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Grid for Name/Email */}
+            {/* Grid for Name/Username/Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Name Field */}
+              {/* Full Name Field */}
               <div className="relative group">
                 <label className="block font-headline font-bold text-primary uppercase tracking-widest text-xs mb-1" htmlFor="name">
                   Full Name
@@ -131,22 +114,38 @@ const Register = () => {
                   onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
-              {/* Email Field */}
+              {/* Username Field */}
               <div className="relative group">
-                <label className="block font-headline font-bold text-primary uppercase tracking-widest text-xs mb-1" htmlFor="email">
-                  Coded Address (Email)
+                <label className="block font-headline font-bold text-primary uppercase tracking-widest text-xs mb-1" htmlFor="username">
+                  Username
                 </label>
                 <input
                   className="w-full bg-transparent border-0 border-b-2 border-outline focus:ring-0 focus:border-primary-container transition-colors py-2 px-0 font-body text-lg placeholder:text-outline-variant placeholder:italic outline-none"
-                  id="email"
-                  name="email"
-                  placeholder="scribe@realm.com"
-                  type="email"
+                  id="username"
+                  name="username"
+                  placeholder="knightOfRealm"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Email row */}
+            <div>
+              <label className="block font-headline font-bold text-primary uppercase tracking-widest text-xs mb-1" htmlFor="email">
+                Coded Address (Email)
+              </label>
+              <input
+                className="w-full bg-transparent border-0 border-b-2 border-outline focus:ring-0 focus:border-primary-container transition-colors py-2 px-0 font-body text-lg placeholder:text-outline-variant placeholder:italic outline-none"
+                id="email"
+                name="email"
+                placeholder="scribe@realm.com"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
 
             {/* Password Row */}

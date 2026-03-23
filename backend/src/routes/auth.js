@@ -1,27 +1,36 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
-import bcrypt from 'bcryptjs'
 import { getDb } from '../db'
+import { getJwtSecret } from '../config/env'
+import { hashPassword, verifyPassword } from '../helpers/crypto'
 
 const auth = new Hono()
 
 auth.post('/register', async (c) => {
   try {
     const { username, password } = await c.req.json()
-    if (!username || !password) return c.json({ error: 'Vui lòng nhập tài khoản và mật khẩu' }, 400)
+    if (!username || !password) {
+      return c.json({ error: 'Vui lòng nhập tài khoản và mật khẩu' }, 400)
+    }
 
-    const db = await getDb(c.env.MONGODB_URI)
+    const db    = await getDb(c)
     const users = db.collection('users')
 
     const existing = await users.findOne({ username })
     if (existing) return c.json({ error: 'Tài khoản đã tồn tại' }, 400)
 
-    const salt = bcrypt.genSaltSync(10)
-    const hashedPassword = bcrypt.hashSync(password, salt)
+    const hashedPassword = await hashPassword(password)
 
-    await users.insertOne({ username, password: hashedPassword, createdAt: new Date() })
+    await users.insertOne({
+      username,
+      password: hashedPassword,
+      role: 'user',
+      createdAt: new Date(),
+    })
+
     return c.json({ message: 'Đăng ký thành công' }, 201)
   } catch (error) {
+    console.error('[register]', error)
     return c.json({ error: error.message }, 500)
   }
 })
@@ -29,26 +38,36 @@ auth.post('/register', async (c) => {
 auth.post('/login', async (c) => {
   try {
     const { username, password } = await c.req.json()
-    if (!username || !password) return c.json({ error: 'Vui lòng nhập tài khoản và mật khẩu' }, 400)
+    if (!username || !password) {
+      return c.json({ error: 'Vui lòng nhập tài khoản và mật khẩu' }, 400)
+    }
 
-    const db = await getDb(c.env.MONGODB_URI)
+    const db    = await getDb(c)
     const users = db.collection('users')
 
     const user = await users.findOne({ username })
     if (!user) return c.json({ error: 'Sai tài khoản hoặc mật khẩu' }, 400)
 
-    const isMatch = bcrypt.compareSync(password, user.password)
+    const isMatch = await verifyPassword(password, user.password)
     if (!isMatch) return c.json({ error: 'Sai tài khoản hoặc mật khẩu' }, 400)
 
-    const secret = c.env.JWT_SECRET || 'questly-secret-key-123'
+    const secret = getJwtSecret(c)
+    if (!secret) return c.json({ error: 'Server misconfigured: JWT_SECRET missing' }, 500)
+
     const token = await sign({
-      id: user._id,
+      id:       user._id.toString(),
       username: user.username,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24
+      role:     user.role ?? 'user',
+      exp:      Math.floor(Date.now() / 1000) + 60 * 60 * 24,
     }, secret)
 
-    return c.json({ message: 'Đăng nhập thành công', token, user: { username: user.username } })
+    return c.json({
+      message: 'Đăng nhập thành công',
+      token,
+      user: { id: user._id, username: user.username, role: user.role },
+    })
   } catch (error) {
+    console.error('[login]', error)
     return c.json({ error: error.message }, 500)
   }
 })
