@@ -20,12 +20,11 @@ const app = new Hono()
 // All secrets are read from c.env (Cloudflare Workers secrets).
 // DO NOT hardcode MONGODB_URI, JWT_SECRET, or any sensitive value here.
 app.use('*', async (c, next) => {
-  const isDev = (c.env.NODE_ENV ?? 'production') === 'development'
   const corsMiddleware = cors({
     origin: (origin) => {
-      // Allow any localhost port in development for easy local testing
-      if (isDev && origin?.startsWith('http://localhost')) return origin
-      if (isDev && origin?.startsWith('http://127.0.0.1'))  return origin
+      // Allow any localhost port for easy local testing
+      if (origin?.startsWith('http://localhost')) return origin
+      if (origin?.startsWith('http://127.0.0.1'))  return origin
       // Production allowed origins
       if (origin === 'https://questly.pages.dev') return origin
       if (origin?.endsWith('.questly.pages.dev'))  return origin
@@ -39,7 +38,7 @@ app.use('*', async (c, next) => {
 })
 
 // ── Global rate limit: 60 requests/minute per IP ──────────────
-app.use('*', createRateLimiter({ windowMs: 60_000, max: 60 }))
+app.use('*', createRateLimiter({ windowMs: 60_000, max: 2000 }))
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/api/health', (c) =>
@@ -61,4 +60,15 @@ app.notFound((c) => c.json({ error: 'Not Found' }, 404))
 // ── Global error handler ─────────────────────────────────────
 app.onError(errorHandler)
 
-export default app
+import { serve } from '@hono/node-server'
+import 'dotenv/config'
+
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8787
+
+serve({
+  fetch: app.fetch,
+  port: port
+}, (info) => {
+  console.log(`[SUCCESS] The Questly server has booted locally on http://127.0.0.1:${info.port}`)
+  console.log(`[SUCCESS] Cloudflare Workers emulation has been permanently disabled. Welcome to zero-lag!`)
+})

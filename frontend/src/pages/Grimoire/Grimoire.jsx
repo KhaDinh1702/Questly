@@ -1,25 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import api from '../../services/api';
 
 // ── Sub-components ───────────────────────────────────────────
 
-function HudBar({ steps, gold }) {
+function HudBar() {
+  const [stats, setStats] = useState({ steps: 0, gold: 0, tickets: 0 });
+
+  useEffect(() => {
+    // Attempt rapid optimistic load from cache
+    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (cachedUser.dungeonMoves !== undefined) {
+      setStats({ steps: cachedUser.dungeonMoves || 0, gold: cachedUser.gold || 0, tickets: cachedUser.ticketCount || 0 });
+    }
+    
+    // Fetch live ground truth
+    api.get('/api/users/me').then(res => {
+      const user = res.data;
+      setStats({ steps: user.dungeonMoves || 0, gold: user.gold || 0, tickets: user.ticketCount || 0 });
+      // Sync cache
+      localStorage.setItem('user', JSON.stringify({ ...cachedUser, ...user }));
+    }).catch(err => console.error("HUD sync failed:", err));
+  }, []);
+
   return (
     <div className="w-full bg-stone-950 px-6 py-3 flex justify-center gap-12 border-b-2 border-stone-800">
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
         <div className="flex flex-col">
           <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Steps</span>
-          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{steps.toLocaleString()}</span>
+          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.steps.toLocaleString()}</span>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>generating_tokens</span>
         <div className="flex flex-col">
           <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Gold</span>
-          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{gold.toLocaleString()}</span>
+          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.gold.toLocaleString()}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>confirmation_number</span>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Tickets</span>
+          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.tickets.toLocaleString()}</span>
         </div>
       </div>
     </div>
@@ -28,7 +53,17 @@ function HudBar({ steps, gold }) {
 
 function MyDeckCard({ set, onStudy, featured }) {
   const cardCount = set.cards?.length ?? set.cardCount ?? 0;
-  const progress  = set.progress ?? null;
+  const progress  = set.progress ?? 0;
+
+  // Determine status
+  let statusLabel, statusColor, btnLabel;
+  if (progress === 0) {
+    statusLabel = 'Not Started'; statusColor = 'text-stone-500'; btnLabel = 'Study';
+  } else if (progress < 100) {
+    statusLabel = `${progress}% Mastered`; statusColor = 'text-yellow-400'; btnLabel = 'Continue';
+  } else {
+    statusLabel = '100% Mastered'; statusColor = 'text-tertiary'; btnLabel = 'Review';
+  }
 
   if (featured) {
     return (
@@ -39,43 +74,48 @@ function MyDeckCard({ set, onStudy, featured }) {
         <div className="mb-6 relative z-10">
           <span className="text-xs font-bold uppercase text-primary tracking-widest mb-1 block">Mastery Track</span>
           <h3 className="font-headline text-2xl font-black text-on-surface">{set.title}</h3>
-          {progress !== null && (
-            <>
-              <div className="w-full bg-surface-variant h-2 mt-4 border border-outline/30">
-                <div className="bg-primary h-full" style={{ width: `${progress}%` }} />
-              </div>
-              <p className="text-xs text-on-surface-variant mt-2 italic">{progress}% of the Fortress Lexicon mastered.</p>
-            </>
-          )}
+          <div className="w-full bg-surface-variant h-2 mt-4 border border-outline/30">
+            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          </div>
+          <p className={`text-xs mt-2 italic font-bold ${statusColor}`}>{statusLabel}</p>
         </div>
         <div className="flex items-center justify-between mt-8 relative z-10">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold text-outline tracking-tighter">Capacity</span>
             <span className="font-bold text-on-surface">{cardCount} Scrolls</span>
           </div>
-          <button onClick={() => onStudy(set)} className="bg-primary text-on-primary px-8 py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">Continue</button>
+          <button onClick={() => onStudy(set)} className="bg-primary text-on-primary px-8 py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.4)] relative border border-outline/20">
+    <div className="bg-surface p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.4)] relative border border-outline/20 flex flex-col">
       <div className="absolute -top-2 -right-2 bg-primary w-10 h-10 flex items-center justify-center text-on-primary shadow-md">
         <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_stories</span>
       </div>
-      <div className="mb-6">
+      <div className="mb-4 flex-grow">
         <span className="text-xs font-bold uppercase text-outline tracking-widest mb-1 block">{set.description || 'Flashcard Set'}</span>
         <h3 className="font-headline text-2xl font-black text-on-surface">{set.title}</h3>
         <p className="text-sm text-on-surface-variant mt-2 line-clamp-2 italic">{set.description}</p>
       </div>
-      <div className="flex items-center justify-between mt-auto">
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-outline tracking-tighter">Capacity</span>
-          <span className="font-bold text-on-surface">{cardCount} Scrolls</span>
+
+      {/* Progress bar */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${statusColor}`}>{statusLabel}</span>
+          <span className="text-[10px] font-bold text-stone-500">{cardCount} Scrolls</span>
         </div>
-        <button onClick={() => onStudy(set)} className="bg-primary text-on-primary px-6 py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">Study</button>
+        <div className="w-full bg-stone-800 h-1.5">
+          <div
+            className={`h-full transition-all duration-500 ${progress === 100 ? 'bg-tertiary' : 'bg-primary'}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
+
+      <button onClick={() => onStudy(set)} className="w-full bg-primary text-on-primary py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
     </div>
   );
 }
@@ -108,7 +148,7 @@ function CreateModal({ onClose, onCreate }) {
   const [title, setTitle]       = useState('');
   const [desc, setDesc]         = useState('');
   const [isPublic, setIsPublic] = useState(true);
-  const [cards, setCards]       = useState([{ term: '', definition: '' }]);
+  const [cards, setCards]       = useState(Array.from({ length: 20 }, () => ({ term: '', definition: '' })));
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
@@ -126,7 +166,7 @@ function CreateModal({ onClose, onCreate }) {
     }
     if (!title.trim()) return setError('Title is required');
     const validCards = cards.filter(c => c.term.trim() && c.definition.trim());
-    if (validCards.length === 0) return setError('At least one complete card is required');
+    if (validCards.length < 20) return setError(`At least 20 complete cards are required (you have ${validCards.length}).`);
     setLoading(true);
     try {
       await api.post('/api/grimoire', { title, description: desc, isPublic, cards: validCards });
@@ -168,7 +208,18 @@ function CreateModal({ onClose, onCreate }) {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold uppercase text-outline tracking-widest">Scrolls (Cards)</label>
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-bold uppercase text-outline tracking-widest">Scrolls (Cards)</label>
+                {(() => {
+                  const filled = cards.filter(c => c.term.trim() && c.definition.trim()).length;
+                  const ok = filled >= 20;
+                  return (
+                    <span className={`text-xs font-bold px-2 py-0.5 ${ok ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-stone-700 text-yellow-400'}`}>
+                      {filled} / 20 {!ok && '⚠'}
+                    </span>
+                  );
+                })()}
+              </div>
               <button type="button" onClick={addCard} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:opacity-70">
                 <span className="material-symbols-outlined text-sm">add</span> Add Card
               </button>
@@ -206,41 +257,56 @@ const DEMO_PUBLIC = [
 
 // ── Page ─────────────────────────────────────────────────────
 export default function Grimoire() {
-  const [mySets,     setMySets]     = useState(DEMO_MY_SETS);
-  const [publicSets, setPublicSets] = useState(DEMO_PUBLIC);
+  const [mySets,     setMySets]     = useState([]);
+  const [publicSets, setPublicSets] = useState([]);
   const [filter,     setFilter]     = useState('popular');
   const [showModal,  setShowModal]  = useState(false);
   const [loading,    setLoading]    = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const navigate = useNavigate();
 
   useEffect(() => { fetchSets(); }, []);
 
   async function fetchSets() {
     setLoading(true);
+    
+    // Fetch user sets independently
+    if (user) {
+      try {
+        const myRes = await api.get('/api/grimoire/my');
+        setMySets(myRes.data.sets || []);
+      } catch (err) {
+        console.error("Failed to load personal sets", err);
+      }
+    }
+    
+    // Fetch public sets independently
     try {
       const res = await api.get('/api/grimoire?limit=50');
       if (res.data.sets?.length > 0) {
-        const all = res.data.sets;
-        // Split: mine vs public others
-        const mine   = all.filter(s => user && String(s.creatorId) === String(user._id));
-        const others = all.filter(s => !user || String(s.creatorId) !== String(user._id));
-        if (mine.length > 0)   setMySets(mine);
-        if (others.length > 0) setPublicSets(others);
+        // Only show public sets not created by the current user
+        const others = res.data.sets.filter(s => !user || String(s.creatorId) !== String(user._id));
+        setPublicSets(others);
       }
-    } catch {
-      // backend not reachable — keep demo data
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) {
+      console.error("Failed to load realm knowledge", err);
+    } 
+    
+    setLoading(false);
   }
 
   function handleStudy(set) {
-    // Navigate to study view (future page)
-    alert(`Study mode for "${set.title}" coming soon!`);
+    navigate(`/grimoire/${set._id}/study`);
   }
 
-  function handleAcquire(set) {
-    alert(`"${set.title}" added to your Grimoire!`);
+  async function handleAcquire(set) {
+    if (!user) return alert('You must log in to acquire scrolls.');
+    try {
+      await api.post(`/api/grimoire/${set._id}/acquire`);
+      fetchSets();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to acquire.');
+    }
   }
 
   const filteredPublic = filter === 'legendary'
@@ -250,7 +316,7 @@ export default function Grimoire() {
   return (
     <div className="bg-stone-900 font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
       <Navbar />
-      <HudBar steps={12480} gold={2150} />
+      <HudBar />
 
       <main className="max-w-7xl mx-auto px-6 py-12 w-full">
         {/* Page header */}

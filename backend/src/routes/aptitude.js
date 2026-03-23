@@ -12,15 +12,16 @@ import { startAptitudeTest, submitAptitudeTest } from '../services/aptitudeServi
 
 const aptitude = new Hono()
 
-// Prevent spamming the test endpoint (max 10 starts per minute per IP)
-const startLimiter = createRateLimiter({ windowMs: 60_000, max: 10 })
+// Prevent spamming the test endpoint
+const startLimiter = createRateLimiter({ windowMs: 60_000, max: 100 })
 
 aptitude.post('/start', requireAuth, startLimiter, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')
   const questionCount = Math.min(20, parseInt(c.req.query('count') ?? '10'))
+  const setId = c.req.query('setId') ?? null
 
-  const result = await startAptitudeTest(db, user.id, questionCount)
+  const result = await startAptitudeTest(db, user.id, questionCount, setId)
   if (!result.ok) return c.json({ error: result.reason }, 400)
 
   return c.json(result)
@@ -31,13 +32,13 @@ aptitude.post('/submit', requireAuth, async (c) => {
   const user = c.get('user')
   const body = await c.req.json()
 
-  const { totalQuestions, correctAnswers, isMultiChoice = false } = body
+  const { totalQuestions, correctAnswers, rewardEligible = true } = body
   if (typeof totalQuestions !== 'number' || typeof correctAnswers !== 'number') {
     return c.json({ error: 'totalQuestions and correctAnswers must be numbers' }, 400)
   }
   if (correctAnswers > totalQuestions) return c.json({ error: 'correctAnswers cannot exceed totalQuestions' }, 400)
 
-  const result = await submitAptitudeTest(db, user.id, { totalQuestions, correctAnswers, isMultiChoice })
+  const result = await submitAptitudeTest(db, user.id, { totalQuestions, correctAnswers, rewardEligible })
   if (!result.ok) return c.json({ error: result.reason }, 400)
 
   return c.json(result)
