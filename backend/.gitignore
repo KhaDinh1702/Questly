@@ -1,0 +1,21 @@
+# ── Secrets & environment ─────────────────────────
+# Local secrets file for Cloudflare Wrangler (never commit!)
+.dev.vars
+
+# Environment files — NEVER commit these!
+.env
+.env.local
+.env.*.local
+
+# ── Dependencies ──────────────────────────────────
+node_modules/
+
+# ── Build / wrangler output ───────────────────────
+.wrangler/
+dist/
+
+# ── OS & Editor ──────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -21,58 +22,9 @@ const Home = () => {
 
   return (
     <div className="bg-surface-dim font-body text-on-surface">
-      {/* TopAppBar */}
-      <header className="bg-amber-900 dark:bg-stone-900 flex justify-between items-center w-full px-6 py-4 mx-auto fixed top-0 z-50 border-b-4 border-amber-950 dark:border-black shadow-[0_4px_0_0_rgba(0,0,0,0.3)]">
-        <div className="flex items-center gap-4">
-          <span className="text-2xl font-black text-yellow-500 dark:text-yellow-400 drop-shadow-sm font-headline uppercase tracking-wide">
-            Crest & Chronicle
-          </span>
-        </div>
-        <nav className="hidden md:flex space-x-8">
-          <a
-            className="text-yellow-400 border-b-2 border-yellow-400 pb-1 font-serif font-bold uppercase tracking-wide text-lg hover:bg-amber-800 transition-colors duration-150 active:translate-y-0.5 active:shadow-none"
-            href="#"
-          >
-            Quest Board
-          </a>
-          <a
-            className="text-yellow-100/80 hover:text-yellow-200 font-serif font-bold uppercase tracking-wide text-lg hover:bg-amber-800 transition-colors duration-150 active:translate-y-0.5 active:shadow-none"
-            href="#"
-          >
-            Market
-          </a>
-          <a
-            className="text-yellow-100/80 hover:text-yellow-200 font-serif font-bold uppercase tracking-wide text-lg hover:bg-amber-800 transition-colors duration-150 active:translate-y-0.5 active:shadow-none"
-            href="#"
-          >
-            Tavern
-          </a>
-        </nav>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <>
-              <span className="text-yellow-100 font-serif italic">Welcome, {user.username}</span>
-              <button 
-                onClick={handleLogout}
-                className="bg-primary text-on-primary font-serif font-bold uppercase tracking-wide text-lg px-6 py-2 border-2 border-yellow-600 shadow-[2px_2px_0_0_#483200] active:translate-y-0.5 active:shadow-none transition-all"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="text-yellow-100/80 hover:text-yellow-200 font-serif font-bold uppercase tracking-wide text-lg px-4 py-1 hover:bg-amber-800 transition-all active:translate-y-0.5">
-                Login
-              </Link>
-              <Link to="/register" className="bg-primary text-on-primary font-serif font-bold uppercase tracking-wide text-lg px-6 py-2 border-2 border-yellow-600 shadow-[2px_2px_0_0_#483200] active:translate-y-0.5 active:shadow-none transition-all">
-                Register
-              </Link>
-            </>
-          )}
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="pt-24 min-h-screen">
+      <main className="min-h-screen">
         {/* Hero Section: The Living Artifact */}
         <section className="relative w-full max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="z-10 bg-surface p-12 shadow-[8px_8px_0_0_#ebe2c8] border-2 border-outline-variant relative overflow-hidden">
