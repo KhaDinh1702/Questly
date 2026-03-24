@@ -32,7 +32,7 @@ export default function Navbar() {
         to="/"
         className="text-2xl font-black text-yellow-900 font-serif uppercase tracking-widest hover:opacity-80 transition-opacity"
       >
-        The Chronicler's Ledger
+        Questly
       </Link>
 
       {/* Desktop nav */}

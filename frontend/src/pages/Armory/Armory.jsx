@@ -7,7 +7,7 @@ const CLASS_ORDER = ['warrior', 'rogue', 'mage'];
 
 const CLASS_LABEL = {
   warrior: 'WARRIOR',
-  rogue: 'ROUGE',
+  rogue: 'ROGUE',
   mage: 'MAGE',
 };
 
@@ -39,6 +39,7 @@ export default function Armory() {
   const [confirmedClass, setConfirmedClass] = useState('warrior');
   const [level, setLevel] = useState(1);
   const [exp, setExp] = useState(0);
+  const [gold, setGold] = useState(0);
   const [inventory, setInventory] = useState([]);
   const [equipped, setEquipped] = useState({});
   const [loading, setLoading] = useState(true);
@@ -58,6 +59,7 @@ export default function Armory() {
     const me = meRes.data ?? {};
     setEquipped(me.equipped ?? {});
     setInventory(invRes.data ?? []);
+    setGold(me.gold ?? 0);
   }
 
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function Armory() {
         setConfirmedClass(profileClass);
         setLevel(Math.max(1, me.level ?? 1));
         setExp(Math.max(0, me.experience ?? 0));
+        setGold(me.gold ?? 0);
         setEquipped(me.equipped ?? {});
         setInventory(invRes.data ?? []);
       } catch (e) {
@@ -136,10 +139,13 @@ export default function Armory() {
       return;
     }
     try {
-      await userApi.confirmClass(selectedClass);
+      const res = await userApi.confirmClass(selectedClass);
       await userApi.updateClass(selectedClass);
       setConfirmedClass(selectedClass);
-      setClassMsg(`Class confirmed: ${CLASS_LABEL[selectedClass]}`);
+      if (res.data?.gold !== undefined) {
+        setGold(res.data.gold);
+      }
+      setClassMsg(res.data?.message ?? `Class confirmed: ${CLASS_LABEL[selectedClass]}`);
     } catch (e) {
       setClassMsg(e.response?.data?.error ?? 'Failed to confirm class.');
     }
@@ -273,9 +279,16 @@ export default function Armory() {
                 >
                   {selectedClass !== confirmedClass ? 'Confirm New Class' : 'Class Confirmed'}
                 </button>
-                <span className="text-xs font-bold text-outline">
-                  Current: {CLASS_LABEL[confirmedClass]}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-outline">
+                    Current: {CLASS_LABEL[confirmedClass]}
+                  </span>
+                  {selectedClass !== confirmedClass && (
+                    <span className="text-[10px] font-black text-primary-container animate-pulse">
+                      CHANGE COST: 1,000G
+                    </span>
+                  )}
+                </div>
               </div>
               {classMsg && <p className="text-xs font-bold text-primary mt-2">{classMsg}</p>}
               
@@ -328,6 +341,10 @@ export default function Armory() {
               <div className="flex justify-between items-center border-b border-outline-variant py-1">
                 <span className="text-sm font-bold uppercase">MR</span>
                 <span className="font-headline font-bold">{totalStats.mr}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 mt-2 bg-yellow-900/10 px-2 border border-yellow-900/20">
+                <span className="text-sm font-bold uppercase text-yellow-900">Current Gold</span>
+                <span className="font-headline font-bold text-yellow-800">{gold.toLocaleString()}G</span>
               </div>
             </div>
           </div>

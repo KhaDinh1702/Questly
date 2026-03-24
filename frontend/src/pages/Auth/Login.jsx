@@ -41,7 +41,7 @@ const Login = () => {
 
           <div className="text-center mb-10">
             <h1 className="font-headline font-extrabold text-4xl uppercase tracking-tighter text-primary mb-2">
-              Crest & Chronicle
+              Questly
             </h1>
             <div className="w-24 h-0.5 bg-outline-variant mx-auto mb-6"></div>
             <h2 className="font-headline text-2xl text-on-surface-variant italic">Seeker's Admittance</h2>
@@ -145,7 +145,7 @@ const Login = () => {
       </main>
 
       <footer className="fixed bottom-0 w-full bg-stone-900/80 backdrop-blur-sm border-t-2 border-amber-950 py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-stone-500 font-serif text-xs italic">
-        <div>© 1242 The Chronicler’s Ledger. All rights reserved.</div>
+        <div>© 1242 Questly. All rights reserved.</div>
         <div className="flex gap-6">
           <a className="hover:text-amber-500 transition-colors" href="#">Terms of Service</a>
           <a className="hover:text-amber-500 transition-colors" href="#">Privacy Policy</a>
