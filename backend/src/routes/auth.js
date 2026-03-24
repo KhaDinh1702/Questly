@@ -21,14 +21,26 @@ auth.post('/register', async (c) => {
 
     const hashedPassword = await hashPassword(password)
 
-    await users.insertOne({
+    const { insertedId } = await users.insertOne({
       username,
       password: hashedPassword,
       role: 'user',
       createdAt: new Date(),
     })
 
-    return c.json({ message: 'Đăng ký thành công' }, 201)
+    const secret = getJwtSecret(c)
+    const token = await sign({
+      id:       insertedId.toString(),
+      username,
+      role:     'user',
+      exp:      Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    }, secret)
+
+    return c.json({
+      message: 'Đăng ký thành công',
+      token,
+      user: { id: insertedId, username, role: 'user' },
+    }, 201)
   } catch (error) {
     console.error('[register]', error)
     return c.json({ error: error.message }, 500)

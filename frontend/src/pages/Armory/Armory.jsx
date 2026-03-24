@@ -140,7 +140,6 @@ export default function Armory() {
     }
     try {
       const res = await userApi.confirmClass(selectedClass);
-      await userApi.updateClass(selectedClass);
       setConfirmedClass(selectedClass);
       if (res.data?.gold !== undefined) {
         setGold(res.data.gold);

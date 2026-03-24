@@ -5,6 +5,7 @@ import Register from './pages/Auth/Register'
 import Dungeon from './pages/Dungeon/Dungeon'
 import Grimoire from './pages/Grimoire/Grimoire'
 import Armory from './pages/Armory/Armory'
+import CharacterSelection from './pages/Auth/CharacterSelection'
 
 import GrimoireStudy from './pages/Grimoire/GrimoireStudy'
 import Aptitude from './pages/Aptitude/Aptitude'
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/character-selection" element={<CharacterSelection />} />
         <Route path="/dungeon" element={<Dungeon />} />
         <Route path="/grimoire" element={<Grimoire />} />
         <Route path="/grimoire/:id/study" element={<GrimoireStudy />} />
