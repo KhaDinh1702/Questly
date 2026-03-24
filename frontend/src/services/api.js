@@ -28,3 +28,17 @@ export const authApi = {
   login: (data) => api.post('/api/auth/login', data),
   logout: () => api.post('/api/auth/logout'),
 }
+
+export const dungeonApi = {
+  start: (floor) => api.post('/api/dungeon/start', { floor }),
+  getActive: () => api.get('/api/dungeon/active'),
+  getLevel: () => api.get('/api/dungeon/level'),
+  move: (direction) => api.post('/api/dungeon/move', { direction }),
+  combatStart: () => api.post('/api/dungeon/combat/start'),
+  combatAction: (action) => api.post('/api/dungeon/combat/action', { action }),
+  openChest: () => api.post('/api/dungeon/chest/open'),
+  visitShop: () => api.post('/api/dungeon/shop/visit'),
+  nextFloor: () => api.post('/api/dungeon/next-floor'),
+  end: (status) => api.post('/api/dungeon/end', { status }),
+}
+

@@ -44,8 +44,15 @@ export const APTITUDE_REWARDS = {
 
 // ---- Dungeon ----
 export const DUNGEON = {
-  GRID_SIZE: 5,                // 5×5
-  BOSS_FLOOR: 5,               // big boss spawns here
+  GRID_SIZE: 5,                // 5×5 grid
+  TOTAL_FLOORS: 3,             // 3 dungeon floors
+  BOSS_FLOOR: 3,               // big boss on floor 3
+  SHOP_EVERY_N_FLOORS: 2,      // shop spawns on floors 2, 4, ...
+  BOSS_LEVEL_BONUS: 2,         // boss level = player level + 2
+  DEATH_GOLD_PENALTY: 0.10,    // 10% gold lost on death
+  MINION_COUNT_MIN: 1,         // min regular monsters per floor
+  MINION_COUNT_MAX: 2,         // max regular monsters per floor
+  CHEST_COUNT: 1,              // chests per floor
 }
 
 // ---- Equipment rarities ----
