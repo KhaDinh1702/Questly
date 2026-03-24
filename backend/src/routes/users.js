@@ -44,23 +44,9 @@ users.put('/me/character', requireAuth, async (c) => {
   return c.json({ message: 'Character updated' })
 })
 
-users.put('/me/class', requireAuth, async (c) => {
-  const db = await getDb(c)
-  const user = c.get('user')
-  const { selectedClass } = await c.req.json()
+// Removed the free /me/class route to prevent bypass of class change cost.
+// Use /me/class/confirm instead.
 
-  const allowedClasses = ['warrior', 'rogue', 'mage']
-  if (!allowedClasses.includes(selectedClass)) {
-    return c.json({ error: 'Invalid class selection' }, 400)
-  }
-
-  await db.collection('users').updateOne(
-    { _id: toObjectId(user.id) },
-    { $set: { class: selectedClass, updatedAt: new Date() } },
-  )
-
-  return c.json({ message: 'Class updated', class: selectedClass })
-})
 
 users.put('/me/class/confirm', requireAuth, async (c) => {
   const db = await getDb(c)
@@ -75,11 +61,16 @@ users.put('/me/class/confirm', requireAuth, async (c) => {
   const userDoc = await db.collection('users').findOne({ _id: toObjectId(user.id) })
   if (!userDoc) return c.json({ error: 'User not found' }, 404)
 
-  const isChanging = userDoc.classProfile?.confirmedClass && userDoc.classProfile.confirmedClass !== selectedClass
+  // A change costs money if they ALREADY have a confirmed class AND it's different.
+  // Fallback to userDoc.class for legacy users.
+  const currentConfirmed = userDoc.classProfile?.confirmedClass || userDoc.class
+  const isChanging = currentConfirmed && currentConfirmed !== selectedClass
   const cost = isChanging ? CLASS_CHANGE_COST : 0
 
+  console.log(`[ClassConfirm] User: ${user.id}, From: ${currentConfirmed}, To: ${selectedClass}, Cost: ${cost}`)
+
   if (cost > 0 && (userDoc.gold ?? 0) < cost) {
-    return c.json({ error: `Insufficient gold. Changing class requires ${cost}G.` }, 400)
+    return c.json({ error: `Insufficient gold. Changing class requires ${cost}G. You have ${userDoc.gold ?? 0}G.` }, 400)
   }
 
   const now = new Date()
@@ -108,9 +99,11 @@ users.put('/me/class/confirm', requireAuth, async (c) => {
     },
   )
 
+  const updatedGold = (userDoc.gold ?? 0) - cost;
+
   return c.json({
-    message: cost > 0 ? `Class changed for ${cost}G` : 'Class confirmed',
-    gold: (userDoc.gold ?? 0) - cost,
+    message: cost > 0 ? `Class changed to ${selectedClass} for ${cost}G` : 'Class confirmed',
+    gold: updatedGold,
     classProfile: {
       currentClass: selectedClass,
       confirmedClass: selectedClass,

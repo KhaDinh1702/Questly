@@ -10,12 +10,24 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Attach token to every request if logged in
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+  const token = localStorage.getItem('token');
+  console.log(`[API Interceptor] Intercepting request to: ${config.url}`);
+  console.log(`[API Interceptor] Token in localStorage:`, token ? 'YES (len: ' + token.length + ')' : 'NO');
+  
+  if (token) {
+    if (config.headers && typeof config.headers.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+       config.headers = config.headers || {};
+       config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    console.log(`[API Interceptor] Attached Authorization header`);
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 // No global 401 interceptor. We want components to handle errors gracefully
 // and not aggressively log users out.
@@ -32,7 +44,6 @@ export const authApi = {
 export const userApi = {
   getMe: () => api.get('/api/users/me'),
   getInventory: () => api.get('/api/users/me/inventory'),
-  updateClass: (selectedClass) => api.put('/api/users/me/class', { selectedClass }),
   confirmClass: (selectedClass) => api.put('/api/users/me/class/confirm', { selectedClass }),
   equipItem: (userItemId, slot) => api.put('/api/users/me/equip', { userItemId, slot }),
   unequipItem: (userItemId) => api.put('/api/users/me/unequip', { userItemId }),

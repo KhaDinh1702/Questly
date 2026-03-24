@@ -34,12 +34,20 @@ const Register = () => {
     }
 
     try {
-      await authApi.register({ username, email, fullName, password });
+      const response = await authApi.register({ username, email, fullName, password });
 
-      setSuccess('Ghi danh thành công! Đang chuyển hướng tới Tavern...');
+      if (response.data.token) {
+        console.log('[Register] Token received and being stored');
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      } else {
+        console.warn('[Register] No token received from server!');
+      }
+
+      setSuccess('Ghi danh thành công! Đang chuyển hướng tới trang chọn mốc giới...');
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/character-selection');
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.error || 'Ghi danh thất bại. Vui lòng thử lại.');
     } finally {

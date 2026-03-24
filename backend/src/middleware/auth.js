@@ -7,11 +7,12 @@ import { getJwtSecret } from '../config/env'
  * JWT_SECRET is read from c.env (Cloudflare) → .env (local) via getJwtSecret().
  */
 export const requireAuth = async (c, next) => {
-  const authHeader = c.req.header('Authorization')
-  console.log(`[requireAuth] Path: ${c.req.path}, Auth Header:`, authHeader ? authHeader.slice(0, 15) + '...' : 'NONE')
+  const allHeaders = c.req.header()
+  const authHeader = allHeaders['authorization'] || allHeaders['Authorization']
+  console.log(`[requireAuth] Path: ${c.req.path}, Method: ${c.req.method}, Auth Header:`, authHeader ? authHeader.slice(0, 15) + '...' : 'NONE')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.log('[requireAuth] Failed: missing or malformed token format')
+    console.log('[requireAuth] Failed: missing or malformed token format. Headers:', JSON.stringify(allHeaders))
     return c.json({ error: 'Unauthorized: missing token' }, 401)
   }
 
