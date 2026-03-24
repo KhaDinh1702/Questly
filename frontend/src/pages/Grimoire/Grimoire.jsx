@@ -6,19 +6,19 @@ import api from '../../services/api';
 // ── Sub-components ───────────────────────────────────────────
 
 function HudBar() {
-  const [stats, setStats] = useState({ steps: 0, gold: 0, tickets: 0 });
+  const [stats, setStats] = useState({ turns: 0, gold: 0, tickets: 0 });
 
   useEffect(() => {
     // Attempt rapid optimistic load from cache
     const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
     if (cachedUser.dungeonMoves !== undefined) {
-      setStats({ steps: cachedUser.dungeonMoves || 0, gold: cachedUser.gold || 0, tickets: cachedUser.ticketCount || 0 });
+      setStats({ turns: cachedUser.dungeonMoves || 0, gold: cachedUser.gold || 0, tickets: cachedUser.ticketCount || 0 });
     }
     
     // Fetch live ground truth
     api.get('/api/users/me').then(res => {
       const user = res.data;
-      setStats({ steps: user.dungeonMoves || 0, gold: user.gold || 0, tickets: user.ticketCount || 0 });
+      setStats({ turns: user.dungeonMoves || 0, gold: user.gold || 0, tickets: user.ticketCount || 0 });
       // Sync cache
       localStorage.setItem('user', JSON.stringify({ ...cachedUser, ...user }));
     }).catch(err => console.error("HUD sync failed:", err));
@@ -29,8 +29,8 @@ function HudBar() {
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Steps</span>
-          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.steps.toLocaleString()}</span>
+          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Turns</span>
+          <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.turns.toLocaleString()}</span>
         </div>
       </div>
       <div className="flex items-center gap-3">

@@ -102,7 +102,7 @@ export default function Aptitude() {
         correctAnswers: finalScore,
         rewardEligible,
       });
-      setRewards({ moves: res.data.moves || 0, gold: res.data.gold || 0, tickets: res.data.tickets || 0 });
+      setRewards({ turns: res.data.turns ?? res.data.moves ?? 0, gold: res.data.gold || 0, tickets: res.data.tickets || 0 });
       if (rewardEligible) {
         const balRes = await api.get('/api/users/me');
         setPostBalance(balRes.data);
@@ -123,7 +123,7 @@ export default function Aptitude() {
 
           <div className="text-center">
             <h1 className="font-headline text-5xl font-black text-primary mb-2">The Aptitude Trial</h1>
-            <p className="text-stone-400 italic text-sm">Test your knowledge. Earn gold and dungeon moves.</p>
+            <p className="text-stone-400 italic text-sm">Test your knowledge. Earn gold and dungeon turns.</p>
           </div>
 
           {error && (
@@ -246,9 +246,9 @@ export default function Aptitude() {
               <>
                 <div className={`grid gap-4 mb-6 border-y-2 border-stone-800 py-6 ${rewards.tickets > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <div className="flex flex-col items-center">
-                    <span className="material-symbols-outlined text-3xl text-primary mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
-                    <span className="text-3xl font-headline font-black text-primary">+{rewards.moves}</span>
-                    <span className="text-[10px] uppercase font-bold text-stone-500 tracking-widest mt-1">Moves Gained</span>
+                  <span className="material-symbols-outlined text-3xl text-primary mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
+                    <span className="text-3xl font-headline font-black text-primary">+{rewards.turns}</span>
+                    <span className="text-[10px] uppercase font-bold text-stone-500 tracking-widest mt-1">Turns Gained</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <span className="material-symbols-outlined text-3xl text-tertiary-fixed mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>generating_tokens</span>
@@ -266,7 +266,7 @@ export default function Aptitude() {
                 {postBalance && (
                   <div className="flex justify-center gap-8 mb-6 text-sm">
                     <div className="text-center">
-                      <p className="text-stone-500 text-[10px] uppercase font-bold tracking-widest">Total Moves</p>
+                      <p className="text-stone-500 text-[10px] uppercase font-bold tracking-widest">Total Turns</p>
                       <p className="font-headline font-black text-primary text-lg">{(postBalance.dungeonMoves || 0).toLocaleString()}</p>
                     </div>
                     <div className="text-center">

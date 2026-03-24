@@ -6,10 +6,21 @@ import { CHEST_RATES, RARITY } from '../config/constants'
  */
 export function rollChest() {
   const rand = Math.random()
-  if (rand < CHEST_RATES.SCROLL)                                         return 'scroll'
-  if (rand < CHEST_RATES.SCROLL + CHEST_RATES.LEGENDARY)                 return RARITY.S
-  if (rand < CHEST_RATES.SCROLL + CHEST_RATES.LEGENDARY + CHEST_RATES.RARE) return RARITY.A
-  return RARITY.C // common pool (E, D, C, B)
+
+  if (rand < CHEST_RATES.SCROLL) {
+    return { type: 'scroll', rarities: [RARITY.A, RARITY.B, RARITY.C] } // scrolls
+  }
+
+  if (rand < CHEST_RATES.SCROLL + CHEST_RATES.LEGENDARY) {
+    return { type: 'equipment', rarities: [RARITY.S, RARITY.SS] } // legendary+ mythic
+  }
+
+  if (rand < CHEST_RATES.SCROLL + CHEST_RATES.LEGENDARY + CHEST_RATES.RARE) {
+    return { type: 'equipment', rarities: [RARITY.A] } // epic (the previous constants called this rare but A is epic)
+  }
+
+  // common pool
+  return { type: 'equipment', rarities: [RARITY.B, RARITY.C, RARITY.D, RARITY.E] }
 }
 
 /**
@@ -25,3 +36,4 @@ export function weightedRandom(lootTable) {
   }
   return lootTable[lootTable.length - 1].itemId
 }
+

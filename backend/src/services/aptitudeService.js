@@ -88,7 +88,7 @@ export async function startAptitudeTest(db, userId, questionCount = 10, setId = 
  * @param {number}   totalQuestions
  * @param {number}   correctAnswers
  * @param {boolean}  isMultiChoice     - toggles ticket sub-system
- * @returns {{ ok, moves, gold, tickets, totalScore }}
+ * @returns {{ ok, turns, moves, gold, tickets, totalScore }}
  */
 export async function submitAptitudeTest(db, userId, { totalQuestions, correctAnswers, rewardEligible = true }) {
   if (totalQuestions <= 0) return { ok: false, reason: 'Invalid question count' }
@@ -111,5 +111,5 @@ export async function submitAptitudeTest(db, userId, { totalQuestions, correctAn
     }
   }
 
-  return { ok: true, correctPct, moves, gold, tickets, rewardEligible }
+  return { ok: true, correctPct, turns: moves, moves, gold, tickets, rewardEligible }
 }

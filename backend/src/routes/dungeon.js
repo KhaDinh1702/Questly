@@ -46,8 +46,17 @@ dungeon.get('/level', requireAuth, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')
   const plDoc = await getPlayerLevel(db, user.id)
-  const fullUser = await db.collection('users').findOne({ _id: toObjectId(user.id) }, { projection: { stats: 1, gold: 1 } })
-  return c.json({ ...plDoc, stats: fullUser?.stats || {}, gold: fullUser?.gold || 0 })
+  const fullUser = await db.collection('users').findOne(
+    { _id: toObjectId(user.id) },
+    { projection: { stats: 1, gold: 1, statPoints: 1, dungeonMoves: 1 } },
+  )
+  return c.json({
+    ...plDoc,
+    stats: fullUser?.stats || {},
+    gold: fullUser?.gold || 0,
+    statPoints: fullUser?.statPoints || 0,
+    turns: fullUser?.dungeonMoves || 0,
+  })
 })
 
 // ── Start run ─────────────────────────────────────────────────
@@ -95,7 +104,7 @@ dungeon.post('/combat/action', requireAuth, async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const { action = 'attack' } = body
 
-  const validActions = ['attack', 'heavy_attack', 'rest', 'flee']
+  const validActions = ['attack', 'heavy_attack', 'heal', 'rest', 'flee']
   if (!validActions.includes(action)) {
     return c.json({ error: `action must be one of: ${validActions.join(', ')}` }, 400)
   }
