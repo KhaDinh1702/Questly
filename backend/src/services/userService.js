@@ -65,6 +65,21 @@ export async function addResources(db, userId, { gold = 0, dungeonMoves = 0, tic
   await db.collection('users').updateOne({ _id }, { $inc: inc, $set: { updatedAt: new Date() } })
 }
 
+/** Deduct a percentage of a user's gold (used for death penalty) */
+export async function deductGoldPenalty(db, userId, pct = 0.10) {
+  const _id = toObjectId(userId)
+  const user = await db.collection('users').findOne({ _id }, { projection: { gold: 1 } })
+  if (!user) return 0
+  const penalty = Math.floor((user.gold ?? 0) * pct)
+  if (penalty > 0) {
+    await db.collection('users').updateOne(
+      { _id },
+      { $inc: { gold: -penalty }, $set: { updatedAt: new Date() } },
+    )
+  }
+  return penalty
+}
+
 /** Increment aptitude test count; always allows the test but returns rewardEligible=false when over limit */
 export async function useAptitudeTestSlot(db, userId) {
   const col = db.collection('users')

@@ -1,5 +1,8 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { getDb } from './db'
+import { playerLevelIndexes } from './models/PlayerLevel'
+import { dungeonRunIndexes } from './models/DungeonRun'
 
 // ── Routes ────────────────────────────────────────────────────
 import authRoutes    from './routes/auth'
@@ -65,10 +68,33 @@ import 'dotenv/config'
 
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8787
 
+/** Ensure all required MongoDB indexes exist at startup */
+async function ensureIndexes() {
+  try {
+    // Build a minimal fake context to get the db (reads from process.env)
+    const fakeEnv = process.env
+    const db = await getDb({ env: fakeEnv })
+    // player_levels indexes
+    const plCol = db.collection('player_levels')
+    for (const { key, options } of playerLevelIndexes) {
+      await plCol.createIndex(key, options ?? {})
+    }
+    // dungeon_runs indexes
+    const drCol = db.collection('dungeon_runs')
+    for (const { key } of dungeonRunIndexes) {
+      await drCol.createIndex(key)
+    }
+    console.log('[DB] Indexes created/verified')
+  } catch (e) {
+    console.warn('[DB] Index creation skipped:', e.message)
+  }
+}
+
 serve({
   fetch: app.fetch,
   port: port
 }, (info) => {
   console.log(`[SUCCESS] The Questly server has booted locally on http://127.0.0.1:${info.port}`)
   console.log(`[SUCCESS] Cloudflare Workers emulation has been permanently disabled. Welcome to zero-lag!`)
+  ensureIndexes()
 })
