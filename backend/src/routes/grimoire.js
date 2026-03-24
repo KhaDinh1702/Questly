@@ -23,12 +23,14 @@ grimoire.get('/', async (c) => {
   const search = c.req.query('q') ?? ''
 
   const filter = { isPublic: true, ...(search ? { $text: { $search: search } } : {}) }
-  const sets = await db.collection('flashcard_sets')
-    .find(filter, { projection: { cards: 0 } })
-    .sort({ studiedCount: -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .toArray()
+  const sets = await db.collection('flashcard_sets').aggregate([
+    { $match: filter },
+    search ? { $sort: { score: { $meta: "textScore" } } } : { $sort: { studiedCount: -1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+    { $addFields: { cardCount: { $cond: { if: { $isArray: "$cards" }, then: { $size: "$cards" }, else: 0 } } } },
+    { $project: { cards: 0 } }
+  ]).toArray()
 
   return c.json({ sets, page, limit })
 })
@@ -86,8 +88,23 @@ grimoire.post('/:id/acquire', requireAuth, async (c) => {
     { _id },
     { $inc: { studiedCount: 1 } }
   )
-
   return c.json({ message: 'Set acquired successfully' })
+})
+
+// Unacquire (remove from my list) a set
+grimoire.post('/:id/unacquire', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const _id = toObjectId(c.req.param('id'))
+  if (!_id) return c.json({ error: 'Invalid ID' }, 400)
+
+  // Remove from acquiredGrimoires array
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    { $pull: { acquiredGrimoires: _id } }
+  )
+
+  return c.json({ message: 'Set removed from your collection' })
 })
 
 // Update study progress
@@ -119,6 +136,31 @@ grimoire.post('/:id/progress', requireAuth, async (c) => {
   }
 
   return c.json({ message: 'Progress updated' })
+})
+
+// Toggle vote (upvote / remove vote)
+grimoire.post('/:id/vote', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const _id = toObjectId(c.req.param('id'))
+  if (!_id) return c.json({ error: 'Invalid ID' }, 400)
+
+  const set = await db.collection('flashcard_sets').findOne({ _id })
+  if (!set || !set.isPublic) return c.json({ error: 'Set not found or not public' }, 404)
+
+  const upvoteIds = (set.upvotes || []).map(String)
+  const hasVoted = upvoteIds.includes(String(user.id))
+
+  let update
+  if (hasVoted) {
+    update = { $pull: { upvotes: toObjectId(user.id) } }
+  } else {
+    update = { $addToSet: { upvotes: toObjectId(user.id) } }
+  }
+
+  await db.collection('flashcard_sets').updateOne({ _id }, update)
+
+  return c.json({ message: hasVoted ? 'Vote removed' : 'Voted successfully', voted: !hasVoted })
 })
 
 // Get a single set with all cards

@@ -1,0 +1,309 @@
+{
+  "users": [
+    {
+      "_id": "69c224cef571bcfe6b894250",
+      "username": "BBSLAYER666",
+      "password": "f90b225ac732e7b8d9be62eb5b480f2a:3911fb2c8d36991063f5b4e0b70e8092c605872970466a9edbc01d06677d2242",
+      "role": "user",
+      "createdAt": "2026-03-24T05:44:46.884Z",
+      "grimoireProgress": [
+        {
+          "setId": "69c225acf571bcfe6b894251",
+          "progress": 100,
+          "lastStudied": "2026-03-24T05:49:04.196Z"
+        }
+      ],
+      "daily": {
+        "aptitudeTestsTaken": 1
+      },
+      "stats": {
+        "hp": 100
+      },
+      "updatedAt": "2026-03-24T07:52:24.361Z"
+    },
+    {
+      "_id": "69c229fe1036ab2cd187f5cd",
+      "username": "testdungeon",
+      "password": "ab74b6004f77c13cecfad7fc4122817a:3af61512ff7451fc256b4f7dc7b3268417d02658b86344b5e49dd635a92e6df9",
+      "role": "user",
+      "createdAt": "2026-03-24T06:06:54.688Z",
+      "stats": {
+        "hp": 100
+      },
+      "updatedAt": "2026-03-24T08:36:50.752Z"
+    },
+    {
+      "_id": "69c22e711036ab2cd187f5d0",
+      "username": "SE193633",
+      "password": "74e6eb769a6002df4cc45cd28cb24241:5cbef3b3e023ecae1939383d33afc4268af46a3cbb38b7a707bfa9924341df23",
+      "role": "user",
+      "createdAt": "2026-03-24T06:25:53.408Z",
+      "stats": {
+        "hp": 100,
+        "mana": 50
+      },
+      "updatedAt": "2026-03-24T16:05:56.457Z",
+      "gold": 17,
+      "level": 10,
+      "daily": {
+        "aptitudeTestsTaken": 3
+      },
+      "dungeonMoves": 0,
+      "acquiredGrimoires": [],
+      "grimoireProgress": [
+        {
+          "setId": "69c225acf571bcfe6b894251",
+          "progress": 100,
+          "lastStudied": "2026-03-24T15:40:50.942Z"
+        },
+        {
+          "setId": "69c2b30705741f9b41db72a2",
+          "progress": 100,
+          "lastStudied": "2026-03-24T15:53:22.659Z"
+        }
+      ],
+      "ticketCount": 0,
+      "equipped": {
+        "weapon": "69c2b3d12862ee06a11e0210",
+        "ring1": "69c2b3ce2862ee06a11e020f"
+      },
+      "class": "warrior",
+      "classProfile": {
+        "classHistory": [
+          "rogue",
+          "mage",
+          "warrior"
+        ],
+        "confirmedClass": "warrior",
+        "currentClass": "warrior",
+        "lastConfirmedAt": "2026-03-24T16:05:56.446Z"
+      }
+    }
+  ],
+  "sets": [
+    {
+      "_id": "69c225acf571bcfe6b894251",
+      "title": "English flashcard",
+      "description": "123",
+      "creatorId": "69c224cef571bcfe6b894250",
+      "isPublic": true,
+      "cards": [
+        {
+          "term": "water",
+          "definition": "nước",
+          "imageUrl": null
+        },
+        {
+          "term": "fire",
+          "definition": "lửa",
+          "imageUrl": null
+        },
+        {
+          "term": "lol",
+          "definition": "a",
+          "imageUrl": null
+        },
+        {
+          "term": "eat",
+          "definition": "ăn",
+          "imageUrl": null
+        },
+        {
+          "term": "sleep",
+          "definition": "ngủ",
+          "imageUrl": null
+        },
+        {
+          "term": "cry",
+          "definition": "khóc",
+          "imageUrl": null
+        },
+        {
+          "term": "laugh",
+          "definition": "cười",
+          "imageUrl": null
+        },
+        {
+          "term": "eat shit",
+          "definition": "ăn cứt",
+          "imageUrl": null
+        },
+        {
+          "term": "holy",
+          "definition": "thần thánh",
+          "imageUrl": null
+        },
+        {
+          "term": "asdasd",
+          "definition": "asdas",
+          "imageUrl": null
+        },
+        {
+          "term": "asd",
+          "definition": "asd",
+          "imageUrl": null
+        },
+        {
+          "term": "asd",
+          "definition": "asd",
+          "imageUrl": null
+        },
+        {
+          "term": "asd",
+          "definition": "asd",
+          "imageUrl": null
+        },
+        {
+          "term": "adssfdg",
+          "definition": "sadfdg",
+          "imageUrl": null
+        },
+        {
+          "term": "123",
+          "definition": "123",
+          "imageUrl": null
+        },
+        {
+          "term": "!@#@$",
+          "definition": "!@#@$",
+          "imageUrl": null
+        },
+        {
+          "term": "sadasd",
+          "definition": "asdasjkdhaskjdhas",
+          "imageUrl": null
+        },
+        {
+          "term": "asdajkshdjash",
+          "definition": "asdasjkbdjkb",
+          "imageUrl": null
+        },
+        {
+          "term": "lol",
+          "definition": "123",
+          "imageUrl": null
+        },
+        {
+          "term": "asidas",
+          "definition": "12345",
+          "imageUrl": null
+        }
+      ],
+      "studiedCount": 3,
+      "createdAt": "2026-03-24T05:48:28.816Z",
+      "updatedAt": "2026-03-24T05:48:28.816Z"
+    },
+    {
+      "_id": "69c2b30705741f9b41db72a2",
+      "title": "English",
+      "description": "",
+      "creatorId": "69c22e711036ab2cd187f5d0",
+      "isPublic": true,
+      "cards": [
+        {
+          "term": "eat",
+          "definition": "ăn",
+          "imageUrl": null
+        },
+        {
+          "term": "drink",
+          "definition": "uống",
+          "imageUrl": null
+        },
+        {
+          "term": "cry",
+          "definition": "khóc",
+          "imageUrl": null
+        },
+        {
+          "term": "sad",
+          "definition": "buồn",
+          "imageUrl": null
+        },
+        {
+          "term": "happy",
+          "definition": "vui",
+          "imageUrl": null
+        },
+        {
+          "term": "study",
+          "definition": "học",
+          "imageUrl": null
+        },
+        {
+          "term": "weak",
+          "definition": "yếu",
+          "imageUrl": null
+        },
+        {
+          "term": "strong",
+          "definition": "khỏe",
+          "imageUrl": null
+        },
+        {
+          "term": "hello",
+          "definition": "xin chào",
+          "imageUrl": null
+        },
+        {
+          "term": "slient hill",
+          "definition": "đồi câm lặng",
+          "imageUrl": null
+        },
+        {
+          "term": "database",
+          "definition": "cơ sở dữ liệu",
+          "imageUrl": null
+        },
+        {
+          "term": "tired",
+          "definition": "mệt",
+          "imageUrl": null
+        },
+        {
+          "term": "bread",
+          "definition": "bánh mì",
+          "imageUrl": null
+        },
+        {
+          "term": "1+1",
+          "definition": "2",
+          "imageUrl": null
+        },
+        {
+          "term": "at least",
+          "definition": "tối thiểu",
+          "imageUrl": null
+        },
+        {
+          "term": "ice cream",
+          "definition": "kem",
+          "imageUrl": null
+        },
+        {
+          "term": "cringe",
+          "definition": "khúm núm",
+          "imageUrl": null
+        },
+        {
+          "term": "pill",
+          "definition": "thuốc",
+          "imageUrl": null
+        },
+        {
+          "term": "noisy",
+          "definition": "ồn ào",
+          "imageUrl": null
+        },
+        {
+          "term": "pointer",
+          "definition": "con trỏ",
+          "imageUrl": null
+        }
+      ],
+      "studiedCount": 0,
+      "createdAt": "2026-03-24T15:51:35.307Z",
+      "updatedAt": "2026-03-24T17:01:34.816Z"
+    }
+  ]
+}

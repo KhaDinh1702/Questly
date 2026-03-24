@@ -51,7 +51,7 @@ function HudBar() {
   );
 }
 
-function MyDeckCard({ set, onStudy, featured }) {
+function MyDeckCard({ set, onStudy, onDelete, onEdit, featured }) {
   const cardCount = set.cards?.length ?? set.cardCount ?? 0;
   const progress  = set.progress ?? 0;
 
@@ -84,7 +84,17 @@ function MyDeckCard({ set, onStudy, featured }) {
             <span className="text-[10px] uppercase font-bold text-outline tracking-tighter">Capacity</span>
             <span className="font-bold text-on-surface">{cardCount} Scrolls</span>
           </div>
-          <button onClick={() => onStudy(set)} className="bg-primary text-on-primary px-8 py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
+          <div className="flex gap-2">
+            {!set.acquired && (
+              <button onClick={() => onEdit(set)} className="bg-stone-800 text-stone-300 px-3 py-2 border-2 border-stone-700 hover:bg-stone-700 hover:text-white transition-all active:scale-95">
+                <span className="material-symbols-outlined text-xl">edit</span>
+              </button>
+            )}
+            <button onClick={() => onDelete(set)} className="bg-stone-800 text-error px-3 py-2 border-2 border-stone-700 hover:bg-error-container hover:text-on-error-container transition-all active:scale-95">
+              <span className="material-symbols-outlined text-xl">delete</span>
+            </button>
+            <button onClick={() => onStudy(set)} className="bg-primary text-on-primary px-8 py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
+          </div>
         </div>
       </div>
     );
@@ -115,14 +125,28 @@ function MyDeckCard({ set, onStudy, featured }) {
         </div>
       </div>
 
-      <button onClick={() => onStudy(set)} className="w-full bg-primary text-on-primary py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
+      <div className="flex gap-2">
+        {!set.acquired && (
+          <button onClick={() => onEdit(set)} className="bg-stone-800 text-stone-300 px-3 py-2 border-2 border-stone-700 hover:bg-stone-700 hover:text-white transition-all active:scale-95">
+            <span className="material-symbols-outlined text-xl">edit</span>
+          </button>
+        )}
+        <button onClick={() => onDelete(set)} className="bg-stone-800 text-error px-4 py-2 border-2 border-stone-700 hover:bg-error-container hover:text-on-error-container transition-all active:scale-95">
+          <span className="material-symbols-outlined text-xl">delete</span>
+        </button>
+        <button onClick={() => onStudy(set)} className="flex-grow bg-primary text-on-primary py-2 font-headline font-bold text-lg hover:bg-primary-container transition-colors active:scale-95">{btnLabel}</button>
+      </div>
     </div>
   );
 }
 
-function PublicDeckRow({ set, onAcquire }) {
+function PublicDeckRow({ set, onAcquire, onPreview, onVote, user }) {
   const ICONS = { history_edu: 'history_edu', shield_moon: 'shield_moon', psychology: 'psychology', auto_stories: 'auto_stories' };
   const icon  = set.icon || 'auto_stories';
+  const upvotes = set.upvotes || [];
+  const hasVoted = user && upvotes.some(id => String(id) === String(user._id));
+  const voteCount = upvotes.length;
+
   return (
     <div className="group flex flex-col md:flex-row items-center bg-stone-800/50 border-l-4 border-stone-600 p-4 hover:bg-stone-800 transition-colors">
       <div className="w-16 h-16 bg-stone-700 flex items-center justify-center shrink-0 mb-4 md:mb-0">
@@ -131,24 +155,42 @@ function PublicDeckRow({ set, onAcquire }) {
       <div className="md:ml-6 flex-grow">
         <h4 className="font-headline text-xl text-stone-100 group-hover:text-primary-container transition-colors">{set.title}</h4>
         <p className="text-sm text-stone-500 italic">{set.description}</p>
-        <div className="flex gap-4 mt-2">
+        <div className="flex items-center gap-4 mt-2">
           <span className="text-[10px] font-bold uppercase text-stone-600">{(set.studiedCount ?? 0).toLocaleString()} Study Sessions</span>
-          <span className="text-[10px] font-bold uppercase text-stone-600">{(set.cards?.length ?? 0)} Scrolls</span>
+          <span className="text-[10px] font-bold uppercase text-stone-600">{(set.cardCount ?? set.cards?.length ?? 0)} Scrolls</span>
+          
+          <button 
+            onClick={() => onVote(set)}
+            className={`flex items-center gap-1.5 text-[10px] font-bold uppercase transition-colors px-2 py-0.5 border rounded-full ${hasVoted ? 'text-primary border-primary/50 bg-primary/10' : 'text-stone-500 border-stone-600 hover:border-stone-400 hover:text-stone-300'}`}
+          >
+            <span className="material-symbols-outlined text-sm" style={hasVoted ? { fontVariationSettings: "'FILL' 1" } : {}}>
+              thumb_up
+            </span>
+            {voteCount}
+          </button>
         </div>
       </div>
-      <div className="shrink-0 mt-4 md:mt-0">
-        <button onClick={() => onAcquire(set)} className="px-6 py-2 border-2 border-stone-600 text-stone-300 font-label uppercase text-xs font-bold hover:bg-stone-700 hover:text-white transition-all active:scale-95">Acquire</button>
+      <div className="shrink-0 mt-4 md:mt-0 flex gap-2">
+        <button onClick={() => onPreview(set)} className="w-10 h-10 flex items-center justify-center border-2 border-stone-600 text-stone-300 hover:bg-stone-700 hover:text-white transition-all active:scale-95" title="Preview Scrolls">
+          <span className="material-symbols-outlined text-xl">visibility</span>
+        </button>
+        <button onClick={() => onAcquire(set)} className="px-6 h-10 border-2 border-stone-600 text-stone-300 font-label uppercase text-xs font-bold hover:bg-stone-700 hover:text-white transition-all active:scale-95">Acquire</button>
       </div>
     </div>
   );
 }
 
-// ── Create Set Modal ─────────────────────────────────────────
-function CreateModal({ onClose, onCreate }) {
-  const [title, setTitle]       = useState('');
-  const [desc, setDesc]         = useState('');
-  const [isPublic, setIsPublic] = useState(true);
-  const [cards, setCards]       = useState(Array.from({ length: 20 }, () => ({ term: '', definition: '' })));
+// ── Create/Edit Set Modal ──────────────────────────────────────
+function SetModal({ onClose, onSave, initialSet }) {
+  const isEdit = !!initialSet;
+  const [title, setTitle]       = useState(initialSet?.title || '');
+  const [desc, setDesc]         = useState(initialSet?.description || '');
+  const [isPublic, setIsPublic] = useState(initialSet?.isPublic ?? true);
+  const [cards, setCards]       = useState(
+    initialSet?.cards && initialSet.cards.length >= 20 
+      ? [...initialSet.cards] 
+      : Array.from({ length: Math.max(20, initialSet?.cards?.length || 20) }, (_, i) => initialSet?.cards?.[i] || { term: '', definition: '' })
+  );
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
@@ -159,7 +201,7 @@ function CreateModal({ onClose, onCreate }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    // Must be logged in to create a grimoire
+    // Must be logged in to create or edit a grimoire
     if (!localStorage.getItem('token')) {
       setError('You must be logged in to inscribe a Grimoire.');
       return;
@@ -169,15 +211,19 @@ function CreateModal({ onClose, onCreate }) {
     if (validCards.length < 20) return setError(`At least 20 complete cards are required (you have ${validCards.length}).`);
     setLoading(true);
     try {
-      await api.post('/api/grimoire', { title, description: desc, isPublic, cards: validCards });
-      onCreate();
+      if (isEdit) {
+        await api.put(`/api/grimoire/${initialSet._id}`, { title, description: desc, isPublic, cards: validCards });
+      } else {
+        await api.post('/api/grimoire', { title, description: desc, isPublic, cards: validCards });
+      }
+      onSave();
       onClose();
     } catch (err) {
       const status = err.response?.status;
       if (status === 401) {
         setError('Session expired — please log in again.');
       } else {
-        setError(err.response?.data?.error || 'Failed to create grimoire');
+        setError(err.response?.data?.error || `Failed to ${isEdit ? 'update' : 'create'} grimoire`);
       }
     } finally {
       setLoading(false);
@@ -188,7 +234,9 @@ function CreateModal({ onClose, onCreate }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
       <div className="bg-surface border-4 border-primary w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-headline text-3xl font-extrabold text-primary uppercase">Inscribe New Grimoire</h2>
+          <h2 className="font-headline text-3xl font-extrabold text-primary uppercase">
+            {isEdit ? 'Edit Grimoire' : 'Inscribe New Grimoire'}
+          </h2>
           <button onClick={onClose} className="material-symbols-outlined text-outline hover:text-on-surface">close</button>
         </div>
         {error && <div className="bg-error-container text-on-error-container p-3 mb-4 border-l-4 border-error text-sm font-bold">{error}</div>}
@@ -235,9 +283,68 @@ function CreateModal({ onClose, onCreate }) {
           </div>
 
           <button type="submit" disabled={loading} className="w-full bg-primary text-on-primary py-4 font-headline font-bold text-xl uppercase tracking-widest hover:bg-primary-container transition-colors active:translate-y-1 disabled:opacity-50">
-            {loading ? 'Inscribing...' : 'Inscribe Grimoire'}
+            {loading ? (isEdit ? 'Saving...' : 'Inscribing...') : (isEdit ? 'Save Changes' : 'Inscribe Grimoire')}
           </button>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Preview Modal ────────────────────────────────────────────
+function PreviewModal({ setId, onClose, onAcquire }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.get(`/api/grimoire/${setId}`).then(res => {
+      setData(res.data);
+    }).catch(err => {
+      setError(err.response?.data?.error || 'Failed to load preview');
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, [setId]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={onClose}>
+      <div className="bg-stone-900 border-4 border-stone-600 w-full max-w-3xl max-h-[90vh] flex flex-col shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b-2 border-stone-800 bg-stone-950">
+          <h2 className="font-headline text-3xl font-extrabold text-stone-200 uppercase">
+            {loading ? 'Reading Scroll...' : data?.title}
+          </h2>
+          <button onClick={onClose} className="material-symbols-outlined text-stone-400 hover:text-white">close</button>
+        </div>
+        
+        {error && <div className="p-6 text-error font-bold">{error}</div>}
+        
+        <div className="flex-grow overflow-y-auto p-6 space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <span className="material-symbols-outlined animate-spin text-4xl text-stone-600">progress_activity</span>
+            </div>
+          ) : (
+            data?.cards?.map((card, idx) => (
+              <div key={idx} className="bg-stone-800/80 p-4 border border-stone-700 flex flex-col md:flex-row gap-4">
+                <div className="flex-1 font-headline text-xl text-primary-container leading-tight">{card.term}</div>
+                <div className="flex-1 font-body text-stone-300 leading-relaxed md:border-l border-stone-700 md:pl-4">{card.definition}</div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {!loading && data && (
+          <div className="p-6 border-t-2 border-stone-800 bg-stone-950 flex justify-end gap-4">
+            <button onClick={onClose} className="text-stone-400 font-bold uppercase tracking-widest text-sm hover:text-white transition-colors">Close Viewer</button>
+            <button 
+              onClick={() => { onAcquire(data); onClose(); }} 
+              className="bg-primary text-on-primary px-8 py-3 font-headline font-bold text-lg uppercase tracking-widest hover:bg-primary-container active:translate-y-1 transition-all"
+            >
+              Acquire Grimoire
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -261,42 +368,81 @@ export default function Grimoire() {
   const [publicSets, setPublicSets] = useState([]);
   const [filter,     setFilter]     = useState('popular');
   const [showModal,  setShowModal]  = useState(false);
+  const [editingSet, setEditingSet] = useState(null);
+  const [previewId,  setPreviewId]  = useState(null);
+  const [searchQuery,setSearchQuery]= useState('');
   const [loading,    setLoading]    = useState(true);
+  const [publicLoading, setPublicLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const navigate = useNavigate();
 
-  useEffect(() => { fetchSets(); }, []);
+  useEffect(() => { 
+    fetchMySets();
+  }, []);
 
-  async function fetchSets() {
-    setLoading(true);
-    
-    // Fetch user sets independently
-    if (user) {
-      try {
-        const myRes = await api.get('/api/grimoire/my');
-        setMySets(myRes.data.sets || []);
-      } catch (err) {
-        console.error("Failed to load personal sets", err);
-      }
+  useEffect(() => {
+    fetchPublicSets();
+  }, [searchQuery]);
+
+  async function fetchMySets() {
+    if (!user) {
+      setLoading(false);
+      return;
     }
-    
-    // Fetch public sets independently
+    setLoading(true);
     try {
-      const res = await api.get('/api/grimoire?limit=50');
-      if (res.data.sets?.length > 0) {
+      const myRes = await api.get('/api/grimoire/my');
+      setMySets(myRes.data.sets || []);
+    } catch (err) {
+      console.error("Failed to load personal sets", err);
+    }
+    setLoading(false);
+  }
+
+  async function fetchPublicSets() {
+    setPublicLoading(true);
+    try {
+      const res = await api.get(`/api/grimoire?limit=50&q=${encodeURIComponent(searchQuery)}`);
+      if (res.data.sets) {
         // Only show public sets not created by the current user
-        const others = res.data.sets.filter(s => !user || String(s.creatorId) !== String(user._id));
+        const others = res.data.sets.filter(s => !user || String(s.creatorId) !== String(user.id));
         setPublicSets(others);
+      } else {
+        setPublicSets([]);
       }
     } catch (err) {
       console.error("Failed to load realm knowledge", err);
     } 
-    
-    setLoading(false);
+    setPublicLoading(false);
+  }
+
+  async function fetchSets() {
+    await Promise.all([fetchMySets(), fetchPublicSets()]);
   }
 
   function handleStudy(set) {
     navigate(`/grimoire/${set._id}/study`);
+  }
+
+  async function handleDelete(set) {
+    const isOwner = !set.acquired;
+    const action = isOwner ? 'delete' : 'remove';
+    const confirmMsg = isOwner 
+      ? `Are you sure you want to permanently DELETE "${set.title}"? This cannot be undone.`
+      : `Remove "${set.title}" from your collection?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      if (isOwner) {
+        await api.delete(`/api/grimoire/${set._id}`);
+      } else {
+        await api.post(`/api/grimoire/${set._id}/unacquire`);
+      }
+      fetchSets();
+    } catch (err) {
+      alert(err.response?.data?.error || `Failed to ${action}.`);
+    }
   }
 
   async function handleAcquire(set) {
@@ -309,8 +455,35 @@ export default function Grimoire() {
     }
   }
 
-  const filteredPublic = filter === 'legendary'
-    ? [...publicSets].sort((a, b) => (b.cards?.length ?? 0) - (a.cards?.length ?? 0))
+  async function handleVote(set) {
+    if (!user) return alert('You must log in to vote.');
+    
+    // Optimistic update
+    const wasVoted = (set.upvotes || []).some(id => String(id) === String(user._id));
+    setPublicSets(prev => prev.map(s => {
+      if (s._id === set._id) {
+        let newUpvotes = s.upvotes || [];
+        if (wasVoted) {
+          newUpvotes = newUpvotes.filter(id => String(id) !== String(user._id));
+        } else {
+          newUpvotes = [...newUpvotes, user._id];
+        }
+        return { ...s, upvotes: newUpvotes };
+      }
+      return s;
+    }));
+
+    try {
+      await api.post(`/api/grimoire/${set._id}/vote`);
+    } catch (err) {
+      // Revert on failure
+      fetchPublicSets();
+      alert(err.response?.data?.error || err.message || 'Failed to update vote.');
+    }
+  }
+
+  const filteredPublic = filter === 'length'
+    ? [...publicSets].sort((a, b) => (b.cardCount ?? b.cards?.length ?? 0) - (a.cardCount ?? a.cards?.length ?? 0))
     : [...publicSets].sort((a, b) => (b.studiedCount ?? 0) - (a.studiedCount ?? 0));
 
   return (
@@ -319,53 +492,110 @@ export default function Grimoire() {
       <HudBar />
 
       <main className="max-w-7xl mx-auto px-6 py-12 w-full">
-        {/* Page header */}
-        <div className="mb-16">
-          <h1 className="font-headline text-5xl font-extrabold text-surface-container-high mb-2">The Grimoire</h1>
-          <p className="text-stone-400 max-w-2xl font-body italic">"Master the scrolls of old. Every sigil memorized is a blade sharpened against the void."</p>
-        </div>
+        {(() => {
+          const privateSets   = mySets.filter(s => !s.acquired);
+          const communitySets = mySets.filter(s => s.acquired);
+          
+          return (
+            <>
+              {/* Page header */}
+              <div className="mb-16">
+                <h1 className="font-headline text-5xl font-extrabold text-surface-container-high mb-2">The Grimoire</h1>
+                <p className="text-stone-400 max-w-2xl font-body italic">"Master the scrolls of old. Every sigil memorized is a blade sharpened against the void."</p>
+              </div>
 
-        {/* My Grimoires */}
-        <section className="mb-20">
-          <div className="flex items-end justify-between mb-8 border-b-2 border-primary/20 pb-2">
-            <h2 className="font-headline text-3xl font-bold text-primary-container">My Grimoires</h2>
-            <button onClick={() => setShowModal(true)} className="text-primary-container flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <span className="material-symbols-outlined">add_circle</span>
-              <span className="font-label uppercase text-sm font-bold tracking-widest">Inscribe New</span>
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {mySets.map((set, i) => (
-              <MyDeckCard
-                key={set._id}
-                set={set}
-                onStudy={handleStudy}
-                featured={set.featured || i === mySets.length - 1}
-              />
-            ))}
-          </div>
-        </section>
+              {/* Private Grimoires */}
+              <section className="mb-20">
+                <div className="flex items-end justify-between mb-8 border-b-2 border-primary/20 pb-2">
+                  <h2 className="font-headline text-3xl font-bold text-primary-container">Private Scrolls</h2>
+                  <button onClick={() => { setEditingSet(null); setShowModal(true); }} className="text-primary-container flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <span className="material-symbols-outlined">add_circle</span>
+                    <span className="font-label uppercase text-sm font-bold tracking-widest">Inscribe New</span>
+                  </button>
+                </div>
+                {privateSets.length === 0 ? (
+                  <div className="bg-stone-800/30 border-2 border-dashed border-stone-700 p-12 text-center">
+                    <p className="text-stone-500 italic">"No proprietary scrolls found in your collection."</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {privateSets.map((set, i) => (
+                      <MyDeckCard
+                        key={set._id}
+                        set={set}
+                        onStudy={handleStudy}
+                        onDelete={handleDelete}
+                        onEdit={(s) => { setEditingSet(s); setShowModal(true); }}
+                        featured={set.featured || i === privateSets.length - 1}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Community Grimoires */}
+              {communitySets.length > 0 && (
+                <section className="mb-20">
+                  <div className="flex items-end justify-between mb-8 border-b-2 border-secondary/20 pb-2">
+                    <h2 className="font-headline text-3xl font-bold text-secondary">Community Scrolls</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {communitySets.map((set, i) => (
+                      <MyDeckCard
+                        key={set._id}
+                        set={set}
+                        onStudy={handleStudy}
+                        onDelete={handleDelete}
+                        featured={false}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          );
+        })()}
 
         {/* Realm Knowledge */}
         <section>
-          <div className="flex items-end justify-between mb-8 border-b-2 border-tertiary/20 pb-2">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-8 border-b-2 border-tertiary/20 pb-2 gap-4">
             <h2 className="font-headline text-3xl font-bold text-tertiary-fixed-dim">Realm Knowledge</h2>
-            <div className="flex gap-4">
-              <span className="text-stone-500 font-label text-xs uppercase self-center">Filter by:</span>
-              <button
-                onClick={() => setFilter('popular')}
-                className={`px-3 py-1 text-xs font-bold uppercase transition-colors ${filter === 'popular' ? 'bg-stone-800 text-stone-200 border border-stone-600' : 'border border-stone-700 text-stone-400 hover:bg-stone-800'}`}
-              >Popular</button>
-              <button
-                onClick={() => setFilter('legendary')}
-                className={`px-3 py-1 text-xs font-bold uppercase transition-colors ${filter === 'legendary' ? 'bg-stone-800 text-stone-200 border border-stone-600' : 'border border-stone-700 text-stone-400 hover:bg-stone-800'}`}
-              >Legendary</button>
+            <div className="flex flex-col md:flex-row md:items-center gap-4 w-full md:w-auto">
+              <div className="relative flex-grow md:w-64">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-sm">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Search community scrolls..." 
+                  className="w-full bg-stone-800 text-stone-200 pl-9 pr-3 py-1.5 text-sm border border-stone-700 outline-none focus:border-tertiary-fixed-dim transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setSearchQuery(e.target.value);
+                  }}
+                  onBlur={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-4">
+                <span className="text-stone-500 font-label text-xs uppercase self-center hidden lg:block">Filter by:</span>
+                <button
+                  onClick={() => setFilter('popular')}
+                  className={`px-3 py-1 text-xs font-bold uppercase transition-colors ${filter === 'popular' ? 'bg-stone-800 text-stone-200 border border-stone-600' : 'border border-stone-700 text-stone-400 hover:bg-stone-800'}`}
+                >Popular</button>
+                <button
+                  onClick={() => setFilter('length')}
+                  className={`px-3 py-1 text-xs font-bold uppercase transition-colors ${filter === 'length' ? 'bg-stone-800 text-stone-200 border border-stone-600' : 'border border-stone-700 text-stone-400 hover:bg-stone-800'}`}
+                >Length</button>
+              </div>
             </div>
           </div>
           <div className="space-y-4">
-            {filteredPublic.map(set => (
-              <PublicDeckRow key={set._id} set={set} onAcquire={handleAcquire} />
-            ))}
+            {publicLoading ? (
+               <div className="text-center py-12 text-stone-500 italic">Reading the realm's archives...</div>
+            ) : filteredPublic.length === 0 ? (
+               <div className="text-center py-12 text-stone-500 italic">No community scrolls match your query.</div>
+            ) : (
+              filteredPublic.map(set => (
+                <PublicDeckRow key={set._id} set={set} user={user} onAcquire={handleAcquire} onPreview={() => setPreviewId(set._id)} onVote={handleVote} />
+              ))
+            )}
           </div>
         </section>
       </main>
@@ -373,7 +603,7 @@ export default function Grimoire() {
       {/* FAB — Inscribe New */}
       <div className="fixed bottom-8 right-8">
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => { setEditingSet(null); setShowModal(true); }}
           className="w-16 h-16 bg-primary text-on-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:bg-primary-container active:translate-y-1 transition-all"
           style={{ boxShadow: 'inset 2px 2px 0px 0px #ffdea5, inset -2px -2px 0px 0px #483200, 4px 4px 0px 0px rgba(0,0,0,1)' }}
         >
@@ -381,8 +611,9 @@ export default function Grimoire() {
         </button>
       </div>
 
-      {/* Modal */}
-      {showModal && <CreateModal onClose={() => setShowModal(false)} onCreate={fetchSets} />}
+      {/* Modals */}
+      {showModal && <SetModal onClose={() => { setShowModal(false); setEditingSet(null); }} onSave={fetchSets} initialSet={editingSet} />}
+      {previewId && <PreviewModal setId={previewId} onClose={() => setPreviewId(null)} onAcquire={handleAcquire} />}
     </div>
   );
 }
