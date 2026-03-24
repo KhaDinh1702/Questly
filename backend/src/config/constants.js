@@ -93,6 +93,8 @@ export const CLASS = {
   MAGE: 'mage',
 }
 
+export const CLASS_CHANGE_COST = 1000
+
 // ---- Gacha chest ----
 export const CHEST_RATES = {
   SCROLL: 0.03,       // 3 % scroll drop

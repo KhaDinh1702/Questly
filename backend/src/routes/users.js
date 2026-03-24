@@ -13,6 +13,8 @@ import { getDb } from '../db'
 import { requireAuth } from '../middleware/auth'
 import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints } from '../services/userService'
 import { toObjectId } from '../helpers/db'
+import { CLASS_CHANGE_COST } from '../config/constants'
+import { getBaseStats } from '../helpers/gameLogic'
 
 const users = new Hono()
 
@@ -70,7 +72,19 @@ users.put('/me/class/confirm', requireAuth, async (c) => {
     return c.json({ error: 'Invalid class selection' }, 400)
   }
 
+  const userDoc = await db.collection('users').findOne({ _id: toObjectId(user.id) })
+  if (!userDoc) return c.json({ error: 'User not found' }, 404)
+
+  const isChanging = userDoc.classProfile?.confirmedClass && userDoc.classProfile.confirmedClass !== selectedClass
+  const cost = isChanging ? CLASS_CHANGE_COST : 0
+
+  if (cost > 0 && (userDoc.gold ?? 0) < cost) {
+    return c.json({ error: `Insufficient gold. Changing class requires ${cost}G.` }, 400)
+  }
+
   const now = new Date()
+  const newBaseStats = getBaseStats(selectedClass)
+  
   await db.collection('users').updateOne(
     { _id: toObjectId(user.id) },
     {
@@ -79,14 +93,24 @@ users.put('/me/class/confirm', requireAuth, async (c) => {
         'classProfile.currentClass': selectedClass,
         'classProfile.confirmedClass': selectedClass,
         'classProfile.lastConfirmedAt': now,
+        'stats.maxHp': newBaseStats.maxHp,
+        'stats.hp': newBaseStats.hp,
+        'stats.maxMana': newBaseStats.maxMana,
+        'stats.mana': newBaseStats.mana,
+        'stats.atk': newBaseStats.atk,
+        'stats.def': newBaseStats.def,
+        'stats.atkSpeed': newBaseStats.atkSpeed,
+        'stats.dodgeRate': newBaseStats.dodgeRate,
         updatedAt: now,
       },
+      $inc: { gold: -cost },
       $addToSet: { 'classProfile.classHistory': selectedClass },
     },
   )
 
   return c.json({
-    message: 'Class confirmed',
+    message: cost > 0 ? `Class changed for ${cost}G` : 'Class confirmed',
+    gold: (userDoc.gold ?? 0) - cost,
     classProfile: {
       currentClass: selectedClass,
       confirmedClass: selectedClass,

@@ -243,7 +243,7 @@ const Register = () => {
       {/* Footer */}
       <footer className="bg-stone-200 dark:bg-stone-800 border-t-2 border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center py-12 px-4 space-y-4">
         <div className="text-lg font-bold text-stone-900 dark:text-stone-100 font-headline uppercase tracking-widest">
-          Crest & Chronicle
+          Questly
         </div>
         <div className="flex space-x-6">
           <a className="font-serif text-sm italic text-stone-600 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity" href="#">
@@ -257,7 +257,7 @@ const Register = () => {
           </a>
         </div>
         <div className="font-serif text-sm italic text-stone-700 dark:text-stone-300 mt-4 opacity-80">
-          © 1242 The Chronicler’s Ledger. All rights reserved.
+          © 1242 Questly. All rights reserved.
         </div>
       </footer>
     </div>

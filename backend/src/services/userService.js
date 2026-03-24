@@ -186,7 +186,7 @@ export async function unequipItem(db, userId, userItemId) {
 export async function getLeaderboard(db, limit = 50) {
   return db.collection('users')
     .find({}, { projection: { username: 1, level: 1, class: 1, totalScore: 1 } })
-    .sort({ totalScore: -1 })
+    .sort({ level: -1, totalScore: -1 })
     .limit(limit)
     .toArray()
 }

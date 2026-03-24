@@ -37,6 +37,7 @@ export const userApi = {
   equipItem: (userItemId, slot) => api.put('/api/users/me/equip', { userItemId, slot }),
   unequipItem: (userItemId) => api.put('/api/users/me/unequip', { userItemId }),
   allocateStat: (statKey, amount = 1) => api.put('/api/users/me/stats/allocate', { statKey, amount }),
+  getLeaderboard: (limit = 10) => api.get('/api/users/leaderboard', { params: { limit } }),
 }
 
 export const shopApi = {

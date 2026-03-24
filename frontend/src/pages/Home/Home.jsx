@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { userApi } from '../../services/api';
 
 const Home = () => {
   const [user, setUser] = useState(null);
+  const [topAdventurers, setTopAdventurers] = useState([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -11,6 +14,19 @@ const Home = () => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await userApi.getLeaderboard(3);
+        setTopAdventurers(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch leaderboard:', err);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+    };
+
+    fetchLeaderboard();
   }, []);
 
   const handleLogout = () => {
@@ -92,31 +108,35 @@ const Home = () => {
               </h2>
             </div>
             <div className="space-y-4">
-              {[
-                { name: 'Sir Thorne', role: 'Grand Paladin', lvl: 99, id: '01' },
-                { name: 'Elena the Swift', role: 'Ranger', lvl: 94, id: '02' },
-                { name: 'Grimnir Redbeard', role: 'Berserker', lvl: 92, id: '03' },
-              ].map((adv) => (
-                <div
-                  key={adv.id}
-                  className={`flex items-center justify-between p-4 bg-surface hover:bg-surface-container transition-colors ${
-                    adv.id === '01' ? 'border-l-4 border-primary-container' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="font-headline text-2xl font-black text-outline">
-                      {adv.id}
-                    </span>
-                    <div>
-                      <p className="font-bold text-on-surface">{adv.name}</p>
-                      <p className="text-xs font-label text-on-surface-variant uppercase">
-                        {adv.role}
-                      </p>
+              {loadingLeaderboard ? (
+                <div className="text-center py-8 text-stone-500 italic text-sm">Loading legends...</div>
+              ) : topAdventurers.length > 0 ? (
+                topAdventurers.map((adv, index) => (
+                  <div
+                    key={adv._id}
+                    className={`flex items-center justify-between p-4 bg-surface hover:bg-surface-container transition-colors ${
+                      index === 0 ? 'border-l-4 border-primary-container' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="font-headline text-2xl font-black text-outline">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <p className="font-bold text-on-surface">{adv.username}</p>
+                        <p className="text-xs font-label text-on-surface-variant uppercase">
+                          {adv.class || 'NOVICE'}
+                        </p>
+                      </div>
                     </div>
+                    <span className="text-primary font-bold">LVL {adv.level || 1}</span>
                   </div>
-                  <span className="text-primary font-bold">LVL {adv.lvl}</span>
+                ))
+              ) : (
+                <div className="text-center py-8 text-stone-500 italic text-sm border-2 border-dashed border-stone-300">
+                  The Great Ledger is empty. No legends found.
                 </div>
-              ))}
+              )}
             </div>
             <div className="mt-8 text-center">
               <button className="font-headline text-primary font-bold uppercase text-sm underline underline-offset-4 hover:text-primary-container transition-colors">
@@ -146,10 +166,10 @@ const Home = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { name: 'Iron Kite Shield', price: '250g', icon: 'shield' },
-                { name: 'Greater Elixir', price: '120g', icon: 'vital_signs' },
-                { name: 'Mage Staff', price: '800g', icon: 'magic_button' },
-                { name: 'Old Copper Key', price: '15g', icon: 'key' },
+                { name: 'Sun-Forged Blade', price: '18500g', icon: 'swords' },
+                { name: 'Dragon\'s Heart Potion', price: '45000g', icon: 'medication' },
+                { name: 'Arcane Robe', price: '5500g', icon: 'apparel' },
+                { name: 'Shadow Cloak', price: '6200g', icon: 'visibility_off' },
               ].map((item, idx) => (
                 <div
                   key={idx}
@@ -205,7 +225,7 @@ const Home = () => {
       {/* Footer */}
       <footer className="bg-stone-200 dark:bg-stone-800 w-full border-t-2 border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center py-12 px-4 space-y-4">
         <div className="text-lg font-bold text-stone-900 dark:text-stone-100 font-headline uppercase tracking-widest">
-          Crest & Chronicle
+          Questly
         </div>
         <nav className="flex space-x-6">
           <a
@@ -228,7 +248,7 @@ const Home = () => {
           </a>
         </nav>
         <p className="font-serif text-sm italic text-stone-700 dark:text-stone-300">
-          © 1242 The Chronicler’s Ledger. All rights reserved.
+          © 1242 Questly. All rights reserved.
         </p>
       </footer>
     </div>
