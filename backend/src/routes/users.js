@@ -11,7 +11,7 @@
 import { Hono } from 'hono'
 import { getDb } from '../db'
 import { requireAuth } from '../middleware/auth'
-import { getUserById, getUserByUsername, getLeaderboard, equipItem } from '../services/userService'
+import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints } from '../services/userService'
 import { toObjectId } from '../helpers/db'
 
 const users = new Hono()
@@ -42,6 +42,59 @@ users.put('/me/character', requireAuth, async (c) => {
   return c.json({ message: 'Character updated' })
 })
 
+users.put('/me/class', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { selectedClass } = await c.req.json()
+
+  const allowedClasses = ['warrior', 'rogue', 'mage']
+  if (!allowedClasses.includes(selectedClass)) {
+    return c.json({ error: 'Invalid class selection' }, 400)
+  }
+
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    { $set: { class: selectedClass, updatedAt: new Date() } },
+  )
+
+  return c.json({ message: 'Class updated', class: selectedClass })
+})
+
+users.put('/me/class/confirm', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { selectedClass } = await c.req.json()
+
+  const allowedClasses = ['warrior', 'rogue', 'mage']
+  if (!allowedClasses.includes(selectedClass)) {
+    return c.json({ error: 'Invalid class selection' }, 400)
+  }
+
+  const now = new Date()
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    {
+      $set: {
+        class: selectedClass,
+        'classProfile.currentClass': selectedClass,
+        'classProfile.confirmedClass': selectedClass,
+        'classProfile.lastConfirmedAt': now,
+        updatedAt: now,
+      },
+      $addToSet: { 'classProfile.classHistory': selectedClass },
+    },
+  )
+
+  return c.json({
+    message: 'Class confirmed',
+    classProfile: {
+      currentClass: selectedClass,
+      confirmedClass: selectedClass,
+      lastConfirmedAt: now,
+    },
+  })
+})
+
 users.put('/me/equip', requireAuth, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')
@@ -51,6 +104,28 @@ users.put('/me/equip', requireAuth, async (c) => {
   const result = await equipItem(db, user.id, userItemId, slot)
   if (!result.ok) return c.json({ error: result.reason }, 400)
   return c.json({ message: 'Item equipped' })
+})
+
+users.put('/me/unequip', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { userItemId } = await c.req.json()
+  if (!userItemId) return c.json({ error: 'userItemId required' }, 400)
+
+  const result = await unequipItem(db, user.id, userItemId)
+  if (!result.ok) return c.json({ error: result.reason }, 400)
+  return c.json({ message: 'Item unequipped', slot: result.slot })
+})
+
+users.put('/me/stats/allocate', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { statKey, amount = 1 } = await c.req.json()
+  if (!statKey) return c.json({ error: 'statKey required' }, 400)
+
+  const result = await allocateStatPoints(db, user.id, statKey, amount)
+  if (!result.ok) return c.json({ error: result.reason }, 400)
+  return c.json(result)
 })
 
 users.get('/me/inventory', requireAuth, async (c) => {

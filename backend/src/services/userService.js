@@ -110,12 +110,27 @@ export async function useAptitudeTestSlot(db, userId) {
 export async function equipItem(db, userId, userItemId, slot) {
   const usersCol = db.collection('users')
   const itemsCol = db.collection('user_items')
+  const itemMasterCol = db.collection('items')
 
   const _userId   = toObjectId(userId)
   const _userItemId = toObjectId(userItemId)
 
   const userItem = await itemsCol.findOne({ _id: _userItemId, userId: _userId })
   if (!userItem) return { ok: false, reason: 'Item not found in inventory' }
+
+  const masterItem = await itemMasterCol.findOne({ _id: userItem.itemId })
+  if (!masterItem) return { ok: false, reason: 'Item data not found' }
+  if (masterItem.type !== 'equipment') return { ok: false, reason: 'Only equipment can be equipped' }
+
+  const slotFromItem = masterItem.equipSlot
+  const ringSlot = slot === 'ring1' || slot === 'ring2'
+  const slotValidForItem =
+    slotFromItem === slot ||
+    (slotFromItem === 'ring' && ringSlot)
+
+  if (!slotValidForItem) {
+    return { ok: false, reason: `This item can only be equipped in "${slotFromItem}"` }
+  }
 
   // Unequip previous item in that slot
   await itemsCol.updateMany(
@@ -138,6 +153,35 @@ export async function equipItem(db, userId, userItemId, slot) {
   return { ok: true }
 }
 
+/** Unequip an owned equipped item */
+export async function unequipItem(db, userId, userItemId) {
+  const usersCol = db.collection('users')
+  const itemsCol = db.collection('user_items')
+
+  const _userId = toObjectId(userId)
+  const _userItemId = toObjectId(userItemId)
+
+  const userItem = await itemsCol.findOne({ _id: _userItemId, userId: _userId })
+  if (!userItem) return { ok: false, reason: 'Item not found in inventory' }
+  if (!userItem.isEquipped || !userItem.slotEquipped) {
+    return { ok: false, reason: 'Item is not equipped' }
+  }
+
+  const slot = userItem.slotEquipped
+
+  await itemsCol.updateOne(
+    { _id: _userItemId },
+    { $set: { isEquipped: false, slotEquipped: null } },
+  )
+
+  await usersCol.updateOne(
+    { _id: _userId },
+    { $set: { [`equipped.${slot}`]: null, updatedAt: new Date() } },
+  )
+
+  return { ok: true, slot }
+}
+
 /** Get leaderboard (top N by totalScore) */
 export async function getLeaderboard(db, limit = 50) {
   return db.collection('users')
@@ -145,4 +189,44 @@ export async function getLeaderboard(db, limit = 50) {
     .sort({ totalScore: -1 })
     .limit(limit)
     .toArray()
+}
+
+/** Spend stat points to upgrade a chosen stat */
+export async function allocateStatPoints(db, userId, statKey, amount = 1) {
+  const _id = toObjectId(userId)
+  const spend = Math.max(1, Number(amount) || 1)
+  const allowed = ['hp', 'mp', 'ad', 'ap', 'armor', 'mr']
+  if (!allowed.includes(statKey)) return { ok: false, reason: 'Invalid stat key' }
+
+  const statPathMap = {
+    hp: ['stats.maxHp', 'stats.hp'],
+    mp: ['stats.maxMana', 'stats.mana'],
+    ad: ['stats.ad'],
+    ap: ['stats.ap'],
+    armor: ['stats.armor'],
+    mr: ['stats.mr'],
+  }
+  const gainMap = { hp: 12, mp: 10, ad: 2, ap: 2, armor: 2, mr: 1 }
+
+  const user = await db.collection('users').findOne({ _id }, { projection: { statPoints: 1 } })
+  if (!user) return { ok: false, reason: 'User not found' }
+  const available = user.statPoints ?? 0
+  if (available < spend) return { ok: false, reason: 'Not enough stat points' }
+
+  const gain = gainMap[statKey] * spend
+  const inc = { statPoints: -spend }
+  for (const path of statPathMap[statKey]) {
+    inc[path] = gain
+  }
+
+  await db.collection('users').updateOne(
+    { _id, statPoints: { $gte: spend } },
+    { $inc: inc, $set: { updatedAt: new Date() } },
+  )
+
+  const updated = await db.collection('users').findOne(
+    { _id },
+    { projection: { statPoints: 1, stats: 1 } },
+  )
+  return { ok: true, statPoints: updated?.statPoints ?? 0, stats: updated?.stats ?? {} }
 }

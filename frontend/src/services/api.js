@@ -29,6 +29,23 @@ export const authApi = {
   logout: () => api.post('/api/auth/logout'),
 }
 
+export const userApi = {
+  getMe: () => api.get('/api/users/me'),
+  getInventory: () => api.get('/api/users/me/inventory'),
+  updateClass: (selectedClass) => api.put('/api/users/me/class', { selectedClass }),
+  confirmClass: (selectedClass) => api.put('/api/users/me/class/confirm', { selectedClass }),
+  equipItem: (userItemId, slot) => api.put('/api/users/me/equip', { userItemId, slot }),
+  unequipItem: (userItemId) => api.put('/api/users/me/unequip', { userItemId }),
+  allocateStat: (statKey, amount = 1) => api.put('/api/users/me/stats/allocate', { statKey, amount }),
+}
+
+export const shopApi = {
+  // GET /api/shop/items?type=...&class=...
+  getItems: (params = {}) => api.get('/api/shop/items', { params }),
+  buy: (itemId, quantity = 1) => api.post('/api/shop/buy', { itemId, quantity }),
+  rollChest: () => api.post('/api/shop/chest/roll'),
+}
+
 export const dungeonApi = {
   start: (floor) => api.post('/api/dungeon/start', { floor }),
   getActive: () => api.get('/api/dungeon/active'),
@@ -41,4 +58,3 @@ export const dungeonApi = {
   nextFloor: () => api.post('/api/dungeon/next-floor'),
   end: (status) => api.post('/api/dungeon/end', { status }),
 }
-

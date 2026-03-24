@@ -42,6 +42,12 @@ export function createUserDocument({
 
     // ── Class & Progression ───────────────────────────────────
     class: selectedClass,           // null until character creation
+    classProfile: {
+      currentClass: selectedClass,
+      confirmedClass: selectedClass,
+      classHistory: selectedClass ? [selectedClass] : [],
+      lastConfirmedAt: selectedClass ? now : null,
+    },
     level: 1,
     experience: 0,
     statPoints: 0,                  // unspent stat points

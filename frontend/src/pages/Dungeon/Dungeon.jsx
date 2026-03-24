@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { dungeonApi } from '../../services/api';
+import { dungeonApi, userApi } from '../../services/api';
 import Navbar from '../../components/Navbar';
+import { computeClassScaledStats, getEquippedBonusFromInventory, mergeCoreStats } from '../../utils/stats';
 
 // ── Cell type helpers ────────────────────────────────────────
 const CELL_ICONS = {
@@ -123,7 +124,9 @@ export default function Dungeon() {
   const [message, setMessage]     = useState('');
 
   // Player Level state
-  const [playerLevel, setPlayerLevel] = useState({ level: 1, exp: 0, expToNextLevel: 100 });
+  const [playerLevel, setPlayerLevel] = useState({ level: 1, exp: 0, expToNextLevel: 100, turns: 0 });
+  const [allocatingStat, setAllocatingStat] = useState('');
+  const [displayStats, setDisplayStats] = useState({ hp: 120, mp: 10, ad: 12, ap: 0, armor: 10, mr: 5 });
 
   // Modals / Specific UI states
   const [combatState, setCombatState] = useState(null);
@@ -139,10 +142,34 @@ export default function Dungeon() {
   async function fetchPlayerLevel() {
     if (!localStorage.getItem('token')) return;
     try {
-      const res = await dungeonApi.getLevel();
-      setPlayerLevel(res.data);
+      const [levelRes, meRes, invRes] = await Promise.all([
+        dungeonApi.getLevel(),
+        userApi.getMe(),
+        userApi.getInventory(),
+      ]);
+      setPlayerLevel(levelRes.data);
+
+      const me = meRes.data ?? {};
+      const cls = me.classProfile?.confirmedClass ?? me.class ?? 'warrior';
+      const base = computeClassScaledStats(cls, levelRes.data?.level ?? 1);
+      const bonus = getEquippedBonusFromInventory(invRes.data ?? []);
+      setDisplayStats(mergeCoreStats(base, bonus));
     } catch {
       // ignore
+    }
+  }
+
+  async function allocateStatPoint(statKey) {
+    if (allocatingStat) return;
+    setAllocatingStat(statKey);
+    try {
+      await userApi.allocateStat(statKey, 1);
+      await fetchPlayerLevel();
+      flash(`Upgraded ${statKey.toUpperCase()} by spending 1 stat point.`);
+    } catch (e) {
+      flash(e.response?.data?.error || 'Failed to allocate stat point.', true);
+    } finally {
+      setAllocatingStat('');
     }
   }
 
@@ -399,8 +426,8 @@ export default function Dungeon() {
                    <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${Math.max(0, (playerMana / playerMaxMana) * 100)}%` }} />
                  </div>
                  <div className="flex justify-between text-[10px] font-bold uppercase mt-1 text-outline">
-                   <span>AD: {playerLevel?.stats?.ad ?? 10}</span>
-                   <span>Armor: {playerLevel?.stats?.armor ?? 5}</span>
+                   <span>AD: {displayStats.ad}</span>
+                   <span>Armor: {displayStats.armor}</span>
                  </div>
                </div>
              </div>
@@ -445,6 +472,8 @@ export default function Dungeon() {
                <p className="font-body text-sm font-medium text-center">
                  {lastLog.action === 'rest' ? (
                    <>You focused and <span className="font-bold text-blue-400">RESTED</span>, restoring <span className="font-bold text-blue-400">15 MP</span>.</>
+                 ) : lastLog.action === 'heal' ? (
+                   <>You used <span className="font-bold text-emerald-400">HEAL (12MP)</span> and restored <span className="font-bold text-emerald-400">{lastLog.heal ?? 0} HP</span>.</>
                  ) : (
                    <>
                      You used <span className="font-bold text-tertiary">{lastLog.action === 'heavy_attack' ? 'HEAVY ATK (15MP)' : 'ATTACK (5MP)'}</span> for <span className="font-bold text-primary">{lastLog.playerDmg}</span> damage {lastLog.isCrit && <span className="text-secondary">(CRIT!)</span>}.
@@ -460,7 +489,7 @@ export default function Dungeon() {
              )}
           </div>
 
-          <div className="p-4 bg-surface-dim grid grid-cols-3 gap-3">
+          <div className="p-4 bg-surface-dim grid grid-cols-4 gap-3">
             <button 
               onClick={() => doCombatAction('attack')} 
               disabled={loading || playerMana < 5}
@@ -485,15 +514,24 @@ export default function Dungeon() {
               <div className="flex items-center gap-2 text-blue-400"><span className="material-symbols-outlined text-sm">bedtime</span> REST</div>
               <span className="text-[9px] opacity-80 text-blue-400">(+15 MP)</span>
             </button>
+            <button
+              onClick={() => doCombatAction('heal')}
+              disabled={loading || playerMana < 12}
+              className="py-3 bg-emerald-700 text-emerald-50 font-headline font-bold uppercase tracking-widest border-2 border-emerald-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-0 disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">healing</span> HEAL</div>
+              <span className="text-[9px] opacity-80">(12 MP)</span>
+            </button>
             
             <button 
               onClick={() => doCombatAction('flee')} 
               disabled={loading}
-              className="py-2 col-span-3 bg-surface-container-highest text-on-surface-variant font-headline font-bold uppercase tracking-widest border-2 border-outline/30 flex justify-center items-center gap-2 text-[10px] opacity-70 hover:opacity-100 transition-opacity"
+              className="py-2 col-span-4 bg-surface-container-highest text-on-surface-variant font-headline font-bold uppercase tracking-widest border-2 border-outline/30 flex justify-center items-center gap-2 text-[10px] opacity-70 hover:opacity-100 transition-opacity"
             >
               <span className="material-symbols-outlined text-sm">directions_run</span> FLEE (END RUN)
             </button>
           </div>
+          <p className="px-4 pb-3 text-[10px] text-outline uppercase text-center font-bold">Every dungeon action costs 1 turn.</p>
         </div>
       </div>
     );
@@ -560,8 +598,12 @@ export default function Dungeon() {
                   <span className="font-headline font-bold text-lg text-secondary">Floor {floor}</span>
                 </div>
                 <div className="flex justify-between items-end mt-2">
-                  <span className="font-label text-xs uppercase text-outline">Turn</span>
+                  <span className="font-label text-xs uppercase text-outline">Action Count</span>
                   <span className="font-headline font-bold text-xl text-primary">{turnCount}</span>
+                </div>
+                <div className="flex justify-between items-end mt-2">
+                  <span className="font-label text-xs uppercase text-outline">Turns</span>
+                  <span className="font-headline font-bold text-xl text-secondary">{playerLevel?.turns ?? 0}</span>
                 </div>
                 {/* Level / EXP Bar */}
                 <div className="space-y-1">
@@ -587,27 +629,48 @@ export default function Dungeon() {
                 <div className="grid grid-cols-2 gap-2 mt-2 font-label text-xs">
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-error font-bold uppercase">HP</span>
-                    <span className="font-bold">{playerLevel?.stats?.hp ?? 100}/{playerLevel?.stats?.maxHp ?? 100}</span>
+                    <span className="font-bold">{displayStats.hp}</span>
                   </div>
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-secondary font-bold uppercase">MP</span>
-                    <span className="font-bold">{playerLevel?.stats?.mana ?? 0}/{playerLevel?.stats?.maxMana ?? 0}</span>
+                    <span className="font-bold">{displayStats.mp}</span>
                   </div>
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-primary font-bold uppercase">AD</span>
-                    <span className="font-bold">{playerLevel?.stats?.ad ?? 10}</span>
+                    <span className="font-bold">{displayStats.ad}</span>
                   </div>
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-tertiary font-bold uppercase">AP</span>
-                    <span className="font-bold">{playerLevel?.stats?.ap ?? 0}</span>
+                    <span className="font-bold">{displayStats.ap}</span>
                   </div>
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-outline font-bold uppercase">Armor</span>
-                    <span className="font-bold">{playerLevel?.stats?.armor ?? 5}</span>
+                    <span className="font-bold">{displayStats.armor}</span>
                   </div>
                   <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline">
                     <span className="text-outline font-bold uppercase">MR</span>
-                    <span className="font-bold">{playerLevel?.stats?.mr ?? 0}</span>
+                    <span className="font-bold">{displayStats.mr}</span>
+                  </div>
+                </div>
+
+                {/* Stat Allocation */}
+                <div className="mt-3 p-2 border-2 border-outline bg-surface-container-high">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-headline text-[10px] uppercase text-outline">Unspent Points</span>
+                    <span className="font-bold text-primary">{playerLevel?.statPoints ?? 0}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {['hp', 'mp', 'ad', 'ap', 'armor', 'mr'].map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => allocateStatPoint(key)}
+                        disabled={(playerLevel?.statPoints ?? 0) <= 0 || Boolean(allocatingStat)}
+                        className="py-1 px-1 text-[10px] uppercase font-bold border border-outline bg-surface-variant hover:bg-primary hover:text-on-primary disabled:opacity-40"
+                      >
+                        + {key}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 

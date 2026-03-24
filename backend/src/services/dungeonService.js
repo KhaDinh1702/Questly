@@ -69,20 +69,24 @@ export async function addExpAndLevelUp(db, userId, expGained) {
     { $set: { level, exp, expToNextLevel: expForLevel(level), updatedAt: new Date() } },
   )
 
-  // Also sync level to users collection + scale HP stats
-  const hpGain = levelsGained * 5
-  const updateSet = { 
-    level, 
-    updatedAt: new Date() 
+  // Also sync level to users collection and grant spendable stat points.
+  const statPointGainPerLevel = 3
+  const statPointsGained = levelsGained * statPointGainPerLevel
+  const updateSet = {
+    level,
+    updatedAt: new Date(),
   }
   const incUpdate = {}
-  if (hpGain > 0) {
-    incUpdate['stats.maxHp'] = hpGain
-    incUpdate['stats.hp'] = hpGain
+  if (statPointsGained > 0) {
+    incUpdate.statPoints = statPointsGained
   }
 
-  // Fully restore Mana on level up
-  updateSet['stats.mana'] = doc.stats?.maxMana ?? 50
+  // Fully restore Mana on level up using live user maxMana.
+  const user = await db.collection('users').findOne(
+    { _id },
+    { projection: { 'stats.maxMana': 1 } },
+  )
+  updateSet['stats.mana'] = user?.stats?.maxMana ?? 50
 
   await db.collection('users').updateOne(
     { _id },
@@ -92,7 +96,7 @@ export async function addExpAndLevelUp(db, userId, expGained) {
     }
   )
 
-  return { level, exp, levelsGained }
+  return { level, exp, levelsGained, statPointsGained }
 }
 
 /** Apply 10% gold death penalty to user */
@@ -108,6 +112,19 @@ async function applyDeathPenalty(db, userId) {
     )
   }
   return penalty
+}
+
+/** Spend dungeon turns (stored as users.dungeonMoves) */
+async function spendTurns(db, userId, amount = 1) {
+  const _id = toObjectId(userId)
+  const spent = Math.max(1, Number(amount) || 1)
+  const updated = await db.collection('users').findOneAndUpdate(
+    { _id, dungeonMoves: { $gte: spent } },
+    { $inc: { dungeonMoves: -spent }, $set: { updatedAt: new Date() } },
+    { returnDocument: 'after', projection: { dungeonMoves: 1 } },
+  )
+  if (!updated) return { ok: false, reason: 'Not enough turns. Complete Aptitude tests to gain more turns.' }
+  return { ok: true, remainingTurns: updated.dungeonMoves ?? 0 }
 }
 
 /** Get monster template for a cell type, with fallback to inline defaults */
@@ -195,6 +212,9 @@ export async function moveInDungeon(db, userId, direction) {
     return { ok: false, reason: 'Cannot move there – wall or out of bounds' }
   }
 
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
+
   const newPos = { r: newR, c: newC }
   const cell = grid[newR][newC]
 
@@ -217,7 +237,14 @@ export async function moveInDungeon(db, userId, direction) {
     { $set: { 'stats.mana': newMana, updatedAt: new Date() } }
   )
 
-  return { ok: true, cell, position: newPos, turnCount: (run.turnCount || 1) + 1, playerMana: newMana }
+  return {
+    ok: true,
+    cell,
+    position: newPos,
+    turnCount: (run.turnCount || 1) + 1,
+    playerMana: newMana,
+    remainingTurns: turnSpend.remainingTurns,
+  }
 }
 
 /**
@@ -234,6 +261,9 @@ export async function startCombat(db, userId) {
   if (!['monster', 'mini_boss', 'big_boss'].includes(cellType)) {
     return { ok: false, reason: 'No monster on this cell' }
   }
+
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
 
   // Fetch player stats
   const user = await db.collection('users').findOne({ _id: _userId })
@@ -269,7 +299,7 @@ export async function startCombat(db, userId) {
     { $set: { combatState, updatedAt: new Date() } },
   )
 
-  return { ok: true, combatState }
+  return { ok: true, combatState, remainingTurns: turnSpend.remainingTurns }
 }
 
 /**
@@ -295,8 +325,12 @@ export async function combatAction(db, userId, action) {
   const MANA_COSTS = {
     attack: 5,
     heavy_attack: 15,
+    heal: 12,
     rest: -15, // Negative cost means it restores
   }
+
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
 
   const cost = MANA_COSTS[action] || 0
   const currentMana = user.stats?.mana ?? 50
@@ -310,7 +344,7 @@ export async function combatAction(db, userId, action) {
       { _id: run._id },
       { $set: { combatState: null, updatedAt: new Date() } },
     )
-    return { ok: true, outcome: 'fled', combatState: null }
+    return { ok: true, outcome: 'fled', combatState: null, remainingTurns: turnSpend.remainingTurns }
   }
 
   // ── Attack turn ───────────────────────────────────────────
@@ -347,6 +381,12 @@ export async function combatAction(db, userId, action) {
   if (action === 'rest') {
     turnLog.playerDmg = 0
     turnLog.action = 'rest'
+  } else if (action === 'heal') {
+    const healAmount = Math.max(8, Math.floor(cs.playerMaxHp * 0.2))
+    cs.playerHp = Math.min(cs.playerMaxHp, cs.playerHp + healAmount)
+    turnLog.playerDmg = 0
+    turnLog.heal = healAmount
+    turnLog.action = 'heal'
   } else {
     // Attack
     isCrit  = Math.random() < critRate
@@ -420,6 +460,7 @@ export async function combatAction(db, userId, action) {
       levelUp: lvResult,
       lootItem,
       log: cs.log,
+      remainingTurns: turnSpend.remainingTurns,
     }
   }
 
@@ -456,6 +497,7 @@ export async function combatAction(db, userId, action) {
       outcome: 'defeat',
       goldLost,
       log: cs.log,
+      remainingTurns: turnSpend.remainingTurns,
     }
   }
 
@@ -474,6 +516,7 @@ export async function combatAction(db, userId, action) {
     outcome: 'ongoing',
     combatState: cs,
     log: cs.log,
+    remainingTurns: turnSpend.remainingTurns,
   }
 }
 
@@ -487,6 +530,9 @@ export async function openChest(db, userId) {
 
   const { r, c } = run.currentPos
   if (run.grid[r][c] !== 'chest') return { ok: false, reason: 'No chest on this cell' }
+
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
 
   const rarity = rollChest()
   const item = await db.collection('items').findOne({ rarity })
@@ -510,7 +556,7 @@ export async function openChest(db, userId) {
     },
   )
 
-  return { ok: true, rarity, lootItem }
+  return { ok: true, rarity, lootItem, remainingTurns: turnSpend.remainingTurns }
 }
 
 /**
@@ -524,11 +570,14 @@ export async function visitShop(db, userId) {
   const { r, c } = run.currentPos
   if (run.grid[r][c] !== 'shop') return { ok: false, reason: 'No shop on this cell' }
 
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
+
   const items = await db.collection('items')
     .aggregate([{ $sample: { size: 3 } }])
     .toArray()
 
-  return { ok: true, shopItems: items }
+  return { ok: true, shopItems: items, remainingTurns: turnSpend.remainingTurns }
 }
 
 /**
@@ -543,12 +592,15 @@ export async function nextFloor(db, userId) {
   const { r, c } = run.currentPos
   if (run.grid[r][c] !== 'exit') return { ok: false, reason: 'You must be on the exit cell to advance' }
 
+  const turnSpend = await spendTurns(db, userId, 1)
+  if (!turnSpend.ok) return turnSpend
+
   const nextFloorNum = run.currentFloor + 1
 
   if (nextFloorNum > DUNGEON.TOTAL_FLOORS) {
     // All floors complete → delete run record to save space
     await db.collection('dungeon_runs').deleteOne({ _id: run._id })
-    return { ok: true, completed: true, message: 'Dungeon complete! Congratulations!' }
+    return { ok: true, completed: true, message: 'Dungeon complete! Congratulations!', remainingTurns: turnSpend.remainingTurns }
   }
 
   const plDoc = await getOrCreatePlayerLevel(db, userId)
@@ -569,12 +621,13 @@ export async function nextFloor(db, userId) {
   )
 
   // Full restore Mana on floor advance
+  const user = await db.collection('users').findOne({ _id: _userId }, { projection: { 'stats.maxMana': 1 } })
   await db.collection('users').updateOne(
     { _id: _userId },
     { $set: { 'stats.mana': user.stats?.maxMana ?? 50, updatedAt: new Date() } }
   )
 
-  return { ok: true, completed: false, currentFloor: nextFloorNum, grid: newGrid, startPos }
+  return { ok: true, completed: false, currentFloor: nextFloorNum, grid: newGrid, startPos, remainingTurns: turnSpend.remainingTurns }
 }
 
 /**

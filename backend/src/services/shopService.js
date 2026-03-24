@@ -67,36 +67,48 @@ export async function sellItem(db, userId, userItemId) {
 }
 
 /**
- * Roll a gacha chest.
- * Free users must watch an ad (tracked client-side via adsWatched).
- * Premium users roll freely (up to their allowed count).
+ * Roll a gacha chest for 1 ticket.
  */
 export async function rollGachaChest(db, userId) {
   const _userId = toObjectId(userId)
-  const user = await db.collection('users').findOne({ _id: _userId })
-  if (!user) return { ok: false, reason: 'User not found' }
-
-  if (user.subscriptionTier === SUBSCRIPTION_TIERS.FREE) {
-    if (user.daily.adsWatched < DAILY_LIMITS.FREE_CHEST_ADS) {
-      // Free user hasn't watched enough ads yet (frontend tracks ad completion)
-      return { ok: false, reason: 'Watch an ad to roll a free chest' }
-    }
+  
+  // Atomic ticket deduction
+  const result = await db.collection('users').findOneAndUpdate(
+    { _id: _userId, ticketCount: { $gte: 1 } },
+    { $inc: { ticketCount: -1 }, $set: { updatedAt: new Date() } },
+    { returnDocument: 'after' }
+  )
+  
+  // If user wasn't found or ticketCount < 1
+  if (!result) {
+    return { ok: false, reason: 'Not enough tickets to roll the chest.' }
   }
 
-  // Determine rarity
-  const rarity = rollChest()
+  // Determine rarity pool
+  const rollTarget = rollChest()
 
-  // Pull a random item of that rarity from the items pool
-  const pipeline = rarity === 'scroll'
-    ? [{ $match: { type: 'scroll' } }, { $sample: { size: 1 } }]
-    : [{ $match: { rarity, type: 'equipment' } }, { $sample: { size: 1 } }]
+  // Pull a random item from that specific type/rarity pool
+  const pipeline = [
+    { $match: { type: rollTarget.type, rarity: { $in: rollTarget.rarities }, price: { $gt: 0 } } }, 
+    { $sample: { size: 1 } }
+  ]
 
   const [item] = await db.collection('items').aggregate(pipeline).toArray()
-  if (!item) return { ok: false, reason: 'No items available in this rarity pool' }
+  // Fallback if no item matched the specific pool (shouldn't happen with our seed, but just in case)
+  if (!item) return { ok: false, reason: 'The chest was empty (no items matched the rolled rarity pool).' }
 
   // Add to inventory
-  const userItemDoc = createUserItemDocument({ userId: _userId, itemId: item._id })
-  const { insertedId } = await db.collection('user_items').insertOne(userItemDoc)
+  if (item.stackable) {
+    await db.collection('user_items').updateOne(
+      { userId: _userId, itemId: item._id },
+      { $inc: { quantity: 1 }, $setOnInsert: createUserItemDocument({ userId: _userId, itemId: item._id, quantity: 0 }) },
+      { upsert: true }
+    )
+  } else {
+    await db.collection('user_items').insertOne(
+      createUserItemDocument({ userId: _userId, itemId: item._id })
+    )
+  }
 
-  return { ok: true, rarity, item, userItemId: insertedId }
+  return { ok: true, tierStr: item.rarity, item, newTicketBalance: result.ticketCount }
 }

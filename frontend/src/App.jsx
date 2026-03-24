@@ -8,6 +8,7 @@ import Armory from './pages/Armory/Armory'
 
 import GrimoireStudy from './pages/Grimoire/GrimoireStudy'
 import Aptitude from './pages/Aptitude/Aptitude'
+import Shop from './pages/Shop/Shop'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/grimoire/:id/study" element={<GrimoireStudy />} />
         <Route path="/armory" element={<Armory />} />
         <Route path="/aptitude" element={<Aptitude />} />
+        <Route path="/shop" element={<Shop />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
