@@ -127,8 +127,7 @@ export default function Dungeon() {
   const [playerLevel, setPlayerLevel] = useState({ level: 1, exp: 0, expToNextLevel: 100, turns: 0 });
   const [allocatingStat, setAllocatingStat] = useState('');
   const [displayStats, setDisplayStats] = useState({ hp: 120, mp: 10, ad: 12, ap: 0, armor: 10, mr: 5 });
-
-  // Modals / Specific UI states
+  const [combatSubMenu, setCombatSubMenu] = useState(null); // 'atk' | 'item' | null
   const [combatState, setCombatState] = useState(null);
   const [shopItems, setShopItems]     = useState([]);
   const [chestLoot, setChestLoot]     = useState(null);
@@ -275,6 +274,7 @@ export default function Dungeon() {
     try {
       const res = await dungeonApi.combatStart();
       setCombatState(res.data.combatState);
+      setCombatSubMenu(null); // Reset sub-menu when combat starts
       flash(`Engaged ${res.data.combatState.monsterName}!`);
     } catch (e) {
       flash(e.response?.data?.error || 'Cannot start combat', true);
@@ -287,6 +287,7 @@ export default function Dungeon() {
     setLoading(true);
     try {
       const res = await dungeonApi.combatAction(action);
+      setCombatSubMenu(null); // Reset sub-menu after any action
       if (res.data.outcome === 'victory') {
         const { expEarned, goldEarned, levelUp, lootItem } = res.data;
         setCombatState(null);
@@ -489,49 +490,94 @@ export default function Dungeon() {
              )}
           </div>
 
-          <div className="p-4 bg-surface-dim grid grid-cols-4 gap-3">
-            <button 
-              onClick={() => doCombatAction('attack')} 
-              disabled={loading || playerMana < 5}
-              className="py-3 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest border-2 border-on-primary-container shadow-[2px_2px_0px_0px_rgba(72,50,0,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-0 disabled:opacity-50"
-            >
-              <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span> ATK</div>
-              <span className="text-[9px] opacity-80">(5 MP)</span>
-            </button>
-            <button 
-              onClick={() => doCombatAction('heavy_attack')} 
-              disabled={loading || playerMana < 15}
-              className="py-3 bg-secondary text-on-secondary font-headline font-bold uppercase tracking-widest border-2 border-on-secondary-container shadow-[2px_2px_0px_0px_rgba(31,28,11,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-0 disabled:opacity-50"
-            >
-              <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>offline_bolt</span> HEAVY</div>
-              <span className="text-[9px] opacity-80">(15 MP)</span>
-            </button>
-            <button 
-              onClick={() => doCombatAction('rest')} 
-              disabled={loading}
-              className="py-3 bg-surface-variant text-on-surface font-headline font-bold uppercase tracking-widest border-2 border-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-0"
-            >
-              <div className="flex items-center gap-2 text-blue-400"><span className="material-symbols-outlined text-sm">bedtime</span> REST</div>
-              <span className="text-[9px] opacity-80 text-blue-400">(+15 MP)</span>
-            </button>
-            <button
-              onClick={() => doCombatAction('heal')}
-              disabled={loading || playerMana < 12}
-              className="py-3 bg-emerald-700 text-emerald-50 font-headline font-bold uppercase tracking-widest border-2 border-emerald-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-0 disabled:opacity-50"
-            >
-              <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">healing</span> HEAL</div>
-              <span className="text-[9px] opacity-80">(12 MP)</span>
-            </button>
-            
-            <button 
-              onClick={() => doCombatAction('flee')} 
-              disabled={loading}
-              className="py-2 col-span-4 bg-surface-container-highest text-on-surface-variant font-headline font-bold uppercase tracking-widest border-2 border-outline/30 flex justify-center items-center gap-2 text-[10px] opacity-70 hover:opacity-100 transition-opacity"
-            >
-              <span className="material-symbols-outlined text-sm">directions_run</span> FLEE (END RUN)
-            </button>
+          <div className="p-4 bg-surface-dim relative min-h-[140px]">
+            {/* ── Main Category Selection ── */}
+            {combatSubMenu === null && (
+               <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
+                  <button 
+                    onClick={() => setCombatSubMenu('atk')}
+                    className="py-6 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest border-4 border-on-primary-container shadow-[4px_4px_0px_0px_rgba(72,50,0,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                    <span>ATK</span>
+                  </button>
+                  <button 
+                    onClick={() => setCombatSubMenu('item')}
+                    className="py-6 bg-secondary text-on-secondary font-headline font-bold uppercase tracking-widest border-4 border-on-secondary-container shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
+                    <span>USE ITEM</span>
+                  </button>
+               </div>
+            )}
+
+            {/* ── ATK Sub-menu ── */}
+            {combatSubMenu === 'atk' && (
+              <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-right-4 duration-300">
+                <button 
+                  onClick={() => doCombatAction('attack')} 
+                  disabled={loading || playerMana < 5}
+                  className="py-4 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest border-2 border-on-surface shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none flex flex-col items-center disabled:opacity-50"
+                >
+                  <div className="text-xs">Normal ATK</div>
+                  <span className="text-[10px] opacity-80">(5 MP)</span>
+                </button>
+                <button 
+                  onClick={() => doCombatAction('heavy_attack')} 
+                  disabled={loading || playerMana < 15}
+                  className="py-4 bg-secondary text-on-secondary font-headline font-bold uppercase tracking-widest border-2 border-on-surface shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none flex flex-col items-center disabled:opacity-50"
+                >
+                  <div className="text-xs">Heavy ATK</div>
+                  <span className="text-[10px] opacity-80">(15 MP)</span>
+                </button>
+                <button 
+                  onClick={() => setCombatSubMenu(null)}
+                  className="col-span-2 py-1 text-[10px] font-bold uppercase text-outline underline"
+                >
+                  Back
+                </button>
+              </div>
+            )}
+
+            {/* ── ITEM Sub-menu ── */}
+            {combatSubMenu === 'item' && (
+              <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-right-4 duration-300">
+                <button 
+                  onClick={() => doCombatAction('rest')} 
+                  disabled={loading}
+                  className="py-4 bg-surface-variant text-on-surface font-headline font-bold uppercase tracking-widest border-2 border-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none flex flex-col items-center"
+                >
+                  <div className="text-xs text-blue-400">Rest</div>
+                  <span className="text-[10px] opacity-80 text-blue-400">(+15 MP)</span>
+                </button>
+                <button 
+                  onClick={() => doCombatAction('heal')} 
+                  disabled={loading || playerMana < 12}
+                  className="py-4 bg-emerald-700 text-emerald-50 font-headline font-bold uppercase tracking-widest border-2 border-emerald-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none flex flex-col items-center disabled:opacity-50"
+                >
+                  <div className="text-xs">Heal</div>
+                  <span className="text-[10px] opacity-80">(12 MP)</span>
+                </button>
+                <button 
+                  onClick={() => setCombatSubMenu(null)}
+                  className="col-span-2 py-1 text-[10px] font-bold uppercase text-outline underline"
+                >
+                  Back
+                </button>
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <button 
+                onClick={() => doCombatAction('flee')} 
+                disabled={loading}
+                className="w-full py-2 bg-surface-container-highest text-on-surface-variant font-headline font-bold uppercase tracking-widest border-2 border-outline/30 flex justify-center items-center gap-2 text-[10px] opacity-70 hover:opacity-100 transition-opacity"
+              >
+                <span className="material-symbols-outlined text-sm">directions_run</span> FLEE (END RUN)
+              </button>
+              <p className="text-[10px] text-outline uppercase text-center font-bold">Every dungeon action costs 1 turn.</p>
+            </div>
           </div>
-          <p className="px-4 pb-3 text-[10px] text-outline uppercase text-center font-bold">Every dungeon action costs 1 turn.</p>
         </div>
       </div>
     );
