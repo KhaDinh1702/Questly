@@ -65,7 +65,7 @@ export const dungeonApi = {
   getLevel: () => api.get('/api/dungeon/level'),
   move: (direction) => api.post('/api/dungeon/move', { direction }),
   combatStart: () => api.post('/api/dungeon/combat/start'),
-  combatAction: (action) => api.post('/api/dungeon/combat/action', { action }),
+  combatAction: (action, itemId = null) => api.post('/api/dungeon/combat/action', { action, itemId }),
   openChest: () => api.post('/api/dungeon/chest/open'),
   visitShop: () => api.post('/api/dungeon/shop/visit'),
   nextFloor: () => api.post('/api/dungeon/next-floor'),

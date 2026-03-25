@@ -149,13 +149,25 @@ export default function Shop() {
   async function handleBuy(item) {
     const token = localStorage.getItem('token');
     if (!token) { setBuyMsg('Login to purchase items.'); return; }
+
+    // Check gold before attempting purchase
+    if (gold < item.price) {
+      setBuyMsg(`❌ Not enough gold! You need ${(item.price - gold).toLocaleString()} more.`);
+      setTimeout(() => setBuyMsg(null), 3000);
+      return;
+    }
+
     try {
-      await shopApi.buy(item._id);
+      const response = await shopApi.buy(item._id, 1);
       setBuyMsg(`✅ Purchased "${item.name}"!`);
-      setGold((g) => g - item.price);
+      // Update gold from server response
+      setGold(response.data.newGoldBalance);
+      // Trigger inventory refresh
       localStorage.setItem('armoryInventoryVersion', String(Date.now()));
     } catch (e) {
-      setBuyMsg(`❌ ${e.response?.data?.error ?? 'Purchase failed.'}`);
+      const errorMsg = e.response?.data?.error ?? 'Purchase failed.';
+      setBuyMsg(`❌ ${errorMsg}`);
+      console.error('Buy error:', e);
     }
     setTimeout(() => setBuyMsg(null), 3000);
   }
@@ -164,6 +176,14 @@ export default function Shop() {
   async function handleRoll() {
     const token = localStorage.getItem('token');
     if (!token) { setBuyMsg('Login to roll the chest.'); return; }
+
+    // Check tickets before attempting roll
+    if (tickets < 1) {
+      setBuyMsg(`❌ You need at least 1 ticket to roll.`);
+      setTimeout(() => setBuyMsg(null), 3000);
+      return;
+    }
+
     try {
       const { data } = await shopApi.rollChest();
       const itemName = data.item?.name || 'Unknown Item';
@@ -172,7 +192,9 @@ export default function Shop() {
       setTickets(data.newTicketBalance);
       localStorage.setItem('armoryInventoryVersion', String(Date.now()));
     } catch (e) {
-      setBuyMsg(`❌ ${e.response?.data?.error ?? 'Roll failed.'}`);
+      const errorMsg = e.response?.data?.error ?? 'Roll failed.';
+      setBuyMsg(`❌ ${errorMsg}`);
+      console.error('Roll error:', e);
     }
     setTimeout(() => setBuyMsg(null), 4000);
   }
