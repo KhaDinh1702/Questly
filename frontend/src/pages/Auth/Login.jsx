@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../../services/api';
+import { authApi, userApi } from '../../services/api';
+import { getPostAuthRoute } from '../../utils/onboarding';
 import Navbar from '../../components/Navbar';
 
 const Login = () => {
@@ -21,7 +22,12 @@ const Login = () => {
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/');
+        try {
+          const meRes = await userApi.getMe();
+          navigate(getPostAuthRoute(meRes.data));
+        } catch {
+          navigate('/warden-intro');
+        }
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Đăng nhập thất bại. Vui lòng thử lại.');

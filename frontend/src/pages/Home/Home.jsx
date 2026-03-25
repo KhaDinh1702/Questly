@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import { userApi } from '../../services/api';
+import { getPostAuthRoute } from '../../utils/onboarding';
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -13,6 +14,11 @@ const Home = () => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+      userApi.getMe().then((res) => {
+        const me = res.data ?? {};
+        const next = getPostAuthRoute(me);
+        if (next !== '/') navigate(next, { replace: true });
+      }).catch(() => {});
     }
 
     const fetchLeaderboard = async () => {

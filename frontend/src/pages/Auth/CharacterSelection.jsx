@@ -15,18 +15,24 @@ const CharacterSelection = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/register');
+      return;
     }
+    userApi.getMe().then((res) => {
+      const me = res.data ?? {};
+      if (me.classProfile?.confirmedClass) {
+        navigate('/path-selection');
+      }
+    }).catch(() => {});
   }, [navigate]);
 
   const handleForgePath = async () => {
     setLoading(true);
     setError('');
-    console.log('[CharacterSelection] Attempting to forge path. Token:', localStorage.getItem('token') ? 'FOUND' : 'NOT FOUND');
     try {
       await userApi.confirmClass(selectedClass);
-      navigate('/');
+      navigate('/path-selection');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to forge path.');
+      setError(err.response?.data?.error || 'Failed to confirm class.');
     } finally {
       setLoading(false);
     }
@@ -40,7 +46,7 @@ const CharacterSelection = () => {
       icon: 'swords',
       image: warriorImg,
       skills: ['Heavy Cleave', 'Shield Wall'],
-      attributes: { strength: 85, agility: 40, intellect: 30 }
+      attributes: { strength: 85, agility: 40, intellect: 30 },
     },
     {
       id: 'rogue',
@@ -49,7 +55,7 @@ const CharacterSelection = () => {
       icon: 'colorize',
       image: rogueImg,
       skills: ['Backstab', 'Vanish'],
-      attributes: { strength: 45, agility: 95, intellect: 50 }
+      attributes: { strength: 45, agility: 95, intellect: 50 },
     },
     {
       id: 'mage',
@@ -58,8 +64,8 @@ const CharacterSelection = () => {
       icon: 'auto_awesome',
       image: mageImg,
       skills: ['Arcane Surge', 'Frost Nova'],
-      attributes: { strength: 20, agility: 35, intellect: 90 }
-    }
+      attributes: { strength: 20, agility: 35, intellect: 90 },
+    },
   ];
 
   return (
@@ -161,7 +167,7 @@ const CharacterSelection = () => {
                       )}
                       <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-transparent ${isSelected ? 'to-primary/20' : 'to-surface-container-low/20'}`}></div>
                     </div>
-                    
+
                     <h2 className="font-headline text-4xl font-bold text-center text-primary uppercase mb-2 tracking-widest">{cls.name}</h2>
                     <p className="text-on-surface-variant text-sm italic mb-8 leading-relaxed text-center px-4">
                       {cls.description}
@@ -171,7 +177,7 @@ const CharacterSelection = () => {
                       <section>
                         <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4 border-b border-outline-variant pb-1 text-center">Primary Skills</h3>
                         <div className="grid grid-cols-2 gap-2">
-                          {cls.skills.map(skill => (
+                          {cls.skills.map((skill) => (
                             <div key={skill} className={`flex items-center gap-2 text-xs text-on-surface p-2 ${isSelected ? 'bg-primary/10 border border-primary/20 font-bold' : 'bg-surface-container-highest/30'}`}>
                               <span className="w-1.5 h-1.5 bg-primary"></span> {skill}
                             </div>
@@ -219,7 +225,7 @@ const CharacterSelection = () => {
                 <span className="font-headline uppercase text-lg font-bold text-primary tracking-[0.2em]">Warden's Notice</span>
               </div>
               <p className="text-on-surface text-base italic border-l-4 border-primary pl-6 py-2 leading-relaxed">
-                Selection is final. Once the ink dries upon the Register, your path is set within the annals of time. Ensure your attributes align with your preferred combat style before committing.
+                Warden: "Are you certain about your choice?" You may still choose again before sealing your class.
               </p>
             </div>
             <div className="flex gap-6">
@@ -230,24 +236,15 @@ const CharacterSelection = () => {
                 Randomize
               </button>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/warden-intro')}
                 className="font-headline py-3 px-10 border-2 border-outline text-outline uppercase font-bold text-sm tracking-[0.2em] hover:bg-outline hover:text-surface transition-colors shadow-md"
               >
-                Skip For Now
+                Think Again
               </button>
             </div>
           </div>
         </div>
       </main>
-
-      <footer className="bg-stone-200 dark:bg-stone-800 w-full border-t-2 border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center py-12 px-4 space-y-4">
-        <div className="text-lg font-bold text-stone-900 dark:text-stone-100 font-headline uppercase tracking-widest">
-          Questly
-        </div>
-        <p className="font-serif text-sm italic text-stone-700 dark:text-stone-300">
-          © 1242 Questly. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 };

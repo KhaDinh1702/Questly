@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../../components/Navbar';
 import { userApi } from '../../services/api';
+import warriorImg from '../../assets/images/classes/warrior.jpg';
+import mageImg from '../../assets/images/classes/mage.png';
+import rogueImg from '../../assets/images/classes/rogue.jpg';
 import { computeClassScaledStats, formatBonusLines, getEquippedBonusFromInventory, mergeCoreStats } from '../../utils/stats';
 
 const CLASS_ORDER = ['warrior', 'rogue', 'mage'];
@@ -15,6 +18,12 @@ const CLASS_ICON = {
   warrior: 'swords',
   rogue: 'sprint',
   mage: 'auto_stories',
+};
+
+const CLASS_IMAGE = {
+  warrior: warriorImg,
+  rogue: rogueImg,
+  mage: mageImg,
 };
 
 
@@ -244,9 +253,22 @@ export default function Armory() {
               className="bg-surface-container-highest border-2 border-outline p-8 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden"
               style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px)' }}
             >
-              {/* Character Display */}
-              <div className="relative z-10 scale-[2.5] mb-8">
-                <span className="material-symbols-outlined text-primary text-8xl" style={{ fontVariationSettings: "'FILL' 1" }}>person_play</span>
+              {/* Character portrait — same assets as Character Selection */}
+              <div className="relative z-10 w-full max-w-[200px] mx-auto mb-6">
+                <div
+                  className="relative aspect-[4/5] border-4 border-primary overflow-hidden bg-surface-container-low shadow-[inset_0_0_24px_rgba(0,0,0,0.35)]"
+                  style={{
+                    clipPath:
+                      'polygon(0% 100%, 0% 15%, 5% 8%, 15% 3%, 30% 1%, 50% 0%, 70% 1%, 85% 3%, 95% 8%, 100% 15%, 100% 100%)',
+                  }}
+                >
+                  <img
+                    src={CLASS_IMAGE[selectedClass] ?? CLASS_IMAGE.warrior}
+                    alt={CLASS_LABEL[selectedClass]}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+                </div>
               </div>
               
               {/* Class Selection Tabs */}
