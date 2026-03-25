@@ -500,7 +500,7 @@ export default function Dungeon() {
                    <>You used <span className="font-bold text-blue-300">{lastLog.itemName}</span> and restored {lastLog.heal > 0 && <span className="text-emerald-400">{lastLog.heal} HP</span>} {lastLog.heal > 0 && lastLog.manaRestored > 0 && 'and'} {lastLog.manaRestored > 0 && <span className="text-blue-400">{lastLog.manaRestored} MP</span>}.</>
                  ) : (
                    <>
-                     You used <span className="font-bold text-tertiary">{lastLog.action === 'heavy_attack' ? 'HEAVY ATK (15MP)' : 'ATTACK (5MP)'}</span> for <span className="font-bold text-primary">{lastLog.playerDmg}</span> damage {lastLog.isCrit && <span className="text-secondary">(CRIT!)</span>}.
+                     You used <span className="font-bold text-tertiary">{lastLog.action === 'heavy_attack' ? `HEAVY ATK (${manaCosts.heavyAtk}MP)` : `ATTACK (${manaCosts.normalAtk}MP)`}</span> for <span className="font-bold text-primary">{lastLog.playerDmg}</span> damage {lastLog.isCrit && <span className="text-secondary">(CRIT!)</span>}.
                    </>
                  )}
                  {' '}
