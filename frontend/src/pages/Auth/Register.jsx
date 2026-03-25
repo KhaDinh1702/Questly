@@ -49,6 +49,7 @@ const Register = () => {
       setTimeout(async () => {
         try {
           const meRes = await userApi.getMe();
+          localStorage.setItem('user', JSON.stringify(meRes.data));
           navigate(getPostAuthRoute(meRes.data));
         } catch {
           navigate('/warden-intro');

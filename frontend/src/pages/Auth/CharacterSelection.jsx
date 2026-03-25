@@ -4,11 +4,15 @@ import { userApi } from '../../services/api';
 import warriorImg from '../../assets/images/classes/warrior.jpg';
 import mageImg from '../../assets/images/classes/mage.png';
 import rogueImg from '../../assets/images/classes/rogue.jpg';
+import premiumFrame from '../../assets/images/frames/frame_monthly_1.png';
+import premiumFrame6m from '../../assets/images/frames/frame_6months_1.png';
 
 const CharacterSelection = () => {
   const [selectedClass, setSelectedClass] = useState('warrior');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [subscriptionTier, setSubscriptionTier] = useState('free');
+  const [showFrame, setShowFrame] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +23,8 @@ const CharacterSelection = () => {
     }
     userApi.getMe().then((res) => {
       const me = res.data ?? {};
+      setSubscriptionTier(me.subscriptionTier || 'free');
+      setShowFrame(me.showFrame ?? true);
       if (me.classProfile?.confirmedClass) {
         navigate('/path-selection');
       }
@@ -108,6 +114,13 @@ const CharacterSelection = () => {
           clip-path: polygon(0% 100%, 0% 15%, 5% 8%, 15% 3%, 30% 1%, 50% 0%, 70% 1%, 85% 3%, 95% 8%, 100% 15%, 100% 100%);
           border: 4px solid #7a5907;
         }
+        .premium-frame {
+          border: 12px solid transparent !important;
+          border-image: var(--premium-frame-url, url(${premiumFrame})) 32 round !important;
+          background-origin: border-box;
+          background-clip: padding-box, border-box;
+          image-rendering: pixelated;
+        }
       `}</style>
 
       <header className="sticky top-0 z-50 bg-[#fff9ed] dark:bg-[#1f1c0b] flex justify-between items-center w-full px-6 py-4 max-w-none border-b border-outline-variant">
@@ -146,7 +159,10 @@ const CharacterSelection = () => {
                 <article
                   key={cls.id}
                   onClick={() => setSelectedClass(cls.id)}
-                  className={`ornate-frame p-1 group transition-all duration-300 cursor-pointer ${
+                  style={{
+                    '--premium-frame-url': `url(${subscriptionTier === '6months' || subscriptionTier === 'yearly' ? premiumFrame6m : premiumFrame})`
+                  }}
+                  className={`${(subscriptionTier === 'monthly' || subscriptionTier === '6months' || subscriptionTier === 'yearly') && showFrame ? 'premium-frame' : 'ornate-frame'} p-1 group transition-all duration-300 cursor-pointer ${
                     isSelected ? 'ring-8 ring-primary/20 -translate-y-4 z-10 scale-105' : 'hover:-translate-y-2'
                   }`}
                 >

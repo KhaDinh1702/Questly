@@ -41,7 +41,16 @@ auth.post('/register', async (c) => {
     return c.json({
       message: 'Đăng ký thành công',
       token,
-      user: { id: insertedId, username, role: 'user' },
+      user: { 
+        id: insertedId, 
+        username, 
+        role: 'user',
+        subscriptionTier: userDoc.subscriptionTier,
+        subExpiryDate: userDoc.subExpiryDate,
+        avatarIcon: userDoc.avatarIcon,
+        avatarColor: userDoc.avatarColor,
+        showFrame: userDoc.showFrame
+      },
     }, 201)
   } catch (error) {
     console.error('[register]', error)
@@ -78,7 +87,16 @@ auth.post('/login', async (c) => {
     return c.json({
       message: 'Đăng nhập thành công',
       token,
-      user: { id: user._id, username: user.username, role: user.role },
+      user: { 
+        id: user._id, 
+        username: user.username, 
+        role: user.role,
+        subscriptionTier: user.subscriptionTier,
+        subExpiryDate: user.subExpiryDate,
+        avatarIcon: user.avatarIcon,
+        avatarColor: user.avatarColor,
+        showFrame: user.showFrame
+      },
     })
   } catch (error) {
     console.error('[login]', error)
