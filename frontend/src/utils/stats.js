@@ -10,14 +10,14 @@ export const CORE_STAT_LABEL = {
 };
 
 export const CLASS_BASE_STATS = {
-  warrior: { hp: 120, mp: 10, ad: 12, ap: 0, armor: 10, mr: 5 },
-  rogue: { hp: 90, mp: 20, ad: 14, ap: 0, armor: 4, mr: 3 },
-  mage: { hp: 80, mp: 50, ad: 5, ap: 15, armor: 3, mr: 8 },
+  warrior: { hp: 180, mp: 50, ad: 20, ap: 0, armor: 18, mr: 5 },
+  rogue: { hp: 130, mp: 60, ad: 22, ap: 0, armor: 10, mr: 5 },
+  mage: { hp: 110, mp: 100, ad: 10, ap: 30, armor: 8, mr: 8 },
 };
 
 export const CLASS_LEVEL_GROWTH = {
-  warrior: { hp: 12, mp: 0, ad: 2, ap: 0, armor: 2, mr: 1 },
-  rogue: { hp: 8, mp: 0, ad: 3, ap: 0, armor: 1, mr: 1 },
+  warrior: { hp: 12, mp: 2, ad: 2, ap: 0, armor: 2, mr: 1 },
+  rogue: { hp: 8, mp: 2, ad: 3, ap: 0, armor: 1, mr: 1 },
   mage: { hp: 7, mp: 10, ad: 0, ap: 4, armor: 0, mr: 1 },
 };
 

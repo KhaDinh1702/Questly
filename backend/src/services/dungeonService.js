@@ -24,6 +24,7 @@ import { addResources } from './userService'
 import { weightedRandom, rollChest } from '../helpers/gacha'
 import { createUserItemDocument } from '../models/UserItem'
 import { DUNGEON, MONSTER_TIER } from '../config/constants'
+import { getBaseStats } from '../helpers/gameLogic'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -144,6 +145,39 @@ async function getMonsterTemplate(db, cellType) {
   }
   return defaults[tier] ?? defaults.minion
 }
+/**
+ * Ensures player of a given class has healthy stats (no 0 mana if class has mana).
+ * Returns the corrected user doc stats.
+ */
+async function repairPlayerStats(db, user) {
+  if (!user || !user.stats) return null
+  const _userId = user._id
+  
+  let { maxHp, maxMana } = user.stats
+  let needsUpdate = false
+  
+  if ((maxMana <= 0 || maxHp < 100) && user.class) {
+    const base = getBaseStats(user.class)
+    if (maxMana <= 0) {
+      maxMana = base.maxMana || 50
+      needsUpdate = true
+    }
+    if (maxHp < base.maxHp) {
+      maxHp = base.maxHp || 100
+      needsUpdate = true
+    }
+  }
+
+  if (needsUpdate) {
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $set: { 'stats.maxHp': maxHp, 'stats.maxMana': maxMana } }
+    )
+    user.stats.maxHp = maxHp
+    user.stats.maxMana = maxMana
+  }
+  return user.stats
+}
 
 /** Check if position is valid (within cross pattern) */
 function isAccessible(grid, r, c) {
@@ -164,8 +198,10 @@ export async function startDungeonRun(db, userId, floor = 1) {
 
   // Heal player to max HP and restore Mana when entering a new dungeon
   const user = await db.collection('users').findOne({ _id: toObjectId(userId) })
-  const maxHp = user?.stats?.maxHp ?? 100
-  const maxMana = user?.stats?.maxMana ?? 50
+  await repairPlayerStats(db, user)
+  const maxHp = user.stats.maxHp
+  const maxMana = user.stats.maxMana
+
   await db.collection('users').updateOne(
     { _id: toObjectId(userId) },
     { 
@@ -275,6 +311,7 @@ export async function startCombat(db, userId) {
   // Fetch player stats
   const user = await db.collection('users').findOne({ _id: _userId })
   if (!user) return { ok: false, reason: 'User not found' }
+  await repairPlayerStats(db, user)
 
   const monsterLevel = getMonsterLevel(cellType, run.currentFloor, run.playerLevel, DUNGEON.BOSS_LEVEL_BONUS)
   const template = await getMonsterTemplate(db, cellType)
@@ -324,8 +361,14 @@ export async function combatAction(db, userId, action) {
     { projection: { stats: 1, gold: 1 } },
   )
   if (!user) return { ok: false, reason: 'User not found' }
+  await repairPlayerStats(db, user)
 
   let cs = { ...run.combatState }
+  // Fix ongoing combatState if it has 0 maxMana
+  if (cs.playerMaxMana <= 0 && user.stats.maxMana > 0) {
+    cs.playerMaxMana = user.stats.maxMana
+    if (cs.playerMana <= 0) cs.playerMana = user.stats.maxMana
+  }
   cs.log = [...(cs.log ?? [])]
 
   // ── Mana Costs ─────────────────────────────────────────────
