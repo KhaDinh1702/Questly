@@ -81,7 +81,7 @@ export async function deductGoldPenalty(db, userId, pct = 0.10) {
 }
 
 /** Increment aptitude test count; always allows the test but returns rewardEligible=false when over limit */
-export async function useAptitudeTestSlot(db, userId) {
+export async function useAptitudeTestSlot(db, userId, { increment = true } = {}) {
   const col = db.collection('users')
   const _id = toObjectId(userId)
   await maybeResetDaily(col, _id)
@@ -95,15 +95,190 @@ export async function useAptitudeTestSlot(db, userId) {
   const aptitudeTestsTaken = user.daily?.aptitudeTestsTaken ?? 0
   const rewardEligible = aptitudeTestsTaken < limit
 
-  // Always increment the counter (tracks all attempts)
-  await col.updateOne({ _id }, { $inc: { 'daily.aptitudeTestsTaken': 1 } })
+  // Increment the counter (tracks all attempts) if requested.
+  if (increment) {
+    await col.updateOne({ _id }, { $inc: { 'daily.aptitudeTestsTaken': 1 } })
+  }
+
+  const remainingTests = increment
+    ? Math.max(0, limit - aptitudeTestsTaken - 1)
+    : Math.max(0, limit - aptitudeTestsTaken)
 
   return {
     ok: true,
     rewardEligible,
-    remainingTests: Math.max(0, limit - aptitudeTestsTaken - 1),
+    remainingTests,
     limit,
   }
+}
+
+// ============================================================
+// Flashcard Set Aptitude (Practice vs Real)
+// ============================================================
+const FLASHCARD_SET_PRACTICE_LIMIT = 5
+
+function flashcardSetTestKey(setId) {
+  // Mongo ObjectId -> stable string key in nested objects.
+  return String(setId)
+}
+
+/**
+ * Practice mode: max 5 attempts per flashcard set until the user
+ * completes the Real Test for that set.
+ */
+export async function useAptitudePracticeSlotForFlashcardSet(db, userId, setId) {
+  const usersCol = db.collection('users')
+  const _userId = toObjectId(userId)
+  const key = flashcardSetTestKey(setId)
+
+  const user = await usersCol.findOne(
+    { _id: _userId },
+    {
+      projection: {
+        subscriptionTier: 1,
+        flashcardSetTests: 1,
+      },
+    },
+  )
+
+  if (!user) return { ok: false, reason: 'User not found' }
+
+  const setState = user.flashcardSetTests?.[key] ?? {}
+  const realConsumed = Boolean(setState.realConsumed || setState.realCompleted)
+  const practiceAttempts = Number(setState.practiceAttempts ?? 0)
+
+  // After Real Test attempt (finish or leaving), Practice becomes unlimited.
+  if (realConsumed) {
+    return {
+      ok: true,
+      rewardEligible: false,
+      remainingPracticeAttempts: null,
+      practiceAttempts,
+    }
+  }
+
+  // Before Real completion, Practice is capped.
+  if (practiceAttempts >= FLASHCARD_SET_PRACTICE_LIMIT) {
+    return {
+      ok: false,
+      reason: 'Practice is locked. Complete the Real Test to unlock unlimited practice.',
+    }
+  }
+
+  const nextAttempts = practiceAttempts + 1
+  await usersCol.updateOne(
+    { _id: _userId },
+    {
+      $inc: { [`flashcardSetTests.${key}.practiceAttempts`]: 1 },
+      $set: { [`flashcardSetTests.${key}.updatedAt`]: new Date() },
+    },
+  )
+
+  const remainingPracticeAttempts = Math.max(0, FLASHCARD_SET_PRACTICE_LIMIT - nextAttempts)
+  return {
+    ok: true,
+    rewardEligible: false,
+    practiceAttempts: nextAttempts,
+    remainingPracticeAttempts,
+  }
+}
+
+/**
+ * Real mode: only 1 completion per flashcard set, but daily quota
+ * (pricing system) controls reward eligibility / rewards availability.
+ */
+export async function useAptitudeRealTestSlotForFlashcardSet(db, userId, setId) {
+  const usersCol = db.collection('users')
+  const _userId = toObjectId(userId)
+  const key = flashcardSetTestKey(setId)
+
+  const user = await usersCol.findOne(
+    { _id: _userId },
+    { projection: { flashcardSetTests: 1 } },
+  )
+  if (!user) return { ok: false, reason: 'User not found' }
+
+  const setState = user.flashcardSetTests?.[key] ?? {}
+  const realConsumed = Boolean(setState.realConsumed || setState.realCompleted)
+  if (realConsumed) {
+    return { ok: false, reason: 'Real Test already consumed for this flashcard set.' }
+  }
+
+  // Check daily quota without consuming it yet.
+  const quotaSlot = await useAptitudeTestSlot(db, userId, { increment: false })
+  if (!quotaSlot.ok) return quotaSlot
+  if (!quotaSlot.rewardEligible) {
+    return {
+      ok: false,
+      reason: 'Real Test daily limit reached. Try again tomorrow.',
+    }
+  }
+
+  // Consume 1 Real Test for this flashcard set immediately (even if the user leaves).
+  // This is the anti-spam lock that prevents repeatedly taking the same Real Test set.
+  const now = new Date()
+  const lockRes = await usersCol.updateOne(
+    {
+      _id: _userId,
+      [`flashcardSetTests.${key}.realConsumed`]: { $ne: true },
+      [`flashcardSetTests.${key}.realCompleted`]: { $ne: true }, // legacy users
+    },
+    {
+      $set: {
+        [`flashcardSetTests.${key}.realConsumed`]: true,
+        [`flashcardSetTests.${key}.realConsumedAt`]: now,
+        [`flashcardSetTests.${key}.updatedAt`]: now,
+      },
+      $inc: { [`flashcardSetTests.${key}.realAttempts`]: 1 },
+    },
+  )
+  if (lockRes.matchedCount === 0) {
+    // Race: someone else already consumed it.
+    return { ok: false, reason: 'Real Test already consumed for this flashcard set.' }
+  }
+
+  // Now consume daily quota counter for Real Test attempt.
+  const slot = await useAptitudeTestSlot(db, userId, { increment: true })
+  if (!slot.ok) return slot
+
+  return {
+    ...slot,
+    remainingPracticeAttempts: null,
+  }
+}
+
+/**
+ * Marks the Real Test as completed for a flashcard set, which unlocks
+ * unlimited practice for that set.
+ */
+export async function completeAptitudeRealTestForFlashcardSet(db, userId, setId) {
+  const usersCol = db.collection('users')
+  const _userId = toObjectId(userId)
+  const key = flashcardSetTestKey(setId)
+  const now = new Date()
+
+  const res = await usersCol.updateOne(
+    {
+      _id: _userId,
+      $or: [
+        { [`flashcardSetTests.${key}.realConsumed`]: true },
+        // Legacy alias
+        { [`flashcardSetTests.${key}.realCompleted`]: true },
+      ],
+    },
+    {
+      $set: {
+        // Mark that the user actually submitted the Real Test.
+        // Practice unlocking is based on realConsumed, so this is only for reward auditing.
+        [`flashcardSetTests.${key}.realSubmitted`]: true,
+        [`flashcardSetTests.${key}.realSubmittedAt`]: now,
+        // Backward compat: keep realCompleted as an alias.
+        [`flashcardSetTests.${key}.realCompleted`]: true,
+        [`flashcardSetTests.${key}.updatedAt`]: now,
+      },
+    },
+  )
+  return { ok: true }
 }
 
 /** Equip an item — validates slot compatibility before updating */
