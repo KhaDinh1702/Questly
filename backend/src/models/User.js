@@ -25,6 +25,7 @@ export function createUserDocument({
 }) {
   const now = new Date()
   const stats = selectedClass ? getBaseStats(selectedClass) : {}
+  const identityId = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
 
   return {
     // ── Account ───────────────────────────────────────────────
@@ -32,10 +33,12 @@ export function createUserDocument({
     email,
     password: passwordHash,         // bcrypt hash
     role: 'user',                   // 'user' | 'admin'
+    identityId,                     // 0000-9999 display ID
 
     // ── VIP ───────────────────────────────────────────────────
     subscriptionTier: SUBSCRIPTION_TIERS.FREE,
     subExpiryDate: null,
+    selectedFrame: null,            // for premium users to choose frame variant
 
     // ── Character ─────────────────────────────────────────────
     character: { hairStyle, clothesId, accessoryId, backpackSkin },
@@ -123,6 +126,11 @@ export function createUserDocument({
     // ── Flashcard Set Tests (Practice vs Real) ───────────────
     // Stored per-set as: flashcardSetTests[setIdString] = { practiceAttempts, realCompleted, ... }
     flashcardSetTests: {},
+
+    // ── Social / Community ────────────────────────────────────
+    friends: [],                    // [ObjectId]
+    friendRequestsIncoming: [],     // [{ fromUserId: ObjectId, createdAt: Date }]
+    friendRequestsOutgoing: [],     // [{ toUserId: ObjectId, createdAt: Date }]
 
 
     // ── Leaderboard ───────────────────────────────────────────

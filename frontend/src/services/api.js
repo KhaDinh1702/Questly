@@ -53,6 +53,17 @@ export const userApi = {
   getLeaderboard: (limit = 10) => api.get('/api/users/leaderboard', { params: { limit } }),
 }
 
+export const communityApi = {
+  getPlayers: (params = {}) => api.get('/api/community/players', { params }),
+  getLeaderboard: (params = {}) => api.get('/api/community/leaderboard', { params }),
+  getFriends: () => api.get('/api/community/friends'),
+  getRequests: () => api.get('/api/community/requests'),
+  requestFriend: (toUserId) => api.post('/api/community/request', { toUserId }),
+  acceptRequest: (fromUserId) => api.post('/api/community/accept', { fromUserId }),
+  declineRequest: (fromUserId) => api.post('/api/community/decline', { fromUserId }),
+  removeFriend: (userId) => api.post('/api/community/remove', { userId }),
+}
+
 export const shopApi = {
   // GET /api/shop/items?type=...&class=...
   getItems: (params = {}) => api.get('/api/shop/items', { params }),

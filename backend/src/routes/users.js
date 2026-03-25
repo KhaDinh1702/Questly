@@ -182,7 +182,7 @@ users.put('/me/stats/allocate', requireAuth, async (c) => {
 users.put('/me/avatar', requireAuth, async (c) => {
   const db = await getDb(c)
   const user = c.get('user')
-  const { avatarIcon, avatarColor, showFrame } = await c.req.json()
+  const { avatarIcon, avatarColor, showFrame, selectedFrame } = await c.req.json()
 
   const validIcons = ['warrior', 'mage', 'rogue', 'archer', 'knight', 'ranger', 'wizard', 'dragon']
 
@@ -193,12 +193,18 @@ users.put('/me/avatar', requireAuth, async (c) => {
     return c.json({ error: 'Invalid avatar color' }, 400)
   }
 
+  // Allow only known frame ids (yearly has two variants).
+  const validFrames = [null, undefined, 'monthly_1', '6months_1', '1year_1', '1year_2']
+  if (!validFrames.includes(selectedFrame)) {
+    return c.json({ error: 'Invalid frame selection' }, 400)
+  }
+
   await db.collection('users').updateOne(
     { _id: toObjectId(user.id) },
-    { $set: { avatarIcon, avatarColor, showFrame: !!showFrame, updatedAt: new Date() } }
+    { $set: { avatarIcon, avatarColor, showFrame: !!showFrame, selectedFrame: selectedFrame ?? null, updatedAt: new Date() } }
   )
 
-  return c.json({ message: 'Avatar updated', avatarIcon, avatarColor, showFrame: !!showFrame })
+  return c.json({ message: 'Avatar updated', avatarIcon, avatarColor, showFrame: !!showFrame, selectedFrame: selectedFrame ?? null })
 })
 
 users.get('/me/inventory', requireAuth, async (c) => {
