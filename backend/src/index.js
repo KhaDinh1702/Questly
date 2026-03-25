@@ -12,6 +12,7 @@ import dungeonRoutes  from './routes/dungeon'
 import shopRoutes     from './routes/shop'
 import userRoutes     from './routes/users'
 import guildRoutes    from './routes/guild'
+import paymentRoutes  from './routes/payment'
 
 // ── Middleware ────────────────────────────────────────────────
 import { errorHandler }      from './middleware/errorHandler'
@@ -56,6 +57,7 @@ app.route('/api/dungeon',   dungeonRoutes)
 app.route('/api/shop',      shopRoutes)
 app.route('/api/users',     userRoutes)
 app.route('/api/guild',     guildRoutes)
+app.route('/api/payment',   paymentRoutes)
 
 // ── 404 ───────────────────────────────────────────────────────
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))
