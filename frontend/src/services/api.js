@@ -71,3 +71,7 @@ export const dungeonApi = {
   nextFloor: () => api.post('/api/dungeon/next-floor'),
   end: (status) => api.post('/api/dungeon/end', { status }),
 }
+
+export const paymentApi = {
+  createPaymentUrl: (data) => api.post('/api/payment/create_payment_url', data),
+}
