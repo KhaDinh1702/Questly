@@ -2,6 +2,10 @@ import { Hono } from 'hono';
 import qs from 'qs';
 import dateFormat from 'dateformat';
 import crypto from 'crypto';
+import { getDb } from '../db.js';
+import { requireAuth } from '../middleware/auth.js';
+import { toObjectId } from '../helpers/db.js';
+import { createSubscriptionDocument } from '../models/Subscription.js';
 
 const payment = new Hono();
 
@@ -43,8 +47,11 @@ function getVnpDate(date = new Date()) {
     return `${map.get('year')}${map.get('month')}${map.get('day')}${map.get('hour')}${map.get('minute')}${map.get('second')}`;
 }
 
-payment.post('/create_payment_url', async (c) => {
+payment.post('/create_payment_url', requireAuth, async (c) => {
     try {
+        const db = await getDb(c);
+        const user = c.get('user');
+
         const ipAddr = c.req.header('x-forwarded-for') || 
                        c.req.header('remote-addr') || 
                        '127.0.0.1';
@@ -103,6 +110,16 @@ payment.post('/create_payment_url', async (c) => {
         
         const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: true });
 
+        // Save order to DB so we can update user tier upon callback
+        await db.collection('orders').insertOne({
+            orderId,
+            userId: user.id,
+            tierName,
+            amount,
+            status: 'pending',
+            createdAt: new Date()
+        });
+
         console.log(`[PAYMENT] Order: ${orderId} | Amount: ${amount}`);
         console.log(`[PAYMENT] SignString: ${signData}`);
         return c.json({ paymentUrl: finalUrl });
@@ -117,6 +134,7 @@ payment.post('/create_payment_url', async (c) => {
  */
 payment.get('/vnpay_return', async (c) => {
     try {
+        const db = await getDb(c);
         let vnp_Params = c.req.query();
         const secureHash = vnp_Params['vnp_SecureHash'];
 
@@ -134,11 +152,78 @@ payment.get('/vnpay_return', async (c) => {
         const responseCode = vnp_Params['vnp_ResponseCode'];
         const status = isSignatureValid ? (responseCode === '00' ? 'success' : 'failed') : 'invalid_signature';
         
-        console.log(`[PAYMENT] Return Order ${vnp_Params['vnp_TxnRef']} | Status: ${status} | Code: ${responseCode}`);
+        const orderId = vnp_Params['vnp_TxnRef'];
+        console.log(`[PAYMENT] Return Order ${orderId} | Status: ${status} | Code: ${responseCode}`);
+
+        if (status === 'success') {
+            const order = await db.collection('orders').findOne({ orderId });
+            if (order && order.status === 'pending') {
+                // Update order
+                await db.collection('orders').updateOne({ orderId }, { $set: { status: 'success' } });
+                
+                // Keep naming simple: match the frontend names with subscription Tier names if possible,
+                // otherwise just set it to 'monthly' or what was purchased.
+                // Assuming tierName comes in as something like 'Monthly', 'Yearly', etc.
+                const tierName = order.tierName || '';
+                let mappedTier = tierName === 'Legend' ? 'yearly' 
+                    : tierName === 'Knight' ? '6months' 
+                    : 'monthly';
+
+                let durationDays = 30;
+                if (mappedTier === 'yearly') durationDays = 365;
+                else if (mappedTier === '6months') durationDays = 180;
+
+                const userDoc = await db.collection('users').findOne({ _id: toObjectId(order.userId) });
+                const now = new Date();
+
+                let subStartDate = now;
+                let subEndDate = new Date(now);
+                subEndDate.setDate(now.getDate() + durationDays);
+
+                if (userDoc && userDoc.subExpiryDate && userDoc.subExpiryDate > now) {
+                    // Extension case
+                    subStartDate = new Date(userDoc.subExpiryDate);
+                    subEndDate = new Date(subStartDate);
+                    subEndDate.setDate(subEndDate.getDate() + durationDays);
+                }
+
+                const subDoc = createSubscriptionDocument({
+                    userId: order.userId,
+                    tier: mappedTier,
+                    amount: order.amount,
+                    orderId: order.orderId,
+                    durationDays
+                });
+                // Overwrite calculated dates in subDoc if it's an extension
+                subDoc.startDate = subStartDate;
+                subDoc.endDate = subEndDate;
+
+                await db.collection('subscriptions').insertOne(subDoc);
+
+                // Tier Priority: yearly (3) > 6months (2) > monthly (1) > free (0)
+                const TIER_PRIORITY = { 'free': 0, 'monthly': 1, '6months': 2, 'yearly': 3 };
+                let finalTier = mappedTier;
+                if (userDoc && TIER_PRIORITY[userDoc.subscriptionTier || 'free'] > TIER_PRIORITY[mappedTier]) {
+                    finalTier = userDoc.subscriptionTier || 'free';
+                }
+
+                await db.collection('users').updateOne(
+                    { _id: toObjectId(order.userId) },
+                    { 
+                        $set: { 
+                            subscriptionTier: finalTier, 
+                            subExpiryDate: subEndDate,
+                            updatedAt: new Date() 
+                        } 
+                    }
+                );
+                console.log(`[PAYMENT] Updated user ${order.userId} to tier ${finalTier}`);
+            }
+        }
 
         // Redirect back to frontend with status
         const frontendUrl = process.env.VNP_FRONTEND_URL || 'http://localhost:5173/payment-result';
-        return c.redirect(`${frontendUrl}?status=${status}&orderId=${vnp_Params['vnp_TxnRef']}&code=${responseCode}`);
+        return c.redirect(`${frontendUrl}?status=${status}&orderId=${orderId}&code=${responseCode}`);
     } catch (err) {
         console.error('[PAYMENT] Error handling return:', err);
         return c.text('Error processing payment callback');

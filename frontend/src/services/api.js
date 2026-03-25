@@ -49,6 +49,7 @@ export const userApi = {
   equipItem: (userItemId, slot) => api.put('/api/users/me/equip', { userItemId, slot }),
   unequipItem: (userItemId) => api.put('/api/users/me/unequip', { userItemId }),
   allocateStat: (statKey, amount = 1) => api.put('/api/users/me/stats/allocate', { statKey, amount }),
+  updateAvatar: (avatarData) => api.put('/api/users/me/avatar', avatarData),
   getLeaderboard: (limit = 10) => api.get('/api/users/leaderboard', { params: { limit } }),
 }
 
@@ -65,7 +66,7 @@ export const dungeonApi = {
   getLevel: () => api.get('/api/dungeon/level'),
   move: (direction) => api.post('/api/dungeon/move', { direction }),
   combatStart: () => api.post('/api/dungeon/combat/start'),
-  combatAction: (action) => api.post('/api/dungeon/combat/action', { action }),
+  combatAction: (action, itemId = null) => api.post('/api/dungeon/combat/action', { action, itemId }),
   openChest: () => api.post('/api/dungeon/chest/open'),
   visitShop: () => api.post('/api/dungeon/shop/visit'),
   nextFloor: () => api.post('/api/dungeon/next-floor'),

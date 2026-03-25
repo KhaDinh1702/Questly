@@ -102,14 +102,14 @@ dungeon.post('/combat/action', requireAuth, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')
   const body = await c.req.json().catch(() => ({}))
-  const { action = 'attack' } = body
+  const { action = 'attack', itemId = null } = body
 
-  const validActions = ['attack', 'heavy_attack', 'heal', 'rest', 'flee']
+  const validActions = ['attack', 'heavy_attack', 'defend', 'dodge', 'spell', 'heal', 'rest', 'flee', 'use_item']
   if (!validActions.includes(action)) {
     return c.json({ error: `action must be one of: ${validActions.join(', ')}` }, 400)
   }
 
-  const result = await combatAction(db, user.id, action)
+  const result = await combatAction(db, user.id, action, itemId)
   if (!result.ok) return c.json({ error: result.reason }, 400)
   return c.json(result)
 })

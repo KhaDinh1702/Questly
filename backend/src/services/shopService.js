@@ -13,8 +13,12 @@ export async function buyItem(db, userId, itemId, quantity = 1) {
   const _userId = toObjectId(userId)
   const _itemId = toObjectId(itemId)
 
+  if (!_itemId) return { ok: false, reason: 'Invalid item ID format' }
+  if (quantity <= 0) return { ok: false, reason: 'Quantity must be at least 1' }
+
   const item = await db.collection('items').findOne({ _id: _itemId })
   if (!item) return { ok: false, reason: 'Item not found' }
+  if (!item.price || item.price <= 0) return { ok: false, reason: 'Item cannot be purchased' }
 
   const totalCost = item.price * quantity
 
@@ -28,13 +32,24 @@ export async function buyItem(db, userId, itemId, quantity = 1) {
 
   // Add to inventory
   if (item.stackable) {
-    // Upsert stackable items
+    // Upsert stackable items - increment quantity if exists, insert if not
     await db.collection('user_items').updateOne(
       { userId: _userId, itemId: _itemId },
-      { $inc: { quantity }, $setOnInsert: createUserItemDocument({ userId: _userId, itemId: _itemId, quantity: 0 }) },
+      {
+        $inc: { quantity },
+        $setOnInsert: {
+          userId: _userId,
+          itemId: _itemId,
+          isEquipped: false,
+          slotEquipped: null,
+          level: 0,
+          acquiredAt: new Date()
+        }
+      },
       { upsert: true },
     )
   } else {
+    // Insert non-stackable items as separate documents
     for (let i = 0; i < quantity; i++) {
       await db.collection('user_items').insertOne(
         createUserItemDocument({ userId: _userId, itemId: _itemId }),

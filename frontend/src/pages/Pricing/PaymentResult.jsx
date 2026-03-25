@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { userApi } from '../../services/api';
 
 const PaymentResult = () => {
     const [searchParams] = useSearchParams();
     const status = searchParams.get('status');
     const code = searchParams.get('code');
+    const orderId = searchParams.get('orderId') || 'Unknown';
 
     const isSuccess = status === 'success';
+
+    useEffect(() => {
+        if (isSuccess) {
+            userApi.getMe().then((res) => {
+                if (res.data) {
+                    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    const updatedUser = { ...currentUser, ...res.data };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    // Dispatch a custom event so Navbar can pick up changes if they are mounted concurrently
+                    window.dispatchEvent(new Event('userUpdated'));
+                }
+            }).catch(console.error);
+        }
+    }, [isSuccess]);
 
     return (
         <div className="min-h-screen bg-surface font-body parchment-texture">

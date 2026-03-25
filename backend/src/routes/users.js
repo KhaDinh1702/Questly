@@ -179,6 +179,28 @@ users.put('/me/stats/allocate', requireAuth, async (c) => {
   return c.json(result)
 })
 
+users.put('/me/avatar', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { avatarIcon, avatarColor, showFrame } = await c.req.json()
+
+  const validIcons = ['warrior', 'mage', 'rogue', 'archer', 'knight', 'ranger', 'wizard', 'dragon']
+
+  if (!avatarIcon || !validIcons.includes(avatarIcon)) {
+    return c.json({ error: 'Invalid avatar icon' }, 400)
+  }
+  if (!avatarColor) {
+    return c.json({ error: 'Invalid avatar color' }, 400)
+  }
+
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    { $set: { avatarIcon, avatarColor, showFrame: !!showFrame, updatedAt: new Date() } }
+  )
+
+  return c.json({ message: 'Avatar updated', avatarIcon, avatarColor, showFrame: !!showFrame })
+})
+
 users.get('/me/inventory', requireAuth, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')

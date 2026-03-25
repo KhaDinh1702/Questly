@@ -21,9 +21,10 @@ import { createDungeonRunDocument, generateGrid, getVisibleCells } from '../mode
 import { scaleMonsterStats, getMonsterLevel } from '../models/Monster'
 import { createPlayerLevelDocument, expForLevel } from '../models/PlayerLevel'
 import { addResources } from './userService'
-import { weightedRandom, rollChest } from '../helpers/gacha'
+import { weightedRandom, rollChest, rollChestReward } from '../helpers/gacha'
 import { createUserItemDocument } from '../models/UserItem'
 import { DUNGEON, MONSTER_TIER } from '../config/constants'
+import { getBaseStats } from '../helpers/gameLogic'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -144,6 +145,39 @@ async function getMonsterTemplate(db, cellType) {
   }
   return defaults[tier] ?? defaults.minion
 }
+/**
+ * Ensures player of a given class has healthy stats (no 0 mana if class has mana).
+ * Returns the corrected user doc stats.
+ */
+async function repairPlayerStats(db, user) {
+  if (!user || !user.stats) return null
+  const _userId = user._id
+  
+  let { maxHp, maxMana } = user.stats
+  let needsUpdate = false
+  
+  if ((maxMana <= 0 || maxHp < 100) && user.class) {
+    const base = getBaseStats(user.class)
+    if (maxMana <= 0) {
+      maxMana = base.maxMana || 50
+      needsUpdate = true
+    }
+    if (maxHp < base.maxHp) {
+      maxHp = base.maxHp || 100
+      needsUpdate = true
+    }
+  }
+
+  if (needsUpdate) {
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $set: { 'stats.maxHp': maxHp, 'stats.maxMana': maxMana } }
+    )
+    user.stats.maxHp = maxHp
+    user.stats.maxMana = maxMana
+  }
+  return user.stats
+}
 
 /** Check if position is valid (within cross pattern) */
 function isAccessible(grid, r, c) {
@@ -162,12 +196,21 @@ export async function startDungeonRun(db, userId, floor = 1) {
   })
   if (existing) return { ok: false, reason: 'You already have an active dungeon run', run: existing }
 
-  // Heal player to max HP when entering a new dungeon
+  // Heal player to max HP and restore Mana when entering a new dungeon
   const user = await db.collection('users').findOne({ _id: toObjectId(userId) })
-  const maxHp = user?.stats?.maxHp ?? 100
+  await repairPlayerStats(db, user)
+  const maxHp = user.stats.maxHp
+  const maxMana = user.stats.maxMana
+
   await db.collection('users').updateOne(
     { _id: toObjectId(userId) },
-    { $set: { 'stats.hp': maxHp, updatedAt: new Date() } }
+    { 
+      $set: { 
+        'stats.hp': maxHp, 
+        'stats.mana': maxMana,
+        updatedAt: new Date() 
+      } 
+    }
   )
 
   // Get player level
@@ -218,10 +261,14 @@ export async function moveInDungeon(db, userId, direction) {
   const newPos = { r: newR, c: newC }
   const cell = grid[newR][newC]
 
-  // Mana Regeneration during exploration (+5 MP per step)
+  // Mana Regeneration during exploration (only for Mage - 5 MP per step)
+  const playerClass = user.class || 'warrior'
+  const isMageExploring = playerClass === 'mage'
+  const explorationManaRegen = isMageExploring ? 5 : 0
+
   const currentMana = user?.stats?.mana ?? 50
   const maxMana = user?.stats?.maxMana ?? 50
-  const newMana = Math.min(maxMana, Number(currentMana) + 5)
+  const newMana = Math.min(maxMana, currentMana + explorationManaRegen)
   
   await db.collection('dungeon_runs').updateOne(
     { _id: run._id },
@@ -268,6 +315,7 @@ export async function startCombat(db, userId) {
   // Fetch player stats
   const user = await db.collection('users').findOne({ _id: _userId })
   if (!user) return { ok: false, reason: 'User not found' }
+  await repairPlayerStats(db, user)
 
   const monsterLevel = getMonsterLevel(cellType, run.currentFloor, run.playerLevel, DUNGEON.BOSS_LEVEL_BONUS)
   const template = await getMonsterTemplate(db, cellType)
@@ -290,6 +338,7 @@ export async function startCombat(db, userId) {
     playerMaxHp:    user.stats?.maxHp ?? 100,
     playerMana:     Number(user.stats?.mana ?? 50),
     playerMaxMana:  Number(user.stats?.maxMana ?? 50),
+    playerStatus:   null, // 'defend' | 'dodge' | null (active for next monster attack)
     turn:           1,
     log:            [],
   }
@@ -304,9 +353,10 @@ export async function startCombat(db, userId) {
 
 /**
  * Execute one combat turn.
- * action: 'attack' | 'flee'
+ * action: 'attack' | 'heavy_attack' | 'heal' | 'rest' | 'flee' | 'use_item'
+ * itemId: ObjectId of user_item for 'use_item' action
  */
-export async function combatAction(db, userId, action) {
+export async function combatAction(db, userId, action, itemId = null) {
   const _userId = toObjectId(userId)
   const run = await db.collection('dungeon_runs').findOne({ userId: _userId, status: 'active' })
   if (!run) return { ok: false, reason: 'No active dungeon run' }
@@ -314,27 +364,34 @@ export async function combatAction(db, userId, action) {
 
   const user = await db.collection('users').findOne(
     { _id: _userId },
-    { projection: { stats: 1, gold: 1 } },
+    { projection: { stats: 1, gold: 1, class: 1 } },
   )
   if (!user) return { ok: false, reason: 'User not found' }
+  await repairPlayerStats(db, user)
 
   let cs = { ...run.combatState }
-  cs.log = [...(cs.log ?? [])]
-
-  // ── Mana Costs ─────────────────────────────────────────────
-  const MANA_COSTS = {
-    attack: 5,
-    heavy_attack: 15,
-    heal: 12,
-    rest: -15, // Negative cost means it restores
+  // Fix ongoing combatState if it has 0 maxMana
+  if (cs.playerMaxMana <= 0 && user.stats.maxMana > 0) {
+    cs.playerMaxMana = user.stats.maxMana
+    if (cs.playerMana <= 0) cs.playerMana = user.stats.maxMana
   }
+  cs.log = [...(cs.log ?? [])]
 
   const turnSpend = await spendTurns(db, userId, 1)
   if (!turnSpend.ok) return turnSpend
 
-  const cost = MANA_COSTS[action] || 0
+  // ── Class-based Mana Costs ─────────────────────────────────────
+  const playerClass = user.class || 'warrior'
+  const classManaCosts = {
+    warrior: { attack: 0, heavy_attack: 0, heal: 0, rest: 0 },
+    rogue:   { attack: 2, heavy_attack: 8,  heal: 5, rest: -8 },
+    mage:    { attack: 8, heavy_attack: 20, heal: 15, rest: -20 },
+  }
+  const manaCostsForClass = classManaCosts[playerClass] || classManaCosts.warrior
+  const cost = manaCostsForClass[action] || 0
+
   const currentMana = user.stats?.mana ?? 50
-  if (action !== 'flee' && currentMana < cost) {
+  if (action !== 'flee' && cost > 0 && currentMana < cost) {
     return { ok: false, reason: `Insufficient Mana (${cost} MP required). Your current Mana is ${currentMana}.` }
   }
 
@@ -347,25 +404,115 @@ export async function combatAction(db, userId, action) {
     return { ok: true, outcome: 'fled', combatState: null, remainingTurns: turnSpend.remainingTurns }
   }
 
-  // ── Attack turn ───────────────────────────────────────────
+  // ── Use Item ────────────────────────────────────────────────
+  if (action === 'use_item') {
+    if (!itemId) {
+      return { ok: false, reason: 'No item selected' }
+    }
+    const _itemId = toObjectId(itemId)
+
+    // Fetch user_item and item details
+    const userItem = await db.collection('user_items').findOne({
+      _id: _itemId,
+      userId: _userId,
+    })
+    if (!userItem) {
+      return { ok: false, reason: 'Item not found in inventory' }
+    }
+
+    const item = await db.collection('items').findOne({ _id: userItem.itemId })
+    if (!item || !['potion', 'scroll'].includes(item.type)) {
+      return { ok: false, reason: 'This item cannot be used in combat' }
+    }
+
+    // Apply item effects
+    let healAmount = 0
+    let manaRestored = 0
+
+    if (item.type === 'potion') {
+      // Potions: heal based on statBonuses
+      healAmount = item.statBonuses?.hp || 20
+      manaRestored = item.statBonuses?.mana || 0
+    } else if (item.type === 'scroll') {
+      // Scrolls: mainly restore mana and give small heal
+      manaRestored = item.statBonuses?.mana || 30
+      healAmount = item.statBonuses?.hp || 5
+    }
+
+    cs.playerHp = Math.min(cs.playerMaxHp, cs.playerHp + healAmount)
+    cs.playerMana = Math.min(cs.playerMaxMana, cs.playerMana + manaRestored)
+
+    const turnLog = {
+      turn: cs.turn,
+      action: 'use_item',
+      itemName: item.name,
+      heal: healAmount,
+      manaRestored: manaRestored,
+      playerDmg: 0,
+      monsterDmg: 0,
+      outcome: 'ongoing'
+    }
+
+    // Consume item (reduce quantity)
+    if (userItem.quantity > 1) {
+      await db.collection('user_items').updateOne(
+        { _id: _itemId },
+        { $inc: { quantity: -1 } }
+      )
+    } else {
+      // Delete if quantity reaches 0
+      await db.collection('user_items').deleteOne({ _id: _itemId })
+    }
+
+    // Update user stats
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      {
+        $set: {
+          'stats.hp': cs.playerHp,
+          'stats.mana': cs.playerMana,
+          updatedAt: new Date()
+        }
+      }
+    )
+
+    cs.log.push(turnLog)
+    cs.turn += 1
+
+    await db.collection('dungeon_runs').updateOne(
+      { _id: run._id },
+      { $set: { combatState: cs, updatedAt: new Date() } },
+    )
+
+    return {
+      ok: true,
+      outcome: 'ongoing',
+      combatState: cs,
+      log: cs.log,
+      remainingTurns: turnSpend.remainingTurns,
+    }
+  }
   const playerAd    = user.stats?.ad    ?? 10
   const playerArmor = user.stats?.armor ?? 5
   const critRate   = user.stats?.critRate  ?? 0
   const critDmg    = user.stats?.critDamage ?? 0
   const dodgeRate  = user.stats?.dodgeRate  ?? 0.05
 
-  // Deduct/Restore Mana
+  // Deduct/Restore Mana (with class-based passive regen for Mage)
   const currentManaForDeduction = user.stats?.mana ?? 50
-  const regen = action === 'rest' ? 0 : 2 // Passive regen only if not resting (resting has its own value)
-  
-  // action === 'rest' consumes -15 mana (restores 15)
-  // Others consume 5/15 and get +2 passive regen
-  const manaChange = -cost + regen
-  const finalNewMana = Math.max(0, currentManaForDeduction + manaChange) 
   const maxMana = user.stats?.maxMana ?? 50
+  const isMage = playerClass === 'mage'
+
+  // Mages gain passive mana regen during combat (2 per turn)
+  const passiveManaRegen = isMage ? 2 : 0
+
+  // action === 'rest' consumes negative mana (restores mana)
+  // Others consume their class cost and get passive regen for Mage
+  const manaChange = -cost + passiveManaRegen
+  const finalNewMana = Math.max(0, currentManaForDeduction + manaChange)
   const cappedNewMana = Math.min(maxMana, finalNewMana)
 
-  if (true) { // Always update mana 
+  if (true) { // Always update mana
     await db.collection('users').updateOne(
         { _id: _userId },
         { $set: { 'stats.mana': cappedNewMana, updatedAt: new Date() } }
@@ -377,10 +524,27 @@ export async function combatAction(db, userId, action) {
   let dmgToMonster = 0
   let isCrit = false
   const turnLog = { turn: cs.turn, action, playerDmg: 0, isCrit: false, monsterDmg: 0, dodged: false }
-  
+
   if (action === 'rest') {
     turnLog.playerDmg = 0
     turnLog.action = 'rest'
+  } else if (action === 'defend') {
+    // Warrior ability: reduce incoming damage by 50% for next turn
+    cs.playerStatus = 'defend'
+    turnLog.playerDmg = 0
+    turnLog.action = 'defend'
+  } else if (action === 'dodge') {
+    // Rogue ability: increase dodge chance for next turn
+    cs.playerStatus = 'dodge'
+    turnLog.playerDmg = 0
+    turnLog.action = 'dodge'
+  } else if (action === 'spell') {
+    // Mage ability: heal 25% HP
+    const healAmount = Math.max(10, Math.floor(cs.playerMaxHp * 0.25))
+    cs.playerHp = Math.min(cs.playerMaxHp, cs.playerHp + healAmount)
+    turnLog.playerDmg = 0
+    turnLog.heal = healAmount
+    turnLog.action = 'spell'
   } else if (action === 'heal') {
     const healAmount = Math.max(8, Math.floor(cs.playerMaxHp * 0.2))
     cs.playerHp = Math.min(cs.playerMaxHp, cs.playerHp + healAmount)
@@ -465,15 +629,31 @@ export async function combatAction(db, userId, action) {
   }
 
   // Monster still alive – counter-attacks player
-  const dodged = Math.random() < dodgeRate
+  // Apply status effects from player's previous action
+  let actualDodgeRate = dodgeRate
+  if (cs.playerStatus === 'dodge') {
+    actualDodgeRate = Math.min(0.99, dodgeRate + 0.60) // Rogue dodge: +60% dodge chance
+  }
+
+  const dodged = Math.random() < actualDodgeRate
   if (!dodged) {
-    const dmgToPlayer = Math.max(1, cs.monsterAd - playerArmor)
+    let dmgToPlayer = Math.max(1, cs.monsterAd - playerArmor)
+
+    // Warrior defend: reduce damage by 50%
+    if (cs.playerStatus === 'defend') {
+      dmgToPlayer = Math.floor(dmgToPlayer * 0.5)
+      turnLog.defendActive = true
+    }
+
     cs.playerHp -= dmgToPlayer
     turnLog.monsterDmg = dmgToPlayer
     turnLog.dodged = false
   } else {
     turnLog.dodged = true
   }
+
+  // Clear status effect after applying it
+  cs.playerStatus = null
 
   if (cs.playerHp <= 0) {
     // ── Player dead ───────────────────────────────────────────
@@ -534,14 +714,37 @@ export async function openChest(db, userId) {
   const turnSpend = await spendTurns(db, userId, 1)
   if (!turnSpend.ok) return turnSpend
 
-  const rarity = rollChest()
-  const item = await db.collection('items').findOne({ rarity })
-
+  // Roll what type of reward
+  const reward = rollChestReward(run.currentFloor)
+  let goldEarned = 0
+  let ticketsEarned = 0
   let lootItem = null
-  if (item) {
-    const uiDoc = createUserItemDocument({ userId: _userId, itemId: item._id })
-    const { insertedId } = await db.collection('user_items').insertOne(uiDoc)
-    lootItem = { _id: insertedId, ...uiDoc, item }
+
+  if (reward.rewardType === 'gold') {
+    goldEarned = reward.amount
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $inc: { gold: goldEarned }, $set: { updatedAt: new Date() } }
+    )
+  } else if (reward.rewardType === 'ticket') {
+    ticketsEarned = reward.amount
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $inc: { ticketCount: ticketsEarned }, $set: { updatedAt: new Date() } }
+    )
+  } else if (reward.rewardType === 'item') {
+    // Item reward
+    const pipeline = [
+      { $match: { type: reward.itemPool.type, rarity: { $in: reward.itemPool.rarities } } },
+      { $sample: { size: 1 } }
+    ]
+    const [item] = await db.collection('items').aggregate(pipeline).toArray()
+
+    if (item) {
+      const uiDoc = createUserItemDocument({ userId: _userId, itemId: item._id })
+      const { insertedId } = await db.collection('user_items').insertOne(uiDoc)
+      lootItem = { _id: insertedId, ...uiDoc, item }
+    }
   }
 
   // Clear the chest cell
@@ -556,7 +759,14 @@ export async function openChest(db, userId) {
     },
   )
 
-  return { ok: true, rarity, lootItem, remainingTurns: turnSpend.remainingTurns }
+  return {
+    ok: true,
+    rewardType: reward.rewardType,
+    goldEarned,
+    ticketsEarned,
+    lootItem,
+    remainingTurns: turnSpend.remainingTurns,
+  }
 }
 
 /**

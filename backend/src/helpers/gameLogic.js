@@ -57,8 +57,8 @@ export function convertTicketsToMoves(tickets) {
  */
 export function getBaseStats(cls) {
   const bases = {
-    warrior: { maxHp: 180, hp: 180, maxMana: 0,  mana: 0,  atk: 20, def: 18, atkSpeed: 1.0, dodgeRate: 0.05, critRate: 0,    critDamage: 0,   lifesteal: 0,    counterRate: 0.10, hpRegen: 5, manaRegen: 0 },
-    rogue:   { maxHp: 130, hp: 130, maxMana: 0,  mana: 0,  atk: 22, def: 10, atkSpeed: 1.6, dodgeRate: 0.15, critRate: 0.15, critDamage: 1.5, lifesteal: 0.05, counterRate: 0.05, hpRegen: 2, manaRegen: 0 },
+    warrior: { maxHp: 180, hp: 180, maxMana: 50,  mana: 50,  atk: 20, def: 18, atkSpeed: 1.0, dodgeRate: 0.05, critRate: 0,    critDamage: 0,   lifesteal: 0,    counterRate: 0.10, hpRegen: 5, manaRegen: 0 },
+    rogue:   { maxHp: 130, hp: 130, maxMana: 60,  mana: 60,  atk: 22, def: 10, atkSpeed: 1.6, dodgeRate: 0.15, critRate: 0.15, critDamage: 1.5, lifesteal: 0.05, counterRate: 0.05, hpRegen: 2, manaRegen: 0 },
     mage:    { maxHp: 110, hp: 110, maxMana: 100, mana: 100, atk: 10, def: 8,  atkSpeed: 0.7, dodgeRate: 0.03, critRate: 0,    critDamage: 0,   lifesteal: 0,    counterRate: 0,    hpRegen: 1, manaRegen: 5, spellDamage: 30 },
   }
   return bases[cls] || bases.warrior
