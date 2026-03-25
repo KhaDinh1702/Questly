@@ -131,7 +131,8 @@ export default function Dungeon() {
   const [combatState, setCombatState] = useState(null);
   const [inventory, setInventory] = useState([]); // Track user inventory items
   const [shopItems, setShopItems]     = useState([]);
-  const [chestLoot, setChestLoot]     = useState(null);
+  const [chestLoot, setChestLoot]     = useState(null); // loot item
+  const [chestReward, setChestReward] = useState(null); // { rewardType, goldEarned, ticketsEarned }
   const [playerClass, setPlayerClass] = useState('warrior'); // Track player class for mana costs
 
   // ── Init & Fetch ──────────────────────────────────────────
@@ -325,9 +326,26 @@ export default function Dungeon() {
     setLoading(true);
     try {
       const res = await dungeonApi.openChest();
-      setChestLoot(res.data.lootItem);
-      flash(`Chest opened! Found an item of ${res.data.rarity} rarity.`);
+      setChestReward({
+        rewardType: res.data.rewardType,
+        goldEarned: res.data.goldEarned,
+        ticketsEarned: res.data.ticketsEarned,
+      });
+      if (res.data.lootItem) {
+        setChestLoot(res.data.lootItem);
+      }
+
+      let msg = 'Chest opened! ';
+      if (res.data.rewardType === 'gold') {
+        msg += `Found ${res.data.goldEarned}G!`;
+      } else if (res.data.rewardType === 'ticket') {
+        msg += `Found ${res.data.ticketsEarned} ticket${res.data.ticketsEarned > 1 ? 's' : ''}!`;
+      } else if (res.data.rewardType === 'item') {
+        msg += `Found a ${res.data.lootItem?.item?.rarity || 'rare'} item!`;
+      }
+      flash(msg);
       fetchActiveRun();
+      fetchPlayerLevel();
     } catch (e) {
       flash(e.response?.data?.error || 'Cannot open chest', true);
     } finally {
@@ -651,23 +669,67 @@ export default function Dungeon() {
   };
 
   const renderLootModal = () => {
-    if (!chestLoot) return null;
+    if (!chestReward && !chestLoot) return null;
+
+    let title = 'Chest Opened!';
+    let displayContent = null;
+    let borderColor = 'border-yellow-600';
+    let titleColor = 'text-yellow-600';
+
+    if (chestReward?.rewardType === 'gold') {
+      title = 'Gold Found!';
+      borderColor = 'border-yellow-500';
+      titleColor = 'text-yellow-400';
+      displayContent = (
+        <>
+          <span className="material-symbols-outlined text-6xl text-yellow-400" style={{ fontVariationSettings: "'FILL' 1" }}>
+            paid
+          </span>
+          <p className="font-bold text-4xl text-yellow-400">{chestReward.goldEarned}G</p>
+        </>
+      );
+    } else if (chestReward?.rewardType === 'ticket') {
+      title = 'Tickets Found!';
+      borderColor = 'border-blue-400';
+      titleColor = 'text-blue-400';
+      displayContent = (
+        <>
+          <span className="material-symbols-outlined text-6xl text-blue-400" style={{ fontVariationSettings: "'FILL' 1" }}>
+            local_offer
+          </span>
+          <p className="font-bold text-4xl text-blue-400">+{chestReward.ticketsEarned}</p>
+          <p className="text-sm text-outline">Gacha Tickets</p>
+        </>
+      );
+    } else if (chestLoot) {
+      title = 'Item Found!';
+      borderColor = 'border-purple-500';
+      titleColor = 'text-purple-400';
+      displayContent = (
+        <>
+          {chestLoot.item?.imageUrl ? (
+            <img src={chestLoot.item.imageUrl} alt={chestLoot.item.name} className="w-20 h-20 object-contain mb-2" />
+          ) : (
+            <span className="material-symbols-outlined text-4xl text-primary mb-2">construction</span>
+          )}
+          <p className="font-bold text-lg">{chestLoot.item?.name}</p>
+          <p className="text-sm uppercase text-outline font-label">{chestLoot.item?.rarity}</p>
+        </>
+      );
+    }
+
     return (
       <div className="absolute inset-0 bg-black/80 z-20 flex items-center justify-center p-4">
-        <div className="bg-surface-container border-4 border-yellow-600 w-full max-w-sm shadow-[8px_8px_0px_0px_rgba(113,90,0,1)] p-6 flex flex-col items-center text-center space-y-4">
-          <span className="material-symbols-outlined text-6xl text-yellow-500" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
-          <h2 className="font-headline text-2xl font-black uppercase text-yellow-600">Chest Opened!</h2>
+        <div className={`bg-surface-container border-4 ${borderColor} w-full max-w-sm shadow-[8px_8px_0px_0px_rgba(113,90,0,1)] p-6 flex flex-col items-center text-center space-y-4`}>
+          <h2 className={`font-headline text-2xl font-black uppercase ${titleColor}`}>{title}</h2>
           <div className="p-4 bg-surface w-full border-2 border-outline flex flex-col items-center">
-            {chestLoot.item?.imageUrl ? (
-              <img src={chestLoot.item.imageUrl} alt={chestLoot.item.name} className="w-20 h-20 object-contain mb-2" />
-            ) : (
-              <span className="material-symbols-outlined text-4xl text-primary mb-2">construction</span>
-            )}
-            <p className="font-bold text-lg">{chestLoot.item?.name}</p>
-            <p className="text-sm uppercase text-outline font-label">{chestLoot.item?.rarity}</p>
+            {displayContent}
           </div>
-          <button 
-            onClick={() => setChestLoot(null)} 
+          <button
+            onClick={() => {
+              setChestLoot(null);
+              setChestReward(null);
+            }}
             className="w-full py-2 bg-primary text-on-primary font-bold uppercase border-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
           >
             Claim

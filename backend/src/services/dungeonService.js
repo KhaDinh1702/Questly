@@ -21,7 +21,7 @@ import { createDungeonRunDocument, generateGrid, getVisibleCells } from '../mode
 import { scaleMonsterStats, getMonsterLevel } from '../models/Monster'
 import { createPlayerLevelDocument, expForLevel } from '../models/PlayerLevel'
 import { addResources } from './userService'
-import { weightedRandom, rollChest } from '../helpers/gacha'
+import { weightedRandom, rollChest, rollChestReward } from '../helpers/gacha'
 import { createUserItemDocument } from '../models/UserItem'
 import { DUNGEON, MONSTER_TIER } from '../config/constants'
 import { getBaseStats } from '../helpers/gameLogic'
@@ -714,14 +714,37 @@ export async function openChest(db, userId) {
   const turnSpend = await spendTurns(db, userId, 1)
   if (!turnSpend.ok) return turnSpend
 
-  const rarity = rollChest()
-  const item = await db.collection('items').findOne({ rarity })
-
+  // Roll what type of reward
+  const reward = rollChestReward(run.currentFloor)
+  let goldEarned = 0
+  let ticketsEarned = 0
   let lootItem = null
-  if (item) {
-    const uiDoc = createUserItemDocument({ userId: _userId, itemId: item._id })
-    const { insertedId } = await db.collection('user_items').insertOne(uiDoc)
-    lootItem = { _id: insertedId, ...uiDoc, item }
+
+  if (reward.rewardType === 'gold') {
+    goldEarned = reward.amount
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $inc: { gold: goldEarned }, $set: { updatedAt: new Date() } }
+    )
+  } else if (reward.rewardType === 'ticket') {
+    ticketsEarned = reward.amount
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $inc: { ticketCount: ticketsEarned }, $set: { updatedAt: new Date() } }
+    )
+  } else if (reward.rewardType === 'item') {
+    // Item reward
+    const pipeline = [
+      { $match: { type: reward.itemPool.type, rarity: { $in: reward.itemPool.rarities } } },
+      { $sample: { size: 1 } }
+    ]
+    const [item] = await db.collection('items').aggregate(pipeline).toArray()
+
+    if (item) {
+      const uiDoc = createUserItemDocument({ userId: _userId, itemId: item._id })
+      const { insertedId } = await db.collection('user_items').insertOne(uiDoc)
+      lootItem = { _id: insertedId, ...uiDoc, item }
+    }
   }
 
   // Clear the chest cell
@@ -736,7 +759,14 @@ export async function openChest(db, userId) {
     },
   )
 
-  return { ok: true, rarity, lootItem, remainingTurns: turnSpend.remainingTurns }
+  return {
+    ok: true,
+    rewardType: reward.rewardType,
+    goldEarned,
+    ticketsEarned,
+    lootItem,
+    remainingTurns: turnSpend.remainingTurns,
+  }
 }
 
 /**

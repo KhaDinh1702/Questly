@@ -104,6 +104,37 @@ export const CHEST_RATES = {
   COMMON: 0.70,       // 70 % E-B gear
 }
 
+// ---- Chest Rewards Configuration ----
+export const CHEST_REWARDS = {
+  // Pool: what type of reward to give
+  POOLS: {
+    GOLD: 'gold',           // 30% chance
+    TICKET: 'ticket',       // 20% chance
+    ITEM: 'item',           // 50% chance
+  },
+  POOL_RATES: {
+    gold: 0.30,
+    ticket: 0.20,
+    item: 0.50,
+  },
+  // Gold ranges by floor
+  GOLD_BY_FLOOR: {
+    1: { min: 10, max: 25 },
+    2: { min: 20, max: 40 },
+    3: { min: 35, max: 60 },
+    4: { min: 50, max: 80 },
+    5: { min: 70, max: 120 },
+  },
+  // Ticket ranges by floor
+  TICKETS_BY_FLOOR: {
+    1: { min: 1, max: 2 },
+    2: { min: 1, max: 3 },
+    3: { min: 2, max: 4 },
+    4: { min: 2, max: 5 },
+    5: { min: 3, max: 6 },
+  },
+}
+
 // ---- Monster tiers ----
 export const MONSTER_TIER = {
   MINION: 'minion',
