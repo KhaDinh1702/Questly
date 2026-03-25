@@ -162,12 +162,19 @@ export async function startDungeonRun(db, userId, floor = 1) {
   })
   if (existing) return { ok: false, reason: 'You already have an active dungeon run', run: existing }
 
-  // Heal player to max HP when entering a new dungeon
+  // Heal player to max HP and restore Mana when entering a new dungeon
   const user = await db.collection('users').findOne({ _id: toObjectId(userId) })
   const maxHp = user?.stats?.maxHp ?? 100
+  const maxMana = user?.stats?.maxMana ?? 50
   await db.collection('users').updateOne(
     { _id: toObjectId(userId) },
-    { $set: { 'stats.hp': maxHp, updatedAt: new Date() } }
+    { 
+      $set: { 
+        'stats.hp': maxHp, 
+        'stats.mana': maxMana,
+        updatedAt: new Date() 
+      } 
+    }
   )
 
   // Get player level
