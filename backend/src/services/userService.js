@@ -33,7 +33,17 @@ async function maybeResetDaily(usersCol, userId) {
 export async function getUserById(db, userId) {
   const _id = toObjectId(userId)
   if (!_id) return null
-  const user = await db.collection('users').findOne({ _id })
+  const usersCol = db.collection('users')
+  let user = await usersCol.findOne({ _id })
+  if (!user) return null
+
+  // Backfill identityId for legacy users.
+  if (!user.identityId) {
+    const identityId = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+    await usersCol.updateOne({ _id }, { $set: { identityId, updatedAt: new Date() } })
+    user = { ...user, identityId }
+  }
+
   return sanitizeUser(user)
 }
 
