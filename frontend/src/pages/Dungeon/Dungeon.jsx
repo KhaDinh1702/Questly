@@ -703,8 +703,8 @@ export default function Dungeon() {
       );
     } else if (chestLoot) {
       title = 'Item Found!';
-      borderColor = 'border-purple-500';
-      titleColor = 'text-purple-400';
+      borderColor = 'border-amber-600';
+      titleColor = 'text-amber-500';
       displayContent = (
         <>
           {chestLoot.item?.imageUrl ? (
