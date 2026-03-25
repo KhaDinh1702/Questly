@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { label: 'Dungeon',   to: '/dungeon'   },
   { label: 'Armory',    to: '/armory'    },
   { label: 'Shop',      to: '/shop'      },
+  { label: 'Pricing',   to: '/pricing'   },
 ];
 
 export default function Navbar() {

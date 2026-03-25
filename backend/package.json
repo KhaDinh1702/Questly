@@ -10,9 +10,11 @@
   "dependencies": {
     "@hono/node-server": "^1.19.11",
     "bcryptjs": "^3.0.3",
+    "dateformat": "^5.0.3",
     "dotenv": "^17.3.1",
     "hono": "^4.6.0",
-    "mongodb": "^7.1.0"
+    "mongodb": "^7.1.0",
+    "qs": "^6.15.0"
   },
   "devDependencies": {
     "tsx": "^4.21.0",

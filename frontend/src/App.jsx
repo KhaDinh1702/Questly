@@ -12,6 +12,8 @@ import PathSelection from './pages/Auth/PathSelection'
 import GrimoireStudy from './pages/Grimoire/GrimoireStudy'
 import Aptitude from './pages/Aptitude/Aptitude'
 import Shop from './pages/Shop/Shop'
+import Pricing from './pages/Pricing/Pricing'
+import PaymentResult from './pages/Pricing/PaymentResult'
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
         <Route path="/armory" element={<Armory />} />
         <Route path="/aptitude" element={<Aptitude />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
