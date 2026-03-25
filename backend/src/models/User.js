@@ -48,6 +48,12 @@ export function createUserDocument({
       classHistory: selectedClass ? [selectedClass] : [],
       lastConfirmedAt: selectedClass ? now : null,
     },
+    pathProfile: {
+      currentPath: null,
+      confirmedPath: null,
+      pathHistory: [],
+      lastConfirmedAt: null,
+    },
     level: 1,
     experience: 0,
     statPoints: 0,                  // unspent stat points

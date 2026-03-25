@@ -45,6 +45,7 @@ export const userApi = {
   getMe: () => api.get('/api/users/me'),
   getInventory: () => api.get('/api/users/me/inventory'),
   confirmClass: (selectedClass) => api.put('/api/users/me/class/confirm', { selectedClass }),
+  confirmPath: (selectedPath) => api.put('/api/users/me/path/confirm', { selectedPath }),
   equipItem: (userItemId, slot) => api.put('/api/users/me/equip', { userItemId, slot }),
   unequipItem: (userItemId) => api.put('/api/users/me/unequip', { userItemId }),
   allocateStat: (statKey, amount = 1) => api.put('/api/users/me/stats/allocate', { statKey, amount }),

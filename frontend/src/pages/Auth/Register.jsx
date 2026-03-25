@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../../services/api';
+import { authApi, userApi } from '../../services/api';
+import { getPostAuthRoute } from '../../utils/onboarding';
 import Navbar from '../../components/Navbar';
 
 const Register = () => {
@@ -44,9 +45,14 @@ const Register = () => {
         console.warn('[Register] No token received from server!');
       }
 
-      setSuccess('Ghi danh thành công! Đang chuyển hướng tới trang chọn mốc giới...');
-      setTimeout(() => {
-        navigate('/character-selection');
+      setSuccess('Registration successful! Redirecting to the Archive Warden...');
+      setTimeout(async () => {
+        try {
+          const meRes = await userApi.getMe();
+          navigate(getPostAuthRoute(meRes.data));
+        } catch {
+          navigate('/warden-intro');
+        }
       }, 1500);
     } catch (err) {
       setError(err.response?.data?.error || 'Ghi danh thất bại. Vui lòng thử lại.');

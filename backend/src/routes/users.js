@@ -112,6 +112,40 @@ users.put('/me/class/confirm', requireAuth, async (c) => {
   })
 })
 
+users.put('/me/path/confirm', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const { selectedPath } = await c.req.json()
+
+  const allowedPaths = ['mastery', 'conquest', 'trial']
+  if (!allowedPaths.includes(selectedPath)) {
+    return c.json({ error: 'Invalid path selection' }, 400)
+  }
+
+  const now = new Date()
+  await db.collection('users').updateOne(
+    { _id: toObjectId(user.id) },
+    {
+      $set: {
+        'pathProfile.currentPath': selectedPath,
+        'pathProfile.confirmedPath': selectedPath,
+        'pathProfile.lastConfirmedAt': now,
+        updatedAt: now,
+      },
+      $addToSet: { 'pathProfile.pathHistory': selectedPath },
+    },
+  )
+
+  return c.json({
+    message: 'Path confirmed',
+    pathProfile: {
+      currentPath: selectedPath,
+      confirmedPath: selectedPath,
+      lastConfirmedAt: now,
+    },
+  })
+})
+
 users.put('/me/equip', requireAuth, async (c) => {
   const db   = await getDb(c)
   const user = c.get('user')

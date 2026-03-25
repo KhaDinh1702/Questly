@@ -3,12 +3,13 @@ import { sign } from 'hono/jwt'
 import { getDb } from '../db'
 import { getJwtSecret } from '../config/env'
 import { hashPassword, verifyPassword } from '../helpers/crypto'
+import { createUserDocument } from '../models/User'
 
 const auth = new Hono()
 
 auth.post('/register', async (c) => {
   try {
-    const { username, password } = await c.req.json()
+    const { username, password, email } = await c.req.json()
     if (!username || !password) {
       return c.json({ error: 'Vui lòng nhập tài khoản và mật khẩu' }, 400)
     }
@@ -21,12 +22,13 @@ auth.post('/register', async (c) => {
 
     const hashedPassword = await hashPassword(password)
 
-    const { insertedId } = await users.insertOne({
+    const userDoc = createUserDocument({
       username,
-      password: hashedPassword,
-      role: 'user',
-      createdAt: new Date(),
+      email: email ?? null,
+      passwordHash: hashedPassword,
+      selectedClass: null,
     })
+    const { insertedId } = await users.insertOne(userDoc)
 
     const secret = getJwtSecret(c)
     const token = await sign({
