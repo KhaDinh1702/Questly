@@ -6,7 +6,13 @@
 import { ObjectId } from 'mongodb'
 import { toObjectId } from '../helpers/db'
 import { calcAptitudeReward, calcTicketReward, convertTicketsToMoves } from '../helpers/gameLogic'
-import { addResources, useAptitudeTestSlot } from './userService'
+import {
+  addResources,
+  useAptitudeTestSlot,
+  useAptitudePracticeSlotForFlashcardSet,
+  useAptitudeRealTestSlotForFlashcardSet,
+  completeAptitudeRealTestForFlashcardSet,
+} from './userService'
 
 /**
  * Start an aptitude test session.
@@ -17,10 +23,21 @@ import { addResources, useAptitudeTestSlot } from './userService'
  * @param {number} questionCount - default 10
  * @returns {{ ok, questions?, reason? }}
  */
-export async function startAptitudeTest(db, userId, questionCount = 10, setId = null) {
-  // Check slot — always proceeds, rewardEligible flags whether rewards apply
-  const slot = await useAptitudeTestSlot(db, userId)
-  if (!slot.ok) return slot  // only fails if user not found
+export async function startAptitudeTest(db, userId, questionCount = 10, setId = null, mode = 'real') {
+  const normalizedMode = mode === 'practice' ? 'practice' : 'real'
+
+  // Check slot based on mode & set state
+  let slot
+  if (setId && normalizedMode === 'practice') {
+    slot = await useAptitudePracticeSlotForFlashcardSet(db, userId, setId)
+  } else if (setId && normalizedMode === 'real') {
+    slot = await useAptitudeRealTestSlotForFlashcardSet(db, userId, setId)
+  } else {
+    // Random trial or unknown mode: use legacy daily quota system.
+    slot = await useAptitudeTestSlot(db, userId)
+  }
+
+  if (!slot.ok) return slot  // 400 path: locked / user not found / etc.
 
   const userObjectId = toObjectId(userId)
   const dbUser = await db.collection('users').findOne({ _id: userObjectId })
@@ -77,7 +94,14 @@ export async function startAptitudeTest(db, userId, questionCount = 10, setId = 
     }
   })
 
-  return { ok: true, questions, rewardEligible: slot.rewardEligible, remainingTests: slot.remainingTests }
+  return {
+    ok: true,
+    questions,
+    rewardEligible: Boolean(slot.rewardEligible),
+    remainingTests: slot.remainingTests ?? null,
+    remainingPracticeAttempts: slot.remainingPracticeAttempts ?? null,
+    mode: normalizedMode,
+  }
 }
 
 /**
@@ -90,14 +114,27 @@ export async function startAptitudeTest(db, userId, questionCount = 10, setId = 
  * @param {boolean}  isMultiChoice     - toggles ticket sub-system
  * @returns {{ ok, turns, moves, gold, tickets, totalScore }}
  */
-export async function submitAptitudeTest(db, userId, { totalQuestions, correctAnswers, rewardEligible = true }) {
+export async function submitAptitudeTest(
+  db,
+  userId,
+  { totalQuestions, correctAnswers, rewardEligible = true, mode = 'real', setId = null },
+) {
   if (totalQuestions <= 0) return { ok: false, reason: 'Invalid question count' }
 
   const correctPct = Math.round((correctAnswers / totalQuestions) * 100)
 
   let moves = 0, gold = 0, tickets = 0
 
-  if (rewardEligible) {
+  const normalizedMode = mode === 'practice' ? 'practice' : 'real'
+  const canReward = normalizedMode === 'real' && Boolean(rewardEligible)
+
+  if (normalizedMode === 'real' && setId) {
+    // Unlock practice for this set only after the Real Test submission.
+    const unlockRes = await completeAptitudeRealTestForFlashcardSet(db, userId, setId)
+    if (!unlockRes.ok) return unlockRes
+  }
+
+  if (canReward) {
     if (correctPct >= 50) {
       moves = Math.floor(correctPct / 10)
       const stepsAbove50 = Math.floor((correctPct - 50) / 10)
@@ -111,5 +148,14 @@ export async function submitAptitudeTest(db, userId, { totalQuestions, correctAn
     }
   }
 
-  return { ok: true, correctPct, turns: moves, moves, gold, tickets, rewardEligible }
+  return {
+    ok: true,
+    correctPct,
+    turns: moves,
+    moves,
+    gold,
+    tickets,
+    rewardEligible: canReward,
+    mode: normalizedMode,
+  }
 }

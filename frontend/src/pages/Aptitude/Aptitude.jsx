@@ -26,6 +26,12 @@ export default function Aptitude() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [rewardEligible, setRewardEligible] = useState(true);
   const [remainingTests, setRemainingTests] = useState(null);
+  const [remainingPracticeAttempts, setRemainingPracticeAttempts] = useState(null);
+  const [testMode, setTestMode] = useState('real'); // 'real' | 'practice'
+  const [testSetId, setTestSetId] = useState(null);
+
+  // Mode selection state for flashcard sets
+  const [pendingSetChoice, setPendingSetChoice] = useState(null); // { setId, title }
 
   // Result state
   const [rewards, setRewards] = useState(null);
@@ -45,23 +51,32 @@ export default function Aptitude() {
   }, []);
 
   // ─── Start a test ─────────────────────────────────────────────
-  async function startTest(targetSetId = null) {
+  async function startTest(targetSetId = null, mode = 'real') {
     setPhase('loading');
     setError(null);
+    setRemainingPracticeAttempts(null);
+    setTestMode(mode === 'practice' ? 'practice' : 'real');
+    setTestSetId(targetSetId ?? null);
     try {
-      const url = targetSetId
-        ? `/api/aptitude/start?count=20&setId=${targetSetId}`
-        : '/api/aptitude/start?count=20';
+      const normalizedMode = mode === 'practice' ? 'practice' : 'real'
+      const urlParts = [`/api/aptitude/start?count=20&mode=${normalizedMode}`]
+      if (targetSetId) urlParts.push(`setId=${targetSetId}`)
+
+      const url = urlParts.length === 1 ? urlParts[0] : `${urlParts[0]}&${urlParts[1]}`
       const res = await api.post(url);
       if (res.data.questions && res.data.questions.length > 0) {
         setQuestions(res.data.questions);
         setRewardEligible(res.data.rewardEligible ?? true);
         setRemainingTests(res.data.remainingTests ?? null);
+        setRemainingPracticeAttempts(res.data.remainingPracticeAttempts ?? null);
+        setTestMode(res.data.mode ?? normalizedMode);
+        setTestSetId(targetSetId ?? null);
         setCurrentIndex(0);
         setCorrectAnswers(0);
         setSelectedOption(null);
         setIsAnswered(false);
         setPhase('active');
+        setPendingSetChoice(null);
       } else {
         setError("You haven't studied any Grimoires yet. Please acquire and study a Grimoire first.");
         setPhase('lobby');
@@ -101,6 +116,8 @@ export default function Aptitude() {
         totalQuestions: questions.length,
         correctAnswers: finalScore,
         rewardEligible,
+        mode: testMode,
+        setId: testSetId,
       });
       setRewards({ turns: res.data.turns ?? res.data.moves ?? 0, gold: res.data.gold || 0, tickets: res.data.tickets || 0 });
       if (rewardEligible) {
@@ -132,6 +149,38 @@ export default function Aptitude() {
             </div>
           )}
 
+          {pendingSetChoice && (
+            <div className="w-full bg-surface-container-high border-2 border-primary p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.5)]">
+              <span className="block text-xs font-bold uppercase text-primary tracking-widest mb-1">Flashcard Set — Choose Mode</span>
+              <h2 className="font-headline text-3xl font-black text-on-surface mb-2">{pendingSetChoice.title}</h2>
+              <p className="text-stone-400 text-sm italic mb-6">
+                Real Test: only 1 completion per set. Practice Test: up to 5 attempts until you complete Real Test.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() => startTest(pendingSetChoice.setId, 'real')}
+                  className="w-full bg-primary text-on-primary py-4 font-headline font-bold text-xl uppercase tracking-widest hover:bg-primary-container transition-colors active:translate-y-1"
+                >
+                  Real Test
+                </button>
+                <button
+                  onClick={() => startTest(pendingSetChoice.setId, 'practice')}
+                  className="w-full border-2 border-stone-600 text-stone-300 py-4 font-headline font-bold text-xl uppercase tracking-widest hover:bg-stone-800 transition-colors active:translate-y-1"
+                >
+                  Practice Test
+                </button>
+              </div>
+
+              <button
+                onClick={() => setPendingSetChoice(null)}
+                className="mt-4 w-full border border-stone-600 text-stone-300 py-3 font-headline font-bold text-sm uppercase tracking-widest hover:bg-stone-800 transition-colors active:translate-y-1"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
           {/* Recommended (just finished) */}
           {fromStudy?.setId && (
             <div className="w-full bg-surface-container-high border-2 border-primary p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.5)]">
@@ -139,10 +188,10 @@ export default function Aptitude() {
               <h2 className="font-headline text-3xl font-black text-on-surface mb-2">{fromStudy.title}</h2>
               <p className="text-stone-400 text-sm italic mb-4">10 questions drawn exclusively from this grimoire.</p>
               <button
-                onClick={() => startTest(fromStudy.setId)}
+                onClick={() => setPendingSetChoice({ setId: fromStudy.setId, title: fromStudy.title })}
                 className="w-full bg-primary text-on-primary py-4 font-headline font-bold text-xl uppercase tracking-widest hover:bg-primary-container transition-colors active:translate-y-1"
               >
-                Start Trial — {fromStudy.title}
+                Choose Test Mode — {fromStudy.title}
               </button>
             </div>
           )}
@@ -161,10 +210,10 @@ export default function Aptitude() {
                       </p>
                     </div>
                     <button
-                      onClick={() => startTest(set._id)}
+                      onClick={() => setPendingSetChoice({ setId: set._id, title: set.title })}
                       className="ml-4 shrink-0 px-5 py-2 border-2 border-stone-600 text-stone-300 font-label uppercase text-xs font-bold hover:bg-stone-700 hover:text-white transition-all active:scale-95"
                     >
-                      Retry
+                      Test
                     </button>
                   </div>
                 ))}
@@ -185,7 +234,7 @@ export default function Aptitude() {
             <h2 className="font-headline text-2xl font-black text-stone-300 mb-2">Mixed Grimoire Challenge</h2>
             <p className="text-stone-500 text-sm italic mb-4">10 questions drawn randomly from all your acquired and created grimoires.</p>
             <button
-              onClick={() => startTest(null)}
+              onClick={() => startTest(null, 'real')}
               className="w-full border-2 border-stone-600 text-stone-300 py-4 font-headline font-bold text-lg uppercase tracking-widest hover:bg-stone-800 transition-colors active:translate-y-1"
             >
               Start Random Trial
@@ -221,9 +270,19 @@ export default function Aptitude() {
           <div className="bg-surface-container-high p-12 max-w-xl w-full text-center border-2 border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)]">
 
             {/* Practice mode banner */}
-            {!rewardEligible && (
+            {testMode === 'practice' && (
               <div className="bg-stone-800 border border-stone-600 text-stone-400 text-xs font-bold uppercase tracking-widest py-2 px-4 mb-6">
-                Practice Mode — Daily reward limit reached. No rewards this run.
+                Practice Test — no rewards this run.
+                {remainingPracticeAttempts !== null && remainingPracticeAttempts !== undefined ? (
+                  <span className="block font-bold text-stone-300 mt-1 normal-case tracking-wider">
+                    Remaining practice attempts: {remainingPracticeAttempts}
+                  </span>
+                ) : null}
+              </div>
+            )}
+            {testMode === 'real' && !rewardEligible && (
+              <div className="bg-stone-800 border border-stone-600 text-stone-400 text-xs font-bold uppercase tracking-widest py-2 px-4 mb-6">
+                Real Test — daily reward limit reached. No rewards this run.
               </div>
             )}
 
@@ -309,10 +368,27 @@ export default function Aptitude() {
     <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Practice mode banner */}
-      {!rewardEligible && (
+      {/* Mode banner */}
+      {testMode === 'practice' && (
         <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
-          Practice Mode — No rewards this run (daily limit reached)
+          Practice Test — no rewards this run.
+          {remainingPracticeAttempts !== null && remainingPracticeAttempts !== undefined ? (
+            <span className="block font-bold text-stone-300 mt-1 normal-case tracking-wider">
+              Remaining practice attempts: {remainingPracticeAttempts}
+            </span>
+          ) : null}
+        </div>
+      )}
+      {testMode === 'real' && !rewardEligible && (
+        <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
+          Real Test — daily reward limit reached. No rewards this run.
+        </div>
+      )}
+
+      {/* Early leave warning (Real Test) */}
+      {testMode === 'real' && testSetId && (
+        <div className="w-full bg-error-container/20 border border-error/30 text-error text-center text-xs font-bold uppercase tracking-widest py-2 px-4">
+          Warning: If you leave this Real Test before finishing (refresh, close tab, or navigate away), you will lose your Real Test attempt for this flashcard set and you won&apos;t be able to take the Real Test again. Practice will remain available.
         </div>
       )}
 

@@ -120,6 +120,10 @@ export function createUserDocument({
     acquiredGrimoires: [],          // [ObjectId] of sets acquired from others
     grimoireProgress: [],           // [{ setId: ObjectId, progress: Number, lastStudied: Date }]
 
+    // ── Flashcard Set Tests (Practice vs Real) ───────────────
+    // Stored per-set as: flashcardSetTests[setIdString] = { practiceAttempts, realCompleted, ... }
+    flashcardSetTests: {},
+
 
     // ── Leaderboard ───────────────────────────────────────────
     totalScore: 0,           // sum of exp or a separate score
