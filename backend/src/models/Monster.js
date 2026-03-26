@@ -3,7 +3,7 @@
  * Defines monster templates. Actual encounter stats are scaled by monster level.
  */
 
-import { MONSTER_TIER } from '../config/constants'
+import { MONSTER_TIER } from '../config/constants.js'
 
 export function createMonsterDocument({
   name,

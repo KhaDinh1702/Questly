@@ -7,9 +7,9 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { buyItem, sellItem, rollGachaChest } from '../services/shopService'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { buyItem, sellItem, rollGachaChest } from '../services/shopService.js'
 
 const shop = new Hono()
 

@@ -1,5 +1,5 @@
 import { verify } from 'hono/jwt'
-import { getJwtSecret } from '../config/env'
+import { getJwtSecret } from '../config/env.js'
 
 /**
  * requireAuth middleware

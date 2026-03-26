@@ -1,4 +1,4 @@
-import { APTITUDE_REWARDS } from '../config/constants'
+import { APTITUDE_REWARDS } from '../config/constants.js'
 
 /**
  * Calculate dungeon moves and gold earned from an Aptitude Test result.

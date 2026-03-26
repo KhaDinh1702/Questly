@@ -229,16 +229,11 @@ async function seed() {
     const db  = client.db('questly-db')
     const col = db.collection('items')
 
-    // Only wipe and re-seed if collection contains < 5 items (first run / reset)
-    const existing = await col.countDocuments()
-    if (existing >= 5) {
-      console.log(`ℹ️   items collection already has ${existing} docs — skipping seed.`)
-      console.log('    To force re-seed, drop the collection manually then rerun.')
-    } else {
-      if (existing > 0) await col.deleteMany({})
-      const result = await col.insertMany(ITEMS)
-      console.log(`✅  Inserted ${result.insertedCount} items into 'items' collection.`)
-    }
+    // Always wipe and re-seed to ensure latest catalog
+    console.log('ℹ️   Resetting and seeding items collection...');
+    await col.deleteMany({})
+    const result = await col.insertMany(ITEMS)
+    console.log(`✅  Inserted ${result.insertedCount} items into 'items' collection.`)
 
     // Ensure indexes
     await col.createIndex({ type: 1, rarity: 1 })

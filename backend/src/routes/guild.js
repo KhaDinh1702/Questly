@@ -10,10 +10,10 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { createGuild, joinGuild, leaveGuild, createListing, purchaseListing } from '../services/guildService'
-import { toObjectId } from '../helpers/db'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { createGuild, joinGuild, leaveGuild, createListing, purchaseListing } from '../services/guildService.js'
+import { toObjectId } from '../helpers/db.js'
 
 const guild = new Hono()
 

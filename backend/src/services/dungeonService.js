@@ -16,15 +16,15 @@
  */
 
 import { ObjectId } from 'mongodb'
-import { toObjectId } from '../helpers/db'
-import { createDungeonRunDocument, generateGrid, getVisibleCells } from '../models/DungeonRun'
-import { scaleMonsterStats, getMonsterLevel } from '../models/Monster'
-import { createPlayerLevelDocument, expForLevel } from '../models/PlayerLevel'
-import { addResources, getMaxBackpackSlots } from './userService'
-import { weightedRandom, rollChest, rollChestReward } from '../helpers/gacha'
-import { createUserItemDocument } from '../models/UserItem'
-import { DUNGEON, MONSTER_TIER } from '../config/constants'
-import { getBaseStats } from '../helpers/gameLogic'
+import { toObjectId } from '../helpers/db.js'
+import { createDungeonRunDocument, generateGrid, getVisibleCells } from '../models/DungeonRun.js'
+import { scaleMonsterStats, getMonsterLevel } from '../models/Monster.js'
+import { createPlayerLevelDocument, expForLevel } from '../models/PlayerLevel.js'
+import { addResources, getMaxBackpackSlots } from './userService.js'
+import { weightedRandom, rollChest, rollChestReward } from '../helpers/gacha.js'
+import { createUserItemDocument } from '../models/UserItem.js'
+import { DUNGEON, MONSTER_TIER } from '../config/constants.js'
+import { getBaseStats } from '../helpers/gameLogic.js'
 
 // ── Helpers ───────────────────────────────────────────────────
 

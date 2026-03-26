@@ -3,8 +3,8 @@
  * Handles guild creation, membership, marketplace, and boss fights.
  */
 
-import { toObjectId } from '../helpers/db'
-import { createGuildDocument, createGuildListingDocument } from '../models/Guild'
+import { toObjectId } from '../helpers/db.js'
+import { createGuildDocument, createGuildListingDocument } from '../models/Guild.js'
 
 export async function createGuild(db, userId, name) {
   const _userId = toObjectId(userId)

@@ -10,7 +10,7 @@
  *   (0,2), (1,2), (2,0), (2,1), (2,2), (2,3), (2,4), (3,2), (4,2)
  */
 
-import { DUNGEON } from '../config/constants'
+import { DUNGEON } from '../config/constants.js'
 
 /** Return a random connected set of cells */
 export function getRandomConnectedCells(gridSize = DUNGEON.GRID_SIZE, targetCount = 10) {

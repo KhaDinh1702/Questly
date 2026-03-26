@@ -1,23 +1,23 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { getDb } from './db'
-import { playerLevelIndexes } from './models/PlayerLevel'
-import { dungeonRunIndexes } from './models/DungeonRun'
+import { getDb } from './db.js'
+import { playerLevelIndexes } from './models/PlayerLevel.js'
+import { dungeonRunIndexes } from './models/DungeonRun.js'
 
 // ── Routes ────────────────────────────────────────────────────
-import authRoutes    from './routes/auth'
-import gremoireRoutes from './routes/grimoire'
-import aptitudeRoutes from './routes/aptitude'
-import dungeonRoutes  from './routes/dungeon'
-import shopRoutes     from './routes/shop'
-import userRoutes     from './routes/users'
-import guildRoutes    from './routes/guild'
-import paymentRoutes  from './routes/payment'
-import communityRoutes from './routes/community'
+import authRoutes    from './routes/auth.js'
+import gremoireRoutes from './routes/grimoire.js'
+import aptitudeRoutes from './routes/aptitude.js'
+import dungeonRoutes  from './routes/dungeon.js'
+import shopRoutes     from './routes/shop.js'
+import userRoutes     from './routes/users.js'
+import guildRoutes    from './routes/guild.js'
+import paymentRoutes  from './routes/payment.js'
+import communityRoutes from './routes/community.js'
 
 // ── Middleware ────────────────────────────────────────────────
-import { errorHandler }      from './middleware/errorHandler'
-import { createRateLimiter } from './middleware/rateLimit'
+import { errorHandler }      from './middleware/errorHandler.js'
+import { createRateLimiter } from './middleware/rateLimit.js'
 
 const app = new Hono()
 

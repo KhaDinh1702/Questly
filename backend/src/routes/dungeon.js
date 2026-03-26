@@ -14,9 +14,9 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { toObjectId } from '../helpers/db'
-import { requireAuth } from '../middleware/auth'
+import { getDb } from '../db.js'
+import { toObjectId } from '../helpers/db.js'
+import { requireAuth } from '../middleware/auth.js'
 import {
   startDungeonRun,
   getActiveDungeonRun,
@@ -28,8 +28,8 @@ import {
   nextFloor,
   endDungeonRun,
   getPlayerLevel,
-} from '../services/dungeonService'
-import { getMaxBackpackSlots } from '../services/userService'
+} from '../services/dungeonService.js'
+import { getMaxBackpackSlots } from '../services/userService.js'
 
 const dungeon = new Hono()
 

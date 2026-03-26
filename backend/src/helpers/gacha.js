@@ -1,4 +1,4 @@
-import { CHEST_RATES, RARITY, CHEST_REWARDS } from '../config/constants'
+import { CHEST_RATES, RARITY, CHEST_REWARDS } from '../config/constants.js'
 
 /**
  * Roll a gacha chest for a player.

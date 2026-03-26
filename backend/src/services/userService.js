@@ -4,9 +4,9 @@
  */
 
 import { ObjectId } from 'mongodb'
-import { todayUTC, sanitizeUser, toObjectId } from '../helpers/db'
-import { createUserDocument, userIndexes } from '../models/User'
-import { SUBSCRIPTION_TIERS, DAILY_LIMITS, BACKPACK_SLOTS } from '../config/constants'
+import { todayUTC, sanitizeUser, toObjectId } from '../helpers/db.js'
+import { createUserDocument, userIndexes } from '../models/User.js'
+import { SUBSCRIPTION_TIERS, DAILY_LIMITS, BACKPACK_SLOTS } from '../config/constants.js'
 
 export async function ensureUserIndexes(db) {
   const col = db.collection('users')

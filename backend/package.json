@@ -2,7 +2,9 @@
   "name": "my-app-backend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "tsx watch src/index.js",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types"

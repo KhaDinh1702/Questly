@@ -5,11 +5,11 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { createRateLimiter } from '../middleware/rateLimit'
-import { startAptitudeTest, submitAptitudeTest } from '../services/aptitudeService'
-import { useAptitudeTestSlot } from '../services/userService'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { createRateLimiter } from '../middleware/rateLimit.js'
+import { startAptitudeTest, submitAptitudeTest } from '../services/aptitudeService.js'
+import { useAptitudeTestSlot } from '../services/userService.js'
 
 const aptitude = new Hono()
 

@@ -2,7 +2,7 @@
  * subscriptions collection schema (billing / pricing)
  * Stored when VNPay payment succeeds.
  */
-import { toObjectId } from '../helpers/db'
+import { toObjectId } from '../helpers/db.js'
 
 export function createSubscriptionDocument({
   userId,       // string userId (ObjectId string)

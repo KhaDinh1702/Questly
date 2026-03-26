@@ -12,9 +12,9 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { toObjectId } from '../helpers/db'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { toObjectId } from '../helpers/db.js'
 
 const community = new Hono()
 

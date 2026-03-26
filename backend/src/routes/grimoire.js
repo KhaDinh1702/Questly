@@ -8,10 +8,10 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { createFlashcardSetDocument, flashcardSetIndexes } from '../models/FlashcardSet'
-import { toObjectId } from '../helpers/db'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { createFlashcardSetDocument, flashcardSetIndexes } from '../models/FlashcardSet.js'
+import { toObjectId } from '../helpers/db.js'
 
 const grimoire = new Hono()
 

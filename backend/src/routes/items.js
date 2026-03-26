@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { getDb } from '../db'
+import { getDb } from '../db.js'
 
 const items = new Hono()
 

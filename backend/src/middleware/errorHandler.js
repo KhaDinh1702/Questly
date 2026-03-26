@@ -1,4 +1,4 @@
-import { getNodeEnv } from '../config/env'
+import { getNodeEnv } from '../config/env.js'
 
 /**
  * Global error handler for Hono.

@@ -6,9 +6,9 @@
  * new user documents consistently.
  */
 
-import { SUBSCRIPTION_TIERS, BACKPACK_SLOTS, CLASS, DAILY_LIMITS } from '../config/constants'
-import { getBaseStats } from '../helpers/gameLogic'
-import { todayUTC } from '../helpers/db'
+import { SUBSCRIPTION_TIERS, BACKPACK_SLOTS, CLASS, DAILY_LIMITS } from '../config/constants.js'
+import { getBaseStats } from '../helpers/gameLogic.js'
+import { todayUTC } from '../helpers/db.js'
 
 /**
  * Build a new User document ready to insert into MongoDB.

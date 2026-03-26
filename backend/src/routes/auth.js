@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
-import { getDb } from '../db'
-import { getJwtSecret } from '../config/env'
-import { hashPassword, verifyPassword } from '../helpers/crypto'
-import { createUserDocument } from '../models/User'
+import { getDb } from '../db.js'
+import { getJwtSecret } from '../config/env.js'
+import { hashPassword, verifyPassword } from '../helpers/crypto.js'
+import { createUserDocument } from '../models/User.js'
 
 const auth = new Hono()
 

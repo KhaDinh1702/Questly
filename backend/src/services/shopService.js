@@ -3,10 +3,10 @@
  * Handles buying, selling, and gacha chest rolling.
  */
 
-import { toObjectId } from '../helpers/db'
-import { createUserItemDocument } from '../models/UserItem'
-import { rollChest } from '../helpers/gacha'
-import { SUBSCRIPTION_TIERS, DAILY_LIMITS } from '../config/constants'
+import { toObjectId } from '../helpers/db.js'
+import { createUserItemDocument } from '../models/UserItem.js'
+import { rollChest } from '../helpers/gacha.js'
+import { SUBSCRIPTION_TIERS, DAILY_LIMITS } from '../config/constants.js'
 
 /** Buy an item from the shop. Deducts gold. */
 export async function buyItem(db, userId, itemId, quantity = 1) {

@@ -3,10 +3,10 @@
  * Handles granting items and bonuses for subscriptions and special events.
  */
 
-import { toObjectId } from '../helpers/db'
-import { createUserItemDocument } from '../models/UserItem'
-import { SUBSCRIPTION_TIERS, RARITY, EQUIP_SLOT, ITEM_TYPE, CLASS } from '../config/constants'
-import { equipItem } from './userService'
+import { toObjectId } from '../helpers/db.js'
+import { createUserItemDocument } from '../models/UserItem.js'
+import { SUBSCRIPTION_TIERS, RARITY, EQUIP_SLOT, ITEM_TYPE, CLASS } from '../config/constants.js'
+import { equipItem } from './userService.js'
 
 /**
  * Grant rewards based on the purchased subscription tier.

@@ -9,12 +9,12 @@
  */
 
 import { Hono } from 'hono'
-import { getDb } from '../db'
-import { requireAuth } from '../middleware/auth'
-import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints } from '../services/userService'
-import { toObjectId } from '../helpers/db'
-import { CLASS_CHANGE_COST } from '../config/constants'
-import { getBaseStats } from '../helpers/gameLogic'
+import { getDb } from '../db.js'
+import { requireAuth } from '../middleware/auth.js'
+import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints } from '../services/userService.js'
+import { toObjectId } from '../helpers/db.js'
+import { CLASS_CHANGE_COST } from '../config/constants.js'
+import { getBaseStats } from '../helpers/gameLogic.js'
 
 const users = new Hono()
 

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { DB_NAME } from '../config/constants'
+import { DB_NAME } from '../config/constants.js'
 
 /**
  * Returns the MongoDB db instance and the named collection.

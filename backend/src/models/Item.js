@@ -3,7 +3,7 @@
  * Master catalog of all items in the game.
  */
 
-import { ITEM_TYPE, EQUIP_SLOT, CLASS, RARITY } from '../config/constants'
+import { ITEM_TYPE, EQUIP_SLOT, CLASS, RARITY } from '../config/constants.js'
 
 /**
  * Create a new Item document.

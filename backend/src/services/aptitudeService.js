@@ -4,15 +4,15 @@
  */
 
 import { ObjectId } from 'mongodb'
-import { toObjectId } from '../helpers/db'
-import { calcAptitudeReward, calcTicketReward, convertTicketsToMoves } from '../helpers/gameLogic'
+import { toObjectId } from '../helpers/db.js'
+import { calcAptitudeReward, calcTicketReward, convertTicketsToMoves } from '../helpers/gameLogic.js'
 import {
   addResources,
   useAptitudeTestSlot,
   useAptitudePracticeSlotForFlashcardSet,
   useAptitudeRealTestSlotForFlashcardSet,
   completeAptitudeRealTestForFlashcardSet,
-} from './userService'
+} from './userService.js'
 
 /**
  * Start an aptitude test session.
