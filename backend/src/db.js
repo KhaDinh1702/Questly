@@ -9,8 +9,11 @@ let connecting = null  // prevent parallel connect() races
  * Single long-lived client, reconnects only if truly closed.
  */
 export async function getDb(c) {
-  const mongoUri = getMongoUri(c)
+  let mongoUri = getMongoUri(c)
   if (!mongoUri) throw new Error('MONGODB_URI is not set. Check your .env file or Cloudflare secrets.')
+  
+  mongoUri = mongoUri.trim();
+  console.log(`[DB] Attempting connection with URI starting with: "${mongoUri.substring(0, 15)}..."`);
 
   // Already connected — reuse
   if (client) return client.db('questly-db')

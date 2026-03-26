@@ -24,7 +24,10 @@
  */
 export function getEnv(c, key) {
   // 1️⃣ Cloudflare Workers bindings / .dev.vars
-  if (c?.env?.[key] !== undefined) return c.env[key]
+  if (c?.env) {
+    console.log(`[getEnv] Available keys in c.env: ${Object.keys(c.env).join(', ')}`);
+    if (c.env[key] !== undefined) return c.env[key]
+  }
   // 2️⃣ Node.js process.env / .env file (dotenv)
   if (typeof process !== 'undefined' && process.env[key] !== undefined) {
     return process.env[key]
