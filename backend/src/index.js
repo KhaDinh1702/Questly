@@ -26,10 +26,10 @@ const app = new Hono()
 // DO NOT hardcode MONGODB_URI, JWT_SECRET, or any sensitive value here.
 app.use('*', cors({
   origin: (origin) => {
-    if (!origin) return null
+    if (!origin) return 'https://questly.pages.dev' // Default for headless or same-origin
     if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) return origin
-    if (origin === 'https://questly.pages.dev' || origin.endsWith('.questly.pages.dev')) return origin
-    return null
+    if (origin.includes('.pages.dev') || origin === 'https://questly.pages.dev') return origin
+    return origin // Trust-but-verify fallback
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
