@@ -114,28 +114,94 @@ grimoire.post('/:id/progress', requireAuth, async (c) => {
   const _id = toObjectId(c.req.param('id'))
   if (!_id) return c.json({ error: 'Invalid ID' }, 400)
 
-  const { progress } = await c.req.json()
-  if (typeof progress !== 'number') return c.json({ error: 'Progress must be a number' }, 400)
+  const body = await c.req.json()
+  const {
+    progress,
+    currentIndex,
+    knownCount,
+    studyCompleted,
+  } = body ?? {}
+
+  if (progress !== undefined && typeof progress !== 'number') {
+    return c.json({ error: 'Progress must be a number' }, 400)
+  }
+  if (currentIndex !== undefined && typeof currentIndex !== 'number') {
+    return c.json({ error: 'currentIndex must be a number' }, 400)
+  }
+  if (knownCount !== undefined && typeof knownCount !== 'number') {
+    return c.json({ error: 'knownCount must be a number' }, 400)
+  }
+  if (studyCompleted !== undefined && typeof studyCompleted !== 'boolean') {
+    return c.json({ error: 'studyCompleted must be a boolean' }, 400)
+  }
 
   const dbUser = await db.collection('users').findOne({ _id: toObjectId(user.id) })
   const progressList = dbUser?.grimoireProgress || []
   
   const existing = progressList.find(p => String(p.setId) === String(_id))
+  const now = new Date()
+  const nextProgress = typeof progress === 'number' ? Math.min(100, Math.max(0, progress)) : undefined
+
+  const updateFields = {
+    'grimoireProgress.$.lastStudied': now,
+  }
+  if (typeof currentIndex === 'number') updateFields['grimoireProgress.$.currentIndex'] = Math.max(0, currentIndex)
+  if (typeof knownCount === 'number') updateFields['grimoireProgress.$.knownCount'] = Math.max(0, knownCount)
+  if (typeof studyCompleted === 'boolean') updateFields['grimoireProgress.$.studyCompleted'] = studyCompleted
+
   if (existing) {
-    if (progress > existing.progress) {
+    if (typeof nextProgress === 'number' && nextProgress > (existing.progress ?? 0)) {
       await db.collection('users').updateOne(
         { _id: toObjectId(user.id), 'grimoireProgress.setId': _id },
-        { $set: { 'grimoireProgress.$.progress': Math.min(100, progress), 'grimoireProgress.$.lastStudied': new Date() } }
+        { $set: { ...updateFields, 'grimoireProgress.$.progress': nextProgress } }
+      )
+    } else {
+      // Still update session position even if progress did not increase.
+      await db.collection('users').updateOne(
+        { _id: toObjectId(user.id), 'grimoireProgress.setId': _id },
+        { $set: updateFields }
       )
     }
   } else {
+    const pushProgress = typeof nextProgress === 'number' ? nextProgress : 0
     await db.collection('users').updateOne(
       { _id: toObjectId(user.id) },
-      { $push: { grimoireProgress: { setId: _id, progress: Math.min(100, progress), lastStudied: new Date() } } }
+      {
+        $push: {
+          grimoireProgress: {
+            setId: _id,
+            progress: pushProgress,
+            currentIndex: typeof currentIndex === 'number' ? Math.max(0, currentIndex) : 0,
+            knownCount: typeof knownCount === 'number' ? Math.max(0, knownCount) : 0,
+            studyCompleted: typeof studyCompleted === 'boolean' ? studyCompleted : false,
+            lastStudied: now,
+          },
+        },
+      }
     )
   }
 
   return c.json({ message: 'Progress updated' })
+})
+
+// Get the user's flashcard study state for resuming.
+grimoire.get('/:id/progress', requireAuth, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const _id = toObjectId(c.req.param('id'))
+  if (!_id) return c.json({ error: 'Invalid ID' }, 400)
+
+  const dbUser = await db.collection('users').findOne({ _id: toObjectId(user.id) })
+  const progressList = dbUser?.grimoireProgress || []
+  const existing = progressList.find(p => String(p.setId) === String(_id))
+
+  return c.json({
+    progress: existing?.progress ?? 0,
+    currentIndex: existing?.currentIndex ?? 0,
+    knownCount: existing?.knownCount ?? 0,
+    studyCompleted: existing?.studyCompleted ?? false,
+    lastStudied: existing?.lastStudied ?? null,
+  })
 })
 
 // Toggle vote (upvote / remove vote)
