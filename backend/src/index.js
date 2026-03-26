@@ -94,11 +94,15 @@ async function ensureIndexes() {
   }
 }
 
-serve({
-  fetch: app.fetch,
-  port: port
-}, (info) => {
-  console.log(`[SUCCESS] The Questly server has booted locally on http://127.0.0.1:${info.port}`)
-  console.log(`[SUCCESS] Cloudflare Workers emulation has been permanently disabled. Welcome to zero-lag!`)
-  ensureIndexes()
-})
+export default app
+
+if (typeof process !== 'undefined' && process.release?.name === 'node') {
+  serve({
+    fetch: app.fetch,
+    port: port
+  }, (info) => {
+    console.log(`[SUCCESS] The Questly server has booted locally on http://127.0.0.1:${info.port}`)
+    console.log(`[SUCCESS] Cloudflare Workers emulation has been permanently disabled. Welcome to zero-lag!`)
+    ensureIndexes()
+  })
+}
