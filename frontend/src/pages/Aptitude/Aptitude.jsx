@@ -26,6 +26,7 @@ export default function Aptitude() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [rewardEligible, setRewardEligible] = useState(true);
   const [remainingTests, setRemainingTests] = useState(null);
+  const [totalLimit, setTotalLimit] = useState(null);
   const [remainingPracticeAttempts, setRemainingPracticeAttempts] = useState(null);
   const [testMode, setTestMode] = useState('real'); // 'real' | 'practice'
   const [testSetId, setTestSetId] = useState(null);
@@ -48,6 +49,14 @@ export default function Aptitude() {
       })
       .catch(() => {})
       .finally(() => setLoadingHistory(false));
+
+    // Fetch daily quota
+    api.get('/api/aptitude/quota')
+      .then(res => {
+        setRemainingTests(res.data.remainingTests ?? null);
+        setTotalLimit(res.data.limit ?? null);
+      })
+      .catch(() => {});
   }, []);
 
   // ─── Start a test ─────────────────────────────────────────────
@@ -68,6 +77,7 @@ export default function Aptitude() {
         setQuestions(res.data.questions);
         setRewardEligible(res.data.rewardEligible ?? true);
         setRemainingTests(res.data.remainingTests ?? null);
+        setTotalLimit(res.data.limit ?? null);
         setRemainingPracticeAttempts(res.data.remainingPracticeAttempts ?? null);
         setTestMode(res.data.mode ?? normalizedMode);
         setTestSetId(targetSetId ?? null);
@@ -144,6 +154,11 @@ export default function Aptitude() {
           <div className="text-center">
             <h1 className="font-headline text-5xl font-black text-primary mb-2">The Aptitude Trial</h1>
             <p className="text-stone-400 italic text-sm">Test your knowledge. Earn gold and dungeon turns.</p>
+            {remainingTests !== null && totalLimit !== null && (
+              <p className="mt-2 text-primary-container font-black uppercase text-xs tracking-widest">
+                Daily Quota: {remainingTests} / {totalLimit} Remaining
+              </p>
+            )}
           </div>
 
           {error && (

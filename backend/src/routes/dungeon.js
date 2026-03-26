@@ -29,6 +29,7 @@ import {
   endDungeonRun,
   getPlayerLevel,
 } from '../services/dungeonService'
+import { getMaxBackpackSlots } from '../services/userService'
 
 const dungeon = new Hono()
 
@@ -48,14 +49,17 @@ dungeon.get('/level', requireAuth, async (c) => {
   const plDoc = await getPlayerLevel(db, user.id)
   const fullUser = await db.collection('users').findOne(
     { _id: toObjectId(user.id) },
-    { projection: { stats: 1, gold: 1, statPoints: 1, dungeonMoves: 1 } },
+    { projection: { stats: 1, gold: 1, statPoints: 1, dungeonMoves: 1, subscriptionTier: 1 } },
   )
+  const maxBackpackSlots = getMaxBackpackSlots(fullUser)
+
   return c.json({
     ...plDoc,
     stats: fullUser?.stats || {},
     gold: fullUser?.gold || 0,
     statPoints: fullUser?.statPoints || 0,
     turns: fullUser?.dungeonMoves || 0,
+    maxBackpackSlots,
   })
 })
 

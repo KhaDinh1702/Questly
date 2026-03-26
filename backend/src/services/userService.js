@@ -99,8 +99,8 @@ export async function useAptitudeTestSlot(db, userId, { increment = true } = {})
   const user = await col.findOne({ _id }, { projection: { subscriptionTier: 1, daily: 1 } })
   if (!user) return { ok: false, reason: 'User not found' }
 
-  const isPremium = user.subscriptionTier !== SUBSCRIPTION_TIERS.FREE
-  const limit = isPremium ? DAILY_LIMITS.APTITUDE_TESTS_PREMIUM : DAILY_LIMITS.APTITUDE_TESTS_FREE
+  const tier = user.subscriptionTier || SUBSCRIPTION_TIERS.FREE
+  const limit = DAILY_LIMITS.APTITUDE_TESTS[tier] || DAILY_LIMITS.APTITUDE_TESTS.free
 
   const aptitudeTestsTaken = user.daily?.aptitudeTestsTaken ?? 0
   const rewardEligible = aptitudeTestsTaken < limit
@@ -120,6 +120,14 @@ export async function useAptitudeTestSlot(db, userId, { increment = true } = {})
     remainingTests,
     limit,
   }
+}
+
+/** Get max backpack slots for a user based on their tier */
+export function getMaxBackpackSlots(user) {
+  const tier = user?.subscriptionTier || SUBSCRIPTION_TIERS.FREE
+  const base = BACKPACK_SLOTS.BASE
+  const bonus = BACKPACK_SLOTS.BONUS[tier] || 0
+  return base + bonus
 }
 
 // ============================================================

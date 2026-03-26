@@ -20,7 +20,7 @@ import { toObjectId } from '../helpers/db'
 import { createDungeonRunDocument, generateGrid, getVisibleCells } from '../models/DungeonRun'
 import { scaleMonsterStats, getMonsterLevel } from '../models/Monster'
 import { createPlayerLevelDocument, expForLevel } from '../models/PlayerLevel'
-import { addResources } from './userService'
+import { addResources, getMaxBackpackSlots } from './userService'
 import { weightedRandom, rollChest, rollChestReward } from '../helpers/gacha'
 import { createUserItemDocument } from '../models/UserItem'
 import { DUNGEON, MONSTER_TIER } from '../config/constants'
@@ -597,6 +597,9 @@ export async function combatAction(db, userId, action, itemId = null) {
     // Restore player HP to run snapshot (combat over)
     const updatedHp = Math.min(cs.playerHp + Math.floor(cs.playerMaxHp * 0.10), cs.playerMaxHp)
 
+    const maxSlots = getMaxBackpackSlots(user)
+    const canLoot = (run.lootCollected?.length ?? 0) < maxSlots
+
     await db.collection('dungeon_runs').updateOne(
       { _id: run._id },
       {
@@ -606,7 +609,7 @@ export async function combatAction(db, userId, action, itemId = null) {
           updatedAt: new Date(),
         },
         $inc: { monstersDefeated: 1, goldEarned: cs.goldReward, expEarned: cs.expReward },
-        $push: { lootCollected: lootItem?._id ?? null },
+        $push: { lootCollected: (lootItem && canLoot) ? lootItem._id : null },
       },
     )
 
@@ -713,6 +716,14 @@ export async function openChest(db, userId) {
 
   const turnSpend = await spendTurns(db, userId, 1)
   if (!turnSpend.ok) return turnSpend
+
+  const user = await db.collection('users').findOne({ _id: _userId })
+  const maxSlots = getMaxBackpackSlots(user)
+  const currentLootCount = run.lootCollected?.length ?? 0
+
+  if (currentLootCount >= maxSlots) {
+    return { ok: false, reason: `Your backpack is full! (${currentLootCount}/${maxSlots} slots used). Clean it out or upgrade your subscription.` }
+  }
 
   // Roll what type of reward
   const reward = rollChestReward(run.currentFloor)

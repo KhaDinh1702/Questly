@@ -74,6 +74,15 @@ function getRarityTextClass(rarity) {
   }
 }
 
+function getTierBadge(tier) {
+  switch (tier) {
+    case 'yearly': return { label: 'Legend', color: 'bg-secondary text-on-secondary' };
+    case '6months': return { label: 'Knight', color: 'bg-primary text-on-primary' };
+    case 'monthly': return { label: 'Squire', color: 'bg-tertiary text-on-tertiary' };
+    default: return null;
+  }
+}
+
 export default function Navbar() {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
@@ -235,6 +244,11 @@ export default function Navbar() {
                 </div>
                 <div className={`text-sm font-black font-serif tracking-wide ${nameClass}`}>
                   {user.username}#{displayId}
+                  {isPremium && (
+                    <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${getTierBadge(user.subscriptionTier)?.color}`}>
+                      {getTierBadge(user.subscriptionTier)?.label}
+                    </span>
+                  )}
                 </div>
               </div>
 
