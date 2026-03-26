@@ -31,6 +31,8 @@ auth.post('/register', async (c) => {
     const { insertedId } = await users.insertOne(userDoc)
 
     const secret = getJwtSecret(c)
+    if (!secret) return c.json({ error: 'Server misconfigured: JWT_SECRET missing' }, 500)
+
     const token = await sign({
       id:       insertedId.toString(),
       username,
