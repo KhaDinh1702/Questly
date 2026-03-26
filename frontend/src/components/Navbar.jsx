@@ -174,18 +174,18 @@ export default function Navbar() {
   const displayId = (user?.identityId ?? '0000').toString().padStart(4, '0');
 
   return (
-    <header className="bg-orange-50 border-b-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+    <header className="bg-orange-50 border-b-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] flex justify-between items-center w-full px-4 lg:px-6 py-4 sticky top-0 z-50">
       {/* Brand */}
       <Link
         to="/"
-        className="text-2xl font-black text-yellow-900 font-serif uppercase tracking-widest hover:opacity-80 transition-opacity"
+        className="text-xl lg:text-2xl font-black text-yellow-900 font-serif uppercase tracking-widest hover:opacity-80 transition-opacity whitespace-nowrap"
       >
         Questly
       </Link>
 
       {/* Desktop nav */}
-      <div className="flex items-center gap-6">
-        <nav className="hidden md:flex gap-8 items-center">
+      <div className="flex items-center gap-4 lg:gap-6">
+        <nav className="hidden xl:flex gap-2 min-[1366px]:gap-4 2xl:gap-8 items-center">
           {NAV_LINKS.map(({ label, to }) => {
             const active = pathname === to || pathname.startsWith(to + '/');
             return (
@@ -238,8 +238,8 @@ export default function Navbar() {
               </div>
 
               {/* Username & Identity */}
-              <div className="hidden lg:flex flex-col leading-tight select-none mr-1">
-                <div className="text-[10px] font-black uppercase tracking-widest text-stone-500">
+              <div className="hidden min-[1150px]:flex flex-col leading-tight select-none mr-1">
+                <div className="text-[10px] font-black uppercase tracking-widest text-stone-500 hidden 2xl:block">
                   {identityTitle}
                 </div>
                 <div className={`text-sm font-black font-serif tracking-wide ${nameClass}`}>
@@ -280,8 +280,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile hamburger (hidden on md+) */}
-      <button className="md:hidden material-symbols-outlined text-yellow-900 p-2">
+      {/* Mobile hamburger (hidden on desktop) */}
+      <button className="xl:hidden material-symbols-outlined text-yellow-900 p-2">
         menu
       </button>
 
