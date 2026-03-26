@@ -15,16 +15,24 @@ export const SUBSCRIPTION_TIERS = {
 
 // ---- Daily limits ----
 export const DAILY_LIMITS = {
-  // Free tier ("novice") real-test quota per day.
-  APTITUDE_TESTS_FREE: 4,
-  APTITUDE_TESTS_PREMIUM: 8,
+  APTITUDE_TESTS: {
+    free: 4,
+    monthly: 8,
+    '6months': 12,
+    yearly: 16,
+  },
   FREE_CHEST_ADS: 3,          // ad-supported free chests per day
 }
 
 // ---- Backpack slots ----
 export const BACKPACK_SLOTS = {
   BASE: 5,
-  VIP_BONUS: 5,
+  BONUS: {
+    free: 0,
+    monthly: 5,
+    '6months': 8,
+    yearly: 12,
+  }
 }
 
 // ---- Aptitude Test rewards ----

@@ -9,11 +9,20 @@ import { getDb } from '../db'
 import { requireAuth } from '../middleware/auth'
 import { createRateLimiter } from '../middleware/rateLimit'
 import { startAptitudeTest, submitAptitudeTest } from '../services/aptitudeService'
+import { useAptitudeTestSlot } from '../services/userService'
 
 const aptitude = new Hono()
 
 // Prevent spamming the test endpoint
+const quotaLimiter = createRateLimiter({ windowMs: 60_000, max: 100 })
 const startLimiter = createRateLimiter({ windowMs: 60_000, max: 100 })
+
+aptitude.get('/quota', requireAuth, quotaLimiter, async (c) => {
+  const db = await getDb(c)
+  const user = c.get('user')
+  const result = await useAptitudeTestSlot(db, user.id, { increment: false })
+  return c.json(result)
+})
 
 aptitude.post('/start', requireAuth, startLimiter, async (c) => {
   const db   = await getDb(c)

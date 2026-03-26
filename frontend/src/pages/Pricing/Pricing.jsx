@@ -80,10 +80,10 @@ const Pricing = () => {
             period: "6 Months",
             description: "Valorous service brings noble status and rewards.",
             features: [
-                "8 Aptitude Tests Per Day",
+                "12 Aptitude Tests Per Day",
                 "No Crow's Eye (Ad) Views",
-                "+5 Backpack Loot Slots",
-                "6-Month Special Knight Box",
+                "+8 Backpack Loot Slots",
+                "Grade B Equipment Set",
                 "Custom Royal Heraldry"
             ],
             buttonText: "Take The Oath",
@@ -101,10 +101,10 @@ const Pricing = () => {
             period: "Year",
             description: "Etch your name into the annals as a true lord of the realm.",
             features: [
-                "8 Aptitude Tests Per Day",
+                "16 Aptitude Tests Per Day",
                 "No Crow's Eye (Ad) Views",
-                "+5 Backpack Loot Slots",
-                "1-Year Special Legend Box",
+                "+12 Backpack Loot Slots",
+                "Grade B Set + Grade S Scroll",
                 "Early Artifact Access"
             ],
             buttonText: "Claim Throne",

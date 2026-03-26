@@ -6,6 +6,7 @@ import { getDb } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { toObjectId } from '../helpers/db.js';
 import { createSubscriptionDocument } from '../models/Subscription.js';
+import { grantSubscriptionRewards } from '../services/rewardService.js';
 
 const payment = new Hono();
 
@@ -220,6 +221,13 @@ payment.get('/vnpay_return', async (c) => {
                     }
                 );
                 console.log(`[PAYMENT] Updated user ${order.userId} to tier ${finalTier}`);
+
+                // Grant rewards (Grade B set, Grade S scrolls, etc.)
+                try {
+                    await grantSubscriptionRewards(db, order.userId, mappedTier);
+                } catch (rewardErr) {
+                    console.error(`[PAYMENT] Error granting rewards for user ${order.userId}:`, rewardErr);
+                }
             }
         }
 

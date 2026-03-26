@@ -826,6 +826,10 @@ export default function Dungeon() {
                     <span className="text-outline font-bold uppercase">MR</span>
                     <span className="font-bold">{displayStats.mr}</span>
                   </div>
+                  <div className="flex justify-between bg-surface-variant px-2 py-1 border border-outline col-span-2">
+                    <span className="text-primary-container font-bold uppercase">Backpack</span>
+                    <span className="font-bold">{run?.lootCollected?.length ?? 0} / {playerLevel?.maxBackpackSlots || 5}</span>
+                  </div>
                 </div>
 
                 {/* Stat Allocation */}
