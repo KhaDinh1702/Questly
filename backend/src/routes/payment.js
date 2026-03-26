@@ -106,9 +106,8 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
 
         vnp_Params = sortObject(vnp_Params);
 
-        // Standard VNPay 2.1.0: Sign the encoded string
-        // We'll try both encoded and unencoded if this fails.
-        let signData = qs.stringify(vnp_Params, { encode: true });
+        // Standard VNPay 2.1.0: Sign the string WITHOUT encoding values
+        let signData = qs.stringify(vnp_Params, { encode: false });
 
         // Ensure we're using sha512
         const hmac = crypto.createHmac("sha512", secretKey);
@@ -156,8 +155,15 @@ payment.get('/vnpay_return', async (c) => {
             throw new Error('VNP_HASHSECRET missing');
         }
         
-        // Fix: Use encode: true to match VNPay's URL-encoded hashing
-        const signData = qs.stringify(vnp_Params, { encode: true });
+        // VNPay 2.1.0: Sort parameters and ensure no empty values are included in hashing
+        // This is critical for signature matching
+        for (let key in vnp_Params) {
+            if (vnp_Params[key] === '' || vnp_Params[key] === null || vnp_Params[key] === undefined) {
+                delete vnp_Params[key];
+            }
+        }
+
+        const signData = qs.stringify(vnp_Params, { encode: false });
         const hmac = crypto.createHmac("sha512", secretKey);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
 
