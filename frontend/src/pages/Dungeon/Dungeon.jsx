@@ -18,7 +18,7 @@ const CELL_ICONS = {
   cleared:   { icon: 'check_circle', bg: 'bg-stone-900 border-stone-700', opacity: 'opacity-40' },
 }
 
-function GridCell({ type, isPlayer, isVisible }) {
+function GridCell({ type, isPlayer, isVisible, playerClass }) {
   if (!isVisible) {
     return (
       <div className="w-16 h-16 md:w-20 md:h-20 border-2 bg-black opacity-80 border-stone-900 flex items-center justify-center relative">
@@ -54,7 +54,7 @@ function GridCell({ type, isPlayer, isVisible }) {
         <>
           <div className="absolute inset-0 bg-primary opacity-10 animate-pulse" />
           <img 
-            src="/images/player_knight.png" 
+            src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')} 
             alt="player" 
             className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg z-10"
             style={{ mixBlendMode: 'multiply' }}
@@ -444,7 +444,7 @@ export default function Dungeon() {
                <h3 className="font-headline font-bold text-xl uppercase text-primary">Player</h3>
                <div className="h-24 bg-surface-variant border-2 border-outline flex items-center justify-center shadow-sm">
                  <img 
-                   src="/images/player_knight.png" 
+                   src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')} 
                    alt="player" 
                    className="max-h-20 object-contain"
                    style={{ mixBlendMode: 'multiply' }}
@@ -895,6 +895,7 @@ export default function Dungeon() {
                         type={cellType}
                         isPlayer={run && ri === playerX && ci === playerY}
                         isVisible={isVis}
+                        playerClass={playerClass}
                       />
                     )
                   })
