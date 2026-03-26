@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import api from '../../services/api';
@@ -17,11 +17,30 @@ export default function GrimoireStudy() {
   const [studyComplete, setStudyComplete] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const currentIndexRef = useRef(0);
+  const knownCountRef = useRef(0);
+  const setRef = useRef(null);
+  const savingRef = useRef(false);
+  const lastAutoSaveAtRef = useRef(0);
+
   useEffect(() => {
     async function fetchSet() {
       try {
-        const res = await api.get(`/api/grimoire/${id}`);
-        setSet(res.data);
+        const [setRes, progressRes] = await Promise.all([
+          api.get(`/api/grimoire/${id}`),
+          api.get(`/api/grimoire/${id}/progress`).catch(() => null),
+        ]);
+
+        setSet(setRes.data);
+        setRef.current = setRes.data;
+
+        const progressData = progressRes?.data;
+        if (progressData) {
+          setCurrentIndex(progressData.currentIndex ?? 0);
+          setKnownCount(progressData.knownCount ?? 0);
+          setStudyComplete(Boolean(progressData.studyCompleted));
+          setIsFlipped(false); // resume from the exact card, but always show the term first
+        }
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load Grimoire.');
       } finally {
@@ -30,6 +49,113 @@ export default function GrimoireStudy() {
     }
     fetchSet();
   }, [id]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  useEffect(() => {
+    knownCountRef.current = knownCount;
+  }, [knownCount]);
+
+  function computeSessionProgressPct() {
+    const s = setRef.current;
+    if (!s?.cards?.length) return 0;
+    const idx = currentIndexRef.current;
+    return Math.round(((idx + 1) / s.cards.length) * 100);
+  }
+
+  async function saveProgressSession({ markCompleted = false } = {}) {
+    if (!setRef.current?.cards?.length) return;
+
+    const payload = {
+      progress: computeSessionProgressPct(),
+      currentIndex: currentIndexRef.current,
+      knownCount: knownCountRef.current,
+      studyCompleted: markCompleted,
+    };
+
+    try {
+      savingRef.current = true;
+      await api.post(`/api/grimoire/${id}/progress`, payload);
+    } catch {
+      // best-effort save (do not block UI)
+    } finally {
+      savingRef.current = false;
+    }
+  }
+
+  function saveProgressKeepAlive({ markCompleted = false } = {}) {
+    if (!setRef.current?.cards?.length) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const payload = {
+      progress: computeSessionProgressPct(),
+      currentIndex: currentIndexRef.current,
+      knownCount: knownCountRef.current,
+      studyCompleted: markCompleted,
+    };
+
+    const baseURL = (api.defaults?.baseURL ?? '').replace(/\/$/, '');
+    const url = baseURL ? `${baseURL}/api/grimoire/${id}/progress` : `/api/grimoire/${id}/progress`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+      credentials: 'include',
+    }).catch(() => {});
+  }
+
+  useEffect(() => {
+    function scheduleAutoSave() {
+      const now = Date.now();
+      // Throttle to avoid spamming on rapid visibility changes.
+      if (now - lastAutoSaveAtRef.current < 1200) return;
+      lastAutoSaveAtRef.current = now;
+
+      // If we already completed, do not overwrite with session progress.
+      if (savingRef.current || studyComplete) return;
+
+      saveProgressKeepAlive({ markCompleted: false });
+    }
+
+    document.addEventListener('visibilitychange', scheduleAutoSave);
+    window.addEventListener('pagehide', scheduleAutoSave);
+    window.addEventListener('beforeunload', scheduleAutoSave);
+
+    return () => {
+      document.removeEventListener('visibilitychange', scheduleAutoSave);
+      window.removeEventListener('pagehide', scheduleAutoSave);
+      window.removeEventListener('beforeunload', scheduleAutoSave);
+    };
+  }, [studyComplete, id]);
+
+  const handleRestart = async () => {
+    setCurrentIndex(0);
+    setKnownCount(0);
+    setStudyComplete(false);
+    setIsFlipped(false);
+    
+    try {
+      setSaving(true);
+      await api.post(`/api/grimoire/${id}/progress`, {
+        progress: 0,
+        currentIndex: 0,
+        knownCount: 0,
+        studyCompleted: false,
+      });
+    } catch (err) {
+      console.error("Failed to reset progress", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleNext = async (knewIt) => {
     setIsFlipped(false);
@@ -45,10 +171,14 @@ export default function GrimoireStudy() {
       // Finished
       setStudyComplete(true);
       setSaving(true);
-      // Calculate progress percentage
-      const progress = Math.round((newKnownCount / set.cards.length) * 100);
       try {
-        await api.post(`/api/grimoire/${id}/progress`, { progress });
+        await api.post(`/api/grimoire/${id}/progress`, {
+          // Session progress is 100% when the user reaches the end.
+          progress: 100,
+          currentIndex: set.cards.length - 1,
+          knownCount: newKnownCount,
+          studyCompleted: true,
+        });
       } catch (err) {
         console.error("Failed to save progress", err);
       } finally {
@@ -84,6 +214,12 @@ export default function GrimoireStudy() {
                 Take Aptitude Test
               </button>
               <button 
+                onClick={handleRestart}
+                className="w-full border-2 border-stone-600 py-4 font-headline font-bold text-xl uppercase tracking-widest text-stone-300 hover:bg-stone-800 transition-colors active:translate-y-1"
+              >
+                Study Again
+              </button>
+              <button 
                 onClick={() => navigate('/grimoire')}
                 className="w-full border-2 border-primary py-4 font-headline font-bold text-xl uppercase tracking-widest text-primary hover:bg-stone-800 transition-colors active:translate-y-1"
               >
@@ -105,7 +241,14 @@ export default function GrimoireStudy() {
       
       {/* HUD Bar */}
       <div className="w-full bg-stone-950 px-6 py-3 border-b-2 border-stone-800 flex justify-between items-center">
-        <button onClick={() => navigate('/grimoire')} className="text-stone-400 hover:text-stone-200 flex items-center gap-2 font-label uppercase text-xs font-bold transition-colors">
+        <button
+          onClick={async () => {
+            // Ensure leaving the page updates progress for resume.
+            await saveProgressSession({ markCompleted: false });
+            navigate('/grimoire');
+          }}
+          className="text-stone-400 hover:text-stone-200 flex items-center gap-2 font-label uppercase text-xs font-bold transition-colors"
+        >
           <span className="material-symbols-outlined text-sm">arrow_back</span> Return
         </button>
         <div className="text-stone-400 font-label uppercase text-xs font-bold tracking-widest">
