@@ -4,7 +4,18 @@ import Navbar from '../../components/Navbar';
 import { userApi } from '../../services/api';
 import { getPostAuthRoute } from '../../utils/onboarding';
 
+const mapsData = [
+  { name: 'The Whispering Peaks', image: '/maps/map_whispering_peaks.png' },
+  { name: 'The Forgotten Ruins', image: '/maps/map_forgotten_ruins.png' },
+  { name: 'The Crystal Caves', image: '/maps/map_crystal_caves.png' },
+  { name: 'The Abyssal Depths', image: '/maps/map_abyssal_depths.png' },
+];
+
 const Home = () => {
+  const [currentMapIndex, setCurrentMapIndex] = useState(0);
+
+  const nextMap = () => setCurrentMapIndex((prev) => (prev + 1) % mapsData.length);
+  const prevMap = () => setCurrentMapIndex((prev) => (prev - 1 + mapsData.length) % mapsData.length);
   const [user, setUser] = useState(null);
   const [topAdventurers, setTopAdventurers] = useState([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
@@ -43,10 +54,31 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-surface-dim font-body text-on-surface">
+    <div className="relative font-body text-on-surface min-h-screen">
+      {/* Global Background Map */}
+      <div className="fixed inset-0 w-full h-full z-[-1] overflow-hidden bg-surface-dim">
+        <img
+          key={currentMapIndex}
+          alt={mapsData[currentMapIndex].name}
+          className="w-full h-full object-cover animate-slow-pan"
+          src={mapsData[currentMapIndex].image}
+        />
+      </div>
+
       <Navbar />
 
-      <main className="min-h-screen">
+      <style>{`
+        @keyframes slowPan {
+          0% { transform: scale(1.1) translate(-1%, -1%); }
+          50% { transform: scale(1.15) translate(1%, 0%); }
+          100% { transform: scale(1.1) translate(0%, 1%); }
+        }
+        .animate-slow-pan {
+          animation: slowPan 25s ease-in-out infinite alternate;
+        }
+      `}</style>
+
+      <main className="relative z-10 min-h-screen">
         {/* Hero Section: The Living Artifact */}
         <section className="relative w-full max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="z-10 bg-surface p-12 shadow-[8px_8px_0_0_#ebe2c8] border-2 border-outline-variant relative overflow-hidden">
@@ -75,22 +107,39 @@ const Home = () => {
             </button>
           </div>
           <div className="relative flex justify-center lg:justify-end">
-            <div className="w-full h-[500px] bg-surface-container relative border-4 border-on-surface shadow-[12px_12px_0_0_#1f1c0b]">
-              <img
-                alt="Retro pixel art landscape"
-                className="w-full h-full object-cover grayscale opacity-40 mix-blend-multiply"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDM10H-ddLwOcHiWALL7HJuUecBsg38YCKaxFj_8Qq0on8COrCDbR8RqsX_CqqmtvnUMUbg5xJtjscwARq3nmWP4qjUe_XXMjr7F3A-8CR3m9Boswjq_To1W_VtYPpQEfCG04yImVdd7zIsAnOp7FDjXITMk1OxAJEOLv3kAKks3XWnqL5D59BFqjuWegc-flC1Hr3Vh8m33CxPLb98gKvdyycaaXJOk7nckDozE3bgXLDPDLDzdjdOZxfUEhuJ9cOSVxbqg3TwTbA"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-full h-[500px] bg-surface-container relative border-4 border-on-surface shadow-[12px_12px_0_0_#1f1c0b] overflow-hidden">
+              <div className="absolute inset-0 w-full h-full bg-stone-900">
+                <img
+                  key={currentMapIndex}
+                  alt={mapsData[currentMapIndex].name}
+                  className="w-full h-full object-cover grayscale opacity-50 mix-blend-multiply animate-slow-pan"
+                  src={mapsData[currentMapIndex].image}
+                />
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10 transition-opacity duration-500">
                 <span
-                  className="material-symbols-outlined text-primary scale-[4]"
+                  className="material-symbols-outlined text-primary scale-[4] drop-shadow-lg"
                   data-icon="castle"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
                   castle
                 </span>
-                <div className="mt-12 bg-on-surface text-surface px-4 py-2 font-label uppercase tracking-tighter">
-                  Current Map: The Whispering Peaks
+                <div className="mt-12 flex items-center gap-4">
+                  <button 
+                    onClick={prevMap} 
+                    className="bg-surface text-on-surface p-2 hover:bg-primary hover:text-on-primary transition-colors active:scale-95 border-2 border-on-surface shadow-[2px_2px_0_0_#1f1c0b] flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined">chevron_left</span>
+                  </button>
+                  <div className="bg-on-surface text-surface px-6 py-3 font-label uppercase tracking-widest border-2 border-primary shadow-[4px_4px_0_0_var(--tw-colors-primary-container)]">
+                    Current Map: {mapsData[currentMapIndex].name}
+                  </div>
+                  <button 
+                    onClick={nextMap} 
+                    className="bg-surface text-on-surface p-2 hover:bg-primary hover:text-on-primary transition-colors active:scale-95 border-2 border-on-surface shadow-[2px_2px_0_0_#1f1c0b] flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </button>
                 </div>
               </div>
             </div>
