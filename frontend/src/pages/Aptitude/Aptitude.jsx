@@ -47,7 +47,7 @@ export default function Aptitude() {
         const sets = (res.data.sets || []).filter(s => (s.progress ?? 0) > 0);
         setStudiedSets(sets);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingHistory(false));
 
     // Fetch daily quota
@@ -56,7 +56,7 @@ export default function Aptitude() {
         setRemainingTests(res.data.remainingTests ?? null);
         setTotalLimit(res.data.limit ?? null);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ─── Start a test ─────────────────────────────────────────────
@@ -326,7 +326,7 @@ export default function Aptitude() {
               <>
                 <div className={`grid gap-4 mb-6 border-y-2 border-stone-800 py-6 ${rewards.tickets > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-3xl text-primary mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
+                    <span className="material-symbols-outlined text-3xl text-primary mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
                     <span className="text-3xl font-headline font-black text-primary">+{rewards.turns}</span>
                     <span className="text-[10px] uppercase font-bold text-stone-500 tracking-widest mt-1">Turns Gained</span>
                   </div>
@@ -411,7 +411,7 @@ export default function Aptitude() {
 
       {/* Early leave warning (Real Test) */}
       {testMode === 'real' && testSetId && (
-        <div className="w-full bg-error-container/20 border border-error/30 text-error text-center text-xs font-bold uppercase tracking-widest py-2 px-4">
+        <div className="w-full bg-white bg-error-container/20 border border-error/30 text-error text-center text-xs font-bold uppercase tracking-widest py-2 px-4">
           Warning: If you leave this Real Test before finishing (refresh, close tab, or navigate away), you will lose your Real Test attempt for this flashcard set and you won&apos;t be able to take the Real Test again. Practice will remain available.
         </div>
       )}

@@ -290,7 +290,7 @@ export async function moveInDungeon(db, userId, direction) {
     position: newPos,
     turnCount: (run.turnCount || 1) + 1,
     playerMana: newMana,
-    remainingTurns: turnSpend.remainingTurns,
+    remainingTurns: user.dungeonMoves,
   }
 }
 
@@ -348,7 +348,7 @@ export async function startCombat(db, userId) {
     { $set: { combatState, updatedAt: new Date() } },
   )
 
-  return { ok: true, combatState, remainingTurns: turnSpend.remainingTurns }
+  return { ok: true, combatState, remainingTurns: user.dungeonMoves }
 }
 
 /**
@@ -364,7 +364,7 @@ export async function combatAction(db, userId, action, itemId = null) {
 
   const user = await db.collection('users').findOne(
     { _id: _userId },
-    { projection: { stats: 1, gold: 1, class: 1 } },
+    { projection: { stats: 1, gold: 1, class: 1, dungeonMoves: 1 } },
   )
   if (!user) return { ok: false, reason: 'User not found' }
   await repairPlayerStats(db, user)
@@ -401,7 +401,7 @@ export async function combatAction(db, userId, action, itemId = null) {
       { _id: run._id },
       { $set: { combatState: null, updatedAt: new Date() } },
     )
-    return { ok: true, outcome: 'fled', combatState: null, remainingTurns: turnSpend.remainingTurns }
+    return { ok: true, outcome: 'fled', combatState: null, remainingTurns: user.dungeonMoves }
   }
 
   // ── Use Item ────────────────────────────────────────────────
@@ -489,7 +489,7 @@ export async function combatAction(db, userId, action, itemId = null) {
       outcome: 'ongoing',
       combatState: cs,
       log: cs.log,
-      remainingTurns: turnSpend.remainingTurns,
+      remainingTurns: user.dungeonMoves,
     }
   }
   const playerAd    = user.stats?.ad    ?? 10
@@ -627,7 +627,7 @@ export async function combatAction(db, userId, action, itemId = null) {
       levelUp: lvResult,
       lootItem,
       log: cs.log,
-      remainingTurns: turnSpend.remainingTurns,
+      remainingTurns: user.dungeonMoves,
     }
   }
 
@@ -680,7 +680,7 @@ export async function combatAction(db, userId, action, itemId = null) {
       outcome: 'defeat',
       goldLost,
       log: cs.log,
-      remainingTurns: turnSpend.remainingTurns,
+      remainingTurns: user.dungeonMoves,
     }
   }
 
@@ -699,7 +699,7 @@ export async function combatAction(db, userId, action, itemId = null) {
     outcome: 'ongoing',
     combatState: cs,
     log: cs.log,
-    remainingTurns: turnSpend.remainingTurns,
+    remainingTurns: user.dungeonMoves,
   }
 }
 
@@ -776,7 +776,7 @@ export async function openChest(db, userId) {
     goldEarned,
     ticketsEarned,
     lootItem,
-    remainingTurns: turnSpend.remainingTurns,
+    remainingTurns: user.dungeonMoves,
   }
 }
 
@@ -791,14 +791,12 @@ export async function visitShop(db, userId) {
   const { r, c } = run.currentPos
   if (run.grid[r][c] !== 'shop') return { ok: false, reason: 'No shop on this cell' }
 
-  const turnSpend = await spendTurns(db, userId, 1)
-  if (!turnSpend.ok) return turnSpend
-
+  const user = await db.collection('users').findOne({ _id: _userId }, { projection: { dungeonMoves: 1 } })
   const items = await db.collection('items')
     .aggregate([{ $sample: { size: 3 } }])
     .toArray()
 
-  return { ok: true, shopItems: items, remainingTurns: turnSpend.remainingTurns }
+  return { ok: true, shopItems: items, remainingTurns: user.dungeonMoves }
 }
 
 /**
@@ -813,15 +811,13 @@ export async function nextFloor(db, userId) {
   const { r, c } = run.currentPos
   if (run.grid[r][c] !== 'exit') return { ok: false, reason: 'You must be on the exit cell to advance' }
 
-  const turnSpend = await spendTurns(db, userId, 1)
-  if (!turnSpend.ok) return turnSpend
-
+  const user = await db.collection('users').findOne({ _id: _userId }, { projection: { dungeonMoves: 1, 'stats.maxMana': 1 } })
   const nextFloorNum = run.currentFloor + 1
 
   if (nextFloorNum > DUNGEON.TOTAL_FLOORS) {
     // All floors complete → delete run record to save space
     await db.collection('dungeon_runs').deleteOne({ _id: run._id })
-    return { ok: true, completed: true, message: 'Dungeon complete! Congratulations!', remainingTurns: turnSpend.remainingTurns }
+    return { ok: true, completed: true, message: 'Dungeon complete! Congratulations!', remainingTurns: user.dungeonMoves }
   }
 
   const plDoc = await getOrCreatePlayerLevel(db, userId)
@@ -842,13 +838,12 @@ export async function nextFloor(db, userId) {
   )
 
   // Full restore Mana on floor advance
-  const user = await db.collection('users').findOne({ _id: _userId }, { projection: { 'stats.maxMana': 1 } })
   await db.collection('users').updateOne(
     { _id: _userId },
     { $set: { 'stats.mana': user.stats?.maxMana ?? 50, updatedAt: new Date() } }
   )
 
-  return { ok: true, completed: false, currentFloor: nextFloorNum, grid: newGrid, startPos, remainingTurns: turnSpend.remainingTurns }
+  return { ok: true, completed: false, currentFloor: nextFloorNum, grid: newGrid, startPos, remainingTurns: user.dungeonMoves }
 }
 
 /**

@@ -219,17 +219,33 @@ const Pricing = () => {
                 </main>
 
                 {/* Footer */}
-                <footer className="bg-tertiary dark:bg-on-background border-t-4 border-on-background flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-4">
-                    <div className="text-lg font-bold text-surface font-headline uppercase tracking-widest">
-                        QUESTLY
+                <footer className="bg-stone-200 dark:bg-stone-800 w-full border-t-2 border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center py-12 px-4 space-y-4">
+                    <div className="text-lg font-bold text-stone-900 dark:text-stone-100 font-headline uppercase tracking-widest">
+                        Questly
                     </div>
-                    <p className="font-body text-xs uppercase text-surface opacity-80">
-                        © 2026 QUESTLY. All scrolls reserved.
+                    <nav className="flex space-x-6">
+                        <a
+                            className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
+                            href="#"
+                        >
+                            Terms of Service
+                        </a>
+                        <a
+                            className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
+                            href="#"
+                        >
+                            Privacy Policy
+                        </a>
+                        <a
+                            className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
+                            href="#"
+                        >
+                            Support
+                        </a>
+                    </nav>
+                    <p className="font-serif text-sm italic text-stone-700 dark:text-stone-300">
+                        © 2026 Questly. All rights reserved.
                     </p>
-                    <div className="flex gap-6">
-                        <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Terms</Link>
-                        <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Support</Link>
-                    </div>
                 </footer>
             </div>
         </div>

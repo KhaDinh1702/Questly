@@ -67,6 +67,7 @@ const ITEMS = [
     statBonuses: { atk: 10, def: 2, hp: 8 },
     price: 18500, sellPrice: 8000,
     lootTableWeight: 0.4, specialTag: 'daily_legendary',
+    imageUrl: '/items/Sun_Forged_Blade.png'
   }),
 
   // ── Regular Shop Items ─────────────────────────────────────────────────────
@@ -77,6 +78,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.OFFHAND,
     statBonuses: { def: 4, hp: 5 },
     price: 1200, sellPrice: 400,
+    imageUrl: '/items/Standard_Buckler.png'
   }),
   item({
     name: 'Iron Helmet',
@@ -85,6 +87,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.HEAD,
     statBonuses: { def: 3, hp: 4 },
     price: 1000, sellPrice: 350,
+    imageUrl: '/items/Iron_Helmet.png'
   }),
   item({
     name: 'Iron Leggings',
@@ -93,6 +96,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.LEGS,
     statBonuses: { def: 4, hp: 6 },
     price: 1100, sellPrice: 380,
+    imageUrl: '/items/Iron_Leggings.png'
   }),
   item({
     name: 'Iron Boots',
@@ -101,6 +105,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.FEET,
     statBonuses: { def: 2, hp: 3 },
     price: 900, sellPrice: 300,
+    imageUrl: '/items/Iron_Boots.png'
   }),
   item({
     name: 'Eagle Eye Bow',
@@ -109,6 +114,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.WEAPON,
     statBonuses: { atk: 7, critRate: 6 },
     price: 4850, sellPrice: 1800,
+    imageUrl: '/items/Eagle_Eye_Bow.png'
   }),
   item({
     name: 'Wind Runner Ring',
@@ -117,6 +123,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.RING,
     statBonuses: { atk: 3, def: 1 },
     price: 2100, sellPrice: 700,
+    imageUrl: '/items/Wind_Runner_Ring.png'
   }),
   item({
     name: 'Sturdy Leather Boots',
@@ -125,6 +132,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.FEET,
     statBonuses: { def: 2, hp: 4 },
     price: 450, sellPrice: 120,
+    imageUrl: '/items/Sturdy_Leather_Boots.png'
   }),
   item({
     name: 'Iron War Hammer',
@@ -133,6 +141,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.WEAPON,
     statBonuses: { atk: 8, def: 1 },
     price: 1750, sellPrice: 550,
+    imageUrl: '/items/Iron_War_Hammer.png'
   }),
   item({
     name: 'Shadow Cloak',
@@ -141,6 +150,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.BODY,
     statBonuses: { atk: 6, def: 1, hp: 4 },
     price: 6200, sellPrice: 2500,
+    imageUrl: '/items/Shadow_Cloak.png'
   }),
   item({
     name: 'Healing Salve',
@@ -149,6 +159,7 @@ const ITEMS = [
     statBonuses: { hp: 18 },
     price: 300, sellPrice: 80, stackable: true,
     lootTableWeight: 3.0,
+    imageUrl: '/items/Healing_Salve.png'
   }),
   item({
     name: 'Mana Crystal',
@@ -157,6 +168,7 @@ const ITEMS = [
     statBonuses: { mana: 16 },
     price: 120, sellPrice: 30, stackable: true,
     lootTableWeight: 4.0,
+    imageUrl: '/items/Mana_Crystal.png'
   }),
   item({
     name: "Apprentice's Staff",
@@ -165,6 +177,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.WEAPON,
     statBonuses: { spellDamage: 8, maxMana: 12 },
     price: 2400, sellPrice: 800,
+    imageUrl: '/items/Apprentice_Staff.png'
   }),
   item({
     name: 'Arcane Robe',
@@ -173,6 +186,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.BODY,
     statBonuses: { spellDamage: 7, maxMana: 14, mr: 2 },
     price: 5500, sellPrice: 2000,
+    imageUrl: '/items/Arcane_Robe.png'
   }),
   item({
     name: 'Iron Plate Armor',
@@ -181,6 +195,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.BODY,
     statBonuses: { def: 6, maxHp: 10 },
     price: 3200, sellPrice: 1100,
+    imageUrl: '/items/Iron_Plate_Armor.png'
   }),
   item({
     name: 'Smoke Bomb',
@@ -189,6 +204,7 @@ const ITEMS = [
     statBonuses: {},
     price: 500, sellPrice: 150, stackable: true,
     lootTableWeight: 2.0,
+    imageUrl: '/items/Smoke_Bomb.png'
   }),
   item({
     name: 'Fire Scroll',
@@ -196,6 +212,7 @@ const ITEMS = [
     type: ITEM_TYPE.SCROLL, reqClass: CLASS.MAGE, rarity: RARITY.A,
     statBonuses: { spellDamage: 6, mana: 6 },
     price: 4000, sellPrice: 1500, stackable: true,
+    imageUrl: '/items/Fire_Scroll.png'
   }),
   item({
     name: 'Ancient Wisdom Scroll',
@@ -203,6 +220,7 @@ const ITEMS = [
     type: ITEM_TYPE.SCROLL, reqClass: CLASS.ALL, rarity: RARITY.S,
     statBonuses: { maxMana: 50, spellDamage: 20 },
     price: 15000, sellPrice: 5000, stackable: true,
+    imageUrl: '/items/Ancient_Wisdom_Scroll.png'
   }),
   item({
     name: 'Twin Daggers',
@@ -211,6 +229,7 @@ const ITEMS = [
     equipSlot: EQUIP_SLOT.WEAPON,
     statBonuses: { atk: 8, critRate: 8 },
     price: 5000, sellPrice: 1900,
+    imageUrl: '/items/Twin_Daggers.png'
   }),
   item({
     name: 'Health Tonic',
@@ -219,6 +238,7 @@ const ITEMS = [
     statBonuses: { hpRegen: 10 },
     price: 80, sellPrice: 20, stackable: true,
     lootTableWeight: 8.0,
+    imageUrl: '/items/Health_Tonic.png'
   }),
 ]
 
