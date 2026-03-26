@@ -126,111 +126,111 @@ const Pricing = () => {
             <div className="relative z-10">
                 <Navbar />
 
-            <main className="max-w-7xl mx-auto px-6 py-16">
-                {/* Hero Header */}
-                <header className="text-center mb-20 relative">
-                    <h1 className="font-headline text-6xl md:text-8xl font-black text-on-surface mb-4 uppercase tracking-tighter italic">
-                        Royal Tiers
-                    </h1>
-                    <p className="font-headline text-xl text-outline max-w-2xl mx-auto uppercase tracking-widest">
-                        Choose your destiny within the kingdom's ledgers
-                    </p>
-                </header>
-
-                {/* Pricing Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24 items-stretch">
-                    {tiers.map((tier, index) => (
-                        <div 
-                            key={index} 
-                            className={`${tier.bgColor} ${tier.textColor || 'text-on-surface'} pixel-border flex flex-col p-6 relative group transition-transform hover:-translate-y-2 duration-300 ${tier.isPopular ? 'scale-105 z-10 shadow-2xl ring-4 ring-primary' : ''}`}
-                        >
-                            {tier.rank && (
-                                <div className={`absolute -top-4 left-1/2 -translate-x-1/2 ${tier.btnBg} ${tier.btnText} px-3 py-1 font-label text-[10px] uppercase tracking-widest pixel-border`}>
-                                    {tier.rank}
-                                </div>
-                            )}
-                            
-                            {tier.isPopular && (
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 font-label text-[10px] uppercase tracking-[0.2em] pixel-border whitespace-nowrap hidden lg:block">
-                                    Most Noble Choice
-                                </div>
-                            )}
-
-                            <h3 className={`font-headline text-2xl font-bold mb-1 uppercase tracking-tight ${tier.color}`}>
-                                {tier.name}
-                            </h3>
-                            
-                            <div className={`flex items-baseline gap-1 mb-6 border-b-2 ${tier.isPopular ? 'border-primary' : 'border-outline-variant'} pb-4`}>
-                                <span className={`font-headline text-4xl font-black`}>{tier.price}</span>
-                                <span className="font-label text-xs uppercase opacity-60">Gold / {tier.period}</span>
-                            </div>
-
-                            <p className="mb-6 italic opacity-80 text-xs leading-relaxed">
-                                "{tier.description}"
-                            </p>
-
-                            <ul className="space-y-3 mb-8 flex-grow">
-                                {tier.features.map((feature, fIndex) => (
-                                    <li key={fIndex} className="flex items-start gap-2">
-                                        <span className={`material-symbols-outlined ${tier.color} text-base`}>
-                                            {tier.isPopular ? 'verified' : 'check_small'}
-                                        </span>
-                                        <span className="font-body text-[11px] uppercase leading-tight">{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <button 
-                                onClick={() => handleSubscribe(tier)}
-                                disabled={loading || tier.price === "0"}
-                                className={`w-full ${tier.btnBg} ${tier.btnText} py-3 font-headline text-lg uppercase carved-bevel active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                                {loading ? 'Scribing...' : tier.buttonText}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Merchant's Guarantee */}
-                <section className="mb-24 bg-surface-container-low pixel-border p-12 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-32 opacity-10 rotate-12 pointer-events-none">
-                        <span className="material-symbols-outlined text-[8rem]" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                    </div>
-                    <div className="max-w-3xl relative z-10">
-                        <h2 className="font-headline text-4xl font-bold mb-6 uppercase tracking-tight flex items-center gap-4">
-                            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>handshake</span>
-                            Merchant's Guarantee
-                        </h2>
-                        <p className="font-body text-lg leading-relaxed mb-6">
-                            Every coin spent in our bazaar is protected by the <span className="text-primary font-bold">Chronicler's Decree</span>. If your questing experience does not meet the standards of the High Council within thirty sun-cycles, we shall restore your gold to your purse, no questions asked.
+                <main className="max-w-7xl mx-auto px-6 py-16">
+                    {/* Hero Header */}
+                    <header className="text-center mb-20 relative">
+                        <h1 className="font-headline text-6xl md:text-8xl font-black text-on-surface mb-4 uppercase tracking-tighter italic">
+                            Royal Tiers
+                        </h1>
+                        <p className="font-headline text-xl text-outline max-w-2xl mx-auto uppercase tracking-widest font-bold">
+                            Choose your destiny within the kingdom's ledgers
                         </p>
-                        <div className="flex gap-8">
-                            <div className="flex flex-col">
-                                <span className="font-label text-xs uppercase opacity-60">Verified by</span>
-                                <span className="font-headline font-bold text-xl uppercase italic">The Iron Bank</span>
+                    </header>
+
+                    {/* Pricing Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24 items-stretch">
+                        {tiers.map((tier, index) => (
+                            <div
+                                key={index}
+                                className={`${tier.bgColor} ${tier.textColor || 'text-on-surface'} pixel-border flex flex-col p-6 relative group transition-transform hover:-translate-y-2 duration-300 ${tier.isPopular ? 'scale-105 z-10 shadow-2xl ring-4 ring-primary' : ''}`}
+                            >
+                                {tier.rank && (
+                                    <div className={`absolute -top-4 left-1/2 -translate-x-1/2 ${tier.btnBg} ${tier.btnText} px-3 py-1 font-label text-[10px] uppercase tracking-widest pixel-border`}>
+                                        {tier.rank}
+                                    </div>
+                                )}
+
+                                {tier.isPopular && (
+                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 font-label text-[10px] uppercase tracking-[0.2em] pixel-border whitespace-nowrap hidden lg:block">
+                                        Most Noble Choice
+                                    </div>
+                                )}
+
+                                <h3 className={`font-headline text-2xl font-bold mb-1 uppercase tracking-tight ${tier.color}`}>
+                                    {tier.name}
+                                </h3>
+
+                                <div className={`flex items-baseline gap-1 mb-6 border-b-2 ${tier.isPopular ? 'border-primary' : 'border-outline-variant'} pb-4`}>
+                                    <span className={`font-headline text-4xl font-black`}>{tier.price}</span>
+                                    <span className="font-label text-xs uppercase opacity-60">Gold / {tier.period}</span>
+                                </div>
+
+                                <p className="mb-6 italic opacity-80 text-xs leading-relaxed">
+                                    "{tier.description}"
+                                </p>
+
+                                <ul className="space-y-3 mb-8 flex-grow">
+                                    {tier.features.map((feature, fIndex) => (
+                                        <li key={fIndex} className="flex items-start gap-2">
+                                            <span className={`material-symbols-outlined ${tier.color} text-base`}>
+                                                {tier.isPopular ? 'verified' : 'check_small'}
+                                            </span>
+                                            <span className="font-body text-[11px] uppercase leading-tight">{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                <button
+                                    onClick={() => handleSubscribe(tier)}
+                                    disabled={loading || tier.price === "0"}
+                                    className={`w-full ${tier.btnBg} ${tier.btnText} py-3 font-headline text-lg uppercase carved-bevel active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    {loading ? 'Scribing...' : tier.buttonText}
+                                </button>
                             </div>
-                            <div className="flex flex-col">
-                                <span className="font-label text-xs uppercase opacity-60">Issued on</span>
-                                <span className="font-headline font-bold text-xl uppercase italic">1224 Era</span>
+                        ))}
+                    </div>
+
+                    {/* Merchant's Guarantee */}
+                    <section className="mb-24 bg-surface-container-low pixel-border p-12 relative overflow-hidden">
+                        <div className="absolute right-0 top-0 w-32 h-32 opacity-10 rotate-12 pointer-events-none">
+                            <span className="material-symbols-outlined text-[8rem]" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+                        </div>
+                        <div className="max-w-3xl relative z-10">
+                            <h2 className="font-headline text-4xl font-bold mb-6 uppercase tracking-tight flex items-center gap-4">
+                                <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>handshake</span>
+                                Merchant's Guarantee
+                            </h2>
+                            <p className="font-body text-lg leading-relaxed mb-6">
+                                Every coin spent in our bazaar is protected by the <span className="text-primary font-bold">Chronicler's Decree</span>. If your questing experience does not meet the standards of the High Council within thirty sun-cycles, we shall restore your gold to your purse, no questions asked.
+                            </p>
+                            <div className="flex gap-8">
+                                <div className="flex flex-col">
+                                    <span className="font-label text-xs uppercase opacity-60">Verified by</span>
+                                    <span className="font-headline font-bold text-xl uppercase italic">The Iron Bank</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-label text-xs uppercase opacity-60">Issued on</span>
+                                    <span className="font-headline font-bold text-xl uppercase italic">1224 Era</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
-            </main>
+                    </section>
+                </main>
 
-            {/* Footer */}
-            <footer className="bg-tertiary dark:bg-on-background border-t-4 border-on-background flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-4">
-                <div className="text-lg font-bold text-surface font-headline uppercase tracking-widest">
-                    Crest & Chronicle
-                </div>
-                <p className="font-body text-xs uppercase text-surface opacity-80">
-                    © 1224 Crest & Chronicle. All scrolls reserved.
-                </p>
-                <div className="flex gap-6">
-                    <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Terms</Link>
-                    <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Support</Link>
-                </div>
-            </footer>
+                {/* Footer */}
+                <footer className="bg-tertiary dark:bg-on-background border-t-4 border-on-background flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-4">
+                    <div className="text-lg font-bold text-surface font-headline uppercase tracking-widest">
+                        QUESTLY
+                    </div>
+                    <p className="font-body text-xs uppercase text-surface opacity-80">
+                        © 2026 QUESTLY. All scrolls reserved.
+                    </p>
+                    <div className="flex gap-6">
+                        <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Terms</Link>
+                        <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Support</Link>
+                    </div>
+                </footer>
             </div>
         </div>
     );

@@ -6,16 +6,16 @@ import { computeClassScaledStats, getEquippedBonusFromInventory, mergeCoreStats 
 
 // ── Cell type helpers ────────────────────────────────────────
 const CELL_ICONS = {
-  empty:     { icon: null,           bg: 'bg-stone-700 border-stone-600', opacity: '' },
-  wall:      { icon: null,           bg: 'bg-stone-800',                   opacity: 'opacity-40' },
-  start:     { icon: 'flag',         bg: 'bg-stone-700 border-stone-600', opacity: '' },
-  exit:      { icon: 'door_open',    bg: 'bg-green-900 border-green-600', opacity: '' },
-  chest:     { icon: 'inventory_2',  bg: 'bg-yellow-900 border-yellow-700', opacity: '' },
-  shop:      { icon: 'storefront',   bg: 'bg-blue-900 border-blue-700',   opacity: '' },
-  monster:   { icon: 'skull',        bg: 'bg-stone-700 border-stone-600', opacity: '' },
-  mini_boss: { icon: 'skull',        bg: 'bg-red-950 border-red-800',     opacity: '' },
-  big_boss:  { icon: 'skull',        bg: 'bg-purple-950 border-purple-800', opacity: '' },
-  cleared:   { icon: 'check_circle', bg: 'bg-stone-900 border-stone-700', opacity: 'opacity-40' },
+  empty: { icon: null, bg: 'bg-stone-700 border-stone-600', opacity: '' },
+  wall: { icon: null, bg: 'bg-stone-800', opacity: 'opacity-40' },
+  start: { icon: 'flag', bg: 'bg-stone-700 border-stone-600', opacity: '' },
+  exit: { icon: 'door_open', bg: 'bg-green-900 border-green-600', opacity: '' },
+  chest: { icon: 'inventory_2', bg: 'bg-yellow-900 border-yellow-700', opacity: '' },
+  shop: { icon: 'storefront', bg: 'bg-blue-900 border-blue-700', opacity: '' },
+  monster: { icon: 'skull', bg: 'bg-stone-700 border-stone-600', opacity: '' },
+  mini_boss: { icon: 'skull', bg: 'bg-red-950 border-red-800', opacity: '' },
+  big_boss: { icon: 'skull', bg: 'bg-purple-950 border-purple-800', opacity: '' },
+  cleared: { icon: 'check_circle', bg: 'bg-stone-900 border-stone-700', opacity: 'opacity-40' },
 }
 
 function GridCell({ type, isPlayer, isVisible, playerClass }) {
@@ -29,13 +29,13 @@ function GridCell({ type, isPlayer, isVisible, playerClass }) {
 
   const cfg = CELL_ICONS[type] || CELL_ICONS.wall;
   const iconColor =
-    type === 'monster'   ? 'text-red-400' :
-    type === 'mini_boss' ? 'text-orange-400' :
-    type === 'big_boss'  ? 'text-purple-400' :
-    type === 'exit'      ? 'text-green-400' :
-    type === 'chest'     ? 'text-yellow-400' :
-    type === 'shop'      ? 'text-blue-400' :
-    type === 'cleared'   ? 'text-stone-600' : 'text-stone-600';
+    type === 'monster' ? 'text-red-400' :
+      type === 'mini_boss' ? 'text-orange-400' :
+        type === 'big_boss' ? 'text-purple-400' :
+          type === 'exit' ? 'text-green-400' :
+            type === 'chest' ? 'text-yellow-400' :
+              type === 'shop' ? 'text-blue-400' :
+                type === 'cleared' ? 'text-stone-600' : 'text-stone-600';
 
   return (
     <div
@@ -53,26 +53,26 @@ function GridCell({ type, isPlayer, isVisible, playerClass }) {
       {isPlayer && (
         <>
           <div className="absolute inset-0 bg-primary opacity-10 animate-pulse" />
-          <img 
-            src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')} 
-            alt="player" 
+          <img
+            src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')}
+            alt="player"
             className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg z-10"
             style={{ mixBlendMode: 'multiply' }}
           />
         </>
       )}
       {!isPlayer && (type === 'monster' || type === 'mini_boss' || type === 'big_boss') && (
-        <img 
-          src="/images/skeleton_icon.png" 
-          alt="monster icon" 
+        <img
+          src="/images/skeleton_icon.png"
+          alt="monster icon"
           className="w-10 h-10 md:w-12 md:h-12 object-contain"
           style={{ mixBlendMode: 'screen' }}
         />
       )}
       {!isPlayer && type === 'chest' && (
-        <img 
-          src="/images/chest.png" 
-          alt="chest" 
+        <img
+          src="/images/chest.png"
+          alt="chest"
           className="w-10 h-10 md:w-12 md:h-12 object-contain"
           style={{ mixBlendMode: 'multiply' }}
         />
@@ -111,17 +111,17 @@ export default function Dungeon() {
   }, [navigate]);
 
   // ── State ─────────────────────────────────────────────────
-  const [run, setRun]             = useState(null);
-  const [grid, setGrid]           = useState(DEFAULT_GRID);
-  const [playerX, setPlayerX]     = useState(2);
-  const [playerY, setPlayerY]     = useState(2);
-  const [visited, setVisited]     = useState(new Set(['2-2']));
+  const [run, setRun] = useState(null);
+  const [grid, setGrid] = useState(DEFAULT_GRID);
+  const [playerX, setPlayerX] = useState(2);
+  const [playerY, setPlayerY] = useState(2);
+  const [visited, setVisited] = useState(new Set(['2-2']));
   const [turnCount, setTurnCount] = useState(1);
 
-  const [floor, setFloor]         = useState(1);
-  const [log, setLog]             = useState('"The air grows heavy with the scent of damp moss and iron."');
-  const [loading, setLoading]     = useState(false);
-  const [message, setMessage]     = useState('');
+  const [floor, setFloor] = useState(1);
+  const [log, setLog] = useState('"The air grows heavy with the scent of damp moss and iron."');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   // Player Level state
   const [playerLevel, setPlayerLevel] = useState({ level: 1, exp: 0, expToNextLevel: 100, turns: 0 });
@@ -130,8 +130,8 @@ export default function Dungeon() {
   const [combatSubMenu, setCombatSubMenu] = useState(null); // 'atk' | 'item' | null
   const [combatState, setCombatState] = useState(null);
   const [inventory, setInventory] = useState([]); // Track user inventory items
-  const [shopItems, setShopItems]     = useState([]);
-  const [chestLoot, setChestLoot]     = useState(null); // loot item
+  const [shopItems, setShopItems] = useState([]);
+  const [chestLoot, setChestLoot] = useState(null); // loot item
   const [chestReward, setChestReward] = useState(null); // { rewardType, goldEarned, ticketsEarned }
   const [playerClass, setPlayerClass] = useState('warrior'); // Track player class for mana costs
 
@@ -195,7 +195,7 @@ export default function Dungeon() {
     setFloor(data.currentFloor);
     setTurnCount(data.turnCount || 1);
     setCombatState(data.combatState || null);
-    
+
     const vSet = new Set(data.visitedCells.map(c => `${c.r}-${c.c}`));
     setVisited(vSet);
   }
@@ -262,10 +262,10 @@ export default function Dungeon() {
 
       if (['monster', 'mini_boss', 'big_boss'].includes(cell)) flash('⚔️ A monster lurks here! Prepare for combat.');
       else if (cell === 'chest') flash('🎁 A sealed chest sits in the dust.');
-      else if (cell === 'shop')  flash('💰 A mysterious merchant is here.');
-      else if (cell === 'exit')  flash('🚪 You found the exit! Advance to the next floor?');
+      else if (cell === 'shop') flash('💰 A mysterious merchant is here.');
+      else if (cell === 'exit') flash('🚪 You found the exit! Advance to the next floor?');
       else flash('You move deeper into the darkness...');
-      
+
       fetchPlayerLevel(); // Refresh MP/HP in HUD after movement regen
     } catch (e) {
       flash(e.response?.data?.error || 'Cannot move there', true);
@@ -401,8 +401,8 @@ export default function Dungeon() {
   const getManaCosts = () => {
     const costs = {
       warrior: { normalAtk: 0, heavyAtk: 0, spell: 0, rest: 0, RestRestoresMP: 0 },
-      rogue:   { normalAtk: 2, heavyAtk: 8,  spell: 0, rest: -8, RestRestoresMP: 8 },
-      mage:    { normalAtk: 8, heavyAtk: 20, spell: 0, rest: -20, RestRestoresMP: 20 },
+      rogue: { normalAtk: 2, heavyAtk: 8, spell: 0, rest: -8, RestRestoresMP: 8 },
+      mage: { normalAtk: 8, heavyAtk: 20, spell: 0, rest: -20, RestRestoresMP: 20 },
     };
     return costs[playerClass] || costs.warrior;
   };
@@ -417,13 +417,13 @@ export default function Dungeon() {
   // ── Render Helpers ────────────────────────────────────────
   const renderCombatModal = () => {
     if (!combatState) return null;
-    const { 
-      monsterName, monsterLevel, monsterHp, monsterMaxHp, 
+    const {
+      monsterName, monsterLevel, monsterHp, monsterMaxHp,
       monsterAd, monsterArmor, monsterAp, monsterMr,
       cellType,
-      playerHp, playerMaxHp, playerMana, playerMaxMana, turn, log: combatLog 
+      playerHp, playerMaxHp, playerMana, playerMaxMana, turn, log: combatLog
     } = combatState;
-    
+
     // Get last turn log for display
     const lastLog = combatLog.length > 0 ? combatLog[combatLog.length - 1] : null;
 
@@ -437,119 +437,119 @@ export default function Dungeon() {
             </h2>
             <span className="font-label font-bold relative z-10 text-sm">Turn {turn}</span>
           </div>
-          
+
           <div className="p-6 grid grid-cols-2 gap-8 relative overflow-hidden">
-             {/* Player Side */}
-             <div className="space-y-4">
-               <h3 className="font-headline font-bold text-xl uppercase text-primary">Player</h3>
-               <div className="h-24 bg-surface-variant border-2 border-outline flex items-center justify-center shadow-sm">
-                 <img 
-                   src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')} 
-                   alt="player" 
-                   className="max-h-20 object-contain"
-                   style={{ mixBlendMode: 'multiply' }}
-                 />
-               </div>
-               <div className="space-y-1">
-                 <div className="flex justify-between text-xs font-bold uppercase"><span>HP</span><span>{playerHp} / {playerMaxHp}</span></div>
-                 <div className="h-4 w-full bg-surface-container-highest border-2 border-on-surface">
-                   <div className="h-full bg-primary transition-all duration-300" style={{ width: `${Math.max(0, (playerHp / playerMaxHp) * 100)}%` }} />
-                 </div>
-                 <div className="flex justify-between text-xs font-bold uppercase mt-2"><span>MP</span><span>{playerMana} / {playerMaxMana}</span></div>
-                 <div className="h-2 w-full bg-surface-container-highest border-2 border-on-surface">
-                   <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${Math.max(0, (playerMana / playerMaxMana) * 100)}%` }} />
-                 </div>
-                 <div className="flex justify-between text-[10px] font-bold uppercase mt-1 text-outline">
-                   <span>AD: {displayStats.ad}</span>
-                   <span>Armor: {displayStats.armor}</span>
-                 </div>
-               </div>
-             </div>
-
-             {/* VS badge */}
-             <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-surface border-4 border-on-surface flex items-center justify-center shadow-lg z-10 rotate-12">
-               <span className="font-headline font-black text-2xl italic text-error">VS</span>
-             </div>
-
-             {/* Monster Side */}
-             <div className="space-y-4 text-right">
-               <h3 className="font-headline font-bold text-xl uppercase text-error">{monsterName} <span className="text-sm font-body text-outline">Lv.{monsterLevel}</span></h3>
-               <div className="h-24 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-sm">
-                   <img 
-                     src={['mini_boss', 'big_boss'].includes(cellType)
-                        ? "/images/skeleton_boss.png"
-                        : (monsterLevel === 1 ? "/images/skeleton_lv1.png" : "/images/skeleton_lv2.png")
-                     }
-                     alt="monster"
-                     className="max-h-20 object-contain"
-                     style={{ 
-                       mixBlendMode: 'multiply', 
-                       transform: ['mini_boss', 'big_boss'].includes(cellType) ? 'scaleX(-1)' : 'none' 
-                     }}
-                   />
+            {/* Player Side */}
+            <div className="space-y-4">
+              <h3 className="font-headline font-bold text-xl uppercase text-primary">Player</h3>
+              <div className="h-24 bg-surface-variant border-2 border-outline flex items-center justify-center shadow-sm">
+                <img
+                  src={playerClass === 'mage' ? '/images/player_mage.png' : (playerClass === 'rogue' ? '/images/player_rogue.png' : '/images/player_knight.png')}
+                  alt="player"
+                  className="max-h-20 object-contain"
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold uppercase"><span>HP</span><span>{playerHp} / {playerMaxHp}</span></div>
+                <div className="h-4 w-full bg-surface-container-highest border-2 border-on-surface">
+                  <div className="h-full bg-primary transition-all duration-300" style={{ width: `${Math.max(0, (playerHp / playerMaxHp) * 100)}%` }} />
                 </div>
-               <div className="space-y-1">
-                 <div className="flex justify-between text-xs font-bold uppercase flex-row-reverse"><span>HP</span><span>{monsterHp} / {monsterMaxHp}</span></div>
-                 <div className="h-4 w-full bg-surface-container-highest border-2 border-on-surface flex justify-end">
-                   <div className="h-full bg-error transition-all duration-300" style={{ width: `${Math.max(0, (monsterHp / monsterMaxHp) * 100)}%` }} />
-                 </div>
-                 <div className="flex justify-between text-[10px] font-bold uppercase mt-1 text-outline flex-row-reverse">
-                   <span>AD: {monsterAd ?? 10}</span>
-                   <span>Armor: {monsterArmor ?? 5}</span>
-                 </div>
-               </div>
+                <div className="flex justify-between text-xs font-bold uppercase mt-2"><span>MP</span><span>{playerMana} / {playerMaxMana}</span></div>
+                <div className="h-2 w-full bg-surface-container-highest border-2 border-on-surface">
+                  <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${Math.max(0, (playerMana / playerMaxMana) * 100)}%` }} />
+                </div>
+                <div className="flex justify-between text-[10px] font-bold uppercase mt-1 text-outline">
+                  <span>AD: {displayStats.ad}</span>
+                  <span>Armor: {displayStats.armor}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* VS badge */}
+            <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-surface border-4 border-on-surface flex items-center justify-center shadow-lg z-10 rotate-12">
+              <span className="font-headline font-black text-2xl italic text-error">VS</span>
+            </div>
+
+            {/* Monster Side */}
+            <div className="space-y-4 text-right">
+              <h3 className="font-headline font-bold text-xl uppercase text-error">{monsterName} <span className="text-sm font-body text-outline">Lv.{monsterLevel}</span></h3>
+              <div className="h-24 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-sm">
+                <img
+                  src={['mini_boss', 'big_boss'].includes(cellType)
+                    ? "/images/skeleton_boss.png"
+                    : (monsterLevel === 1 ? "/images/skeleton_lv1.png" : "/images/skeleton_lv2.png")
+                  }
+                  alt="monster"
+                  className="max-h-20 object-contain"
+                  style={{
+                    mixBlendMode: 'multiply',
+                    transform: ['mini_boss', 'big_boss'].includes(cellType) ? 'scaleX(-1)' : 'none'
+                  }}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold uppercase flex-row-reverse"><span>HP</span><span>{monsterHp} / {monsterMaxHp}</span></div>
+                <div className="h-4 w-full bg-surface-container-highest border-2 border-on-surface flex justify-end">
+                  <div className="h-full bg-error transition-all duration-300" style={{ width: `${Math.max(0, (monsterHp / monsterMaxHp) * 100)}%` }} />
+                </div>
+                <div className="flex justify-between text-[10px] font-bold uppercase mt-1 text-outline flex-row-reverse">
+                  <span>AD: {monsterAd ?? 10}</span>
+                  <span>Armor: {monsterArmor ?? 5}</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="px-6 py-2 bg-surface-container-highest border-y-2 border-outline min-h-[60px] flex items-center justify-center">
-             {lastLog ? (
-               <p className="font-body text-sm font-medium text-center">
-                 {lastLog.action === 'defend' ? (
-                   <>You took a defensive stance, <span className="font-bold text-orange-400">REDUCING DAMAGE</span> by 50% for the next attack.</>
-                 ) : lastLog.action === 'dodge' ? (
-                   <>You prepared to <span className="font-bold text-purple-400">DODGE</span>, increasing your evasion chance for the next attack.</>
-                 ) : lastLog.action === 'spell' ? (
-                   <>You cast a <span className="font-bold text-cyan-400">SPELL</span> and restored <span className="font-bold text-cyan-400">{lastLog.heal ?? 0} HP</span>.</>
-                 ) : lastLog.action === 'rest' ? (
-                   <>You focused and <span className="font-bold text-blue-400">RESTED</span>, restoring <span className="font-bold text-blue-400">15 MP</span>.</>
-                 ) : lastLog.action === 'heal' ? (
-                   <>You used <span className="font-bold text-emerald-400">HEAL (12MP)</span> and restored <span className="font-bold text-emerald-400">{lastLog.heal ?? 0} HP</span>.</>
-                 ) : lastLog.action === 'use_item' ? (
-                   <>You used <span className="font-bold text-blue-300">{lastLog.itemName}</span> and restored {lastLog.heal > 0 && <span className="text-emerald-400">{lastLog.heal} HP</span>} {lastLog.heal > 0 && lastLog.manaRestored > 0 && 'and'} {lastLog.manaRestored > 0 && <span className="text-blue-400">{lastLog.manaRestored} MP</span>}.</>
-                 ) : (
-                   <>
-                     You used <span className="font-bold text-tertiary">{lastLog.action === 'heavy_attack' ? `HEAVY ATK (${manaCosts.heavyAtk}MP)` : `ATTACK (${manaCosts.normalAtk}MP)`}</span> for <span className="font-bold text-primary">{lastLog.playerDmg}</span> damage {lastLog.isCrit && <span className="text-secondary">(CRIT!)</span>}.
-                   </>
-                 )}
-                 {' '}
-                 {lastLog.defendActive ? `Monster's damage was reduced!` : lastLog.monsterDmg > 0
-                   ? `Monster counter-attacked for ${lastLog.monsterDmg}.`
-                   : (lastLog.dodged ? 'You DODGED the counter-attack.' : '')}
-               </p>
-             ) : (
-               <p className="font-body text-sm text-outline italic text-center">The battle begins! Choose your action.</p>
-             )}
+            {lastLog ? (
+              <p className="font-body text-sm font-medium text-center">
+                {lastLog.action === 'defend' ? (
+                  <>You took a defensive stance, <span className="font-bold text-orange-400">REDUCING DAMAGE</span> by 50% for the next attack.</>
+                ) : lastLog.action === 'dodge' ? (
+                  <>You prepared to <span className="font-bold text-purple-400">DODGE</span>, increasing your evasion chance for the next attack.</>
+                ) : lastLog.action === 'spell' ? (
+                  <>You cast a <span className="font-bold text-cyan-400">SPELL</span> and restored <span className="font-bold text-cyan-400">{lastLog.heal ?? 0} HP</span>.</>
+                ) : lastLog.action === 'rest' ? (
+                  <>You focused and <span className="font-bold text-blue-400">RESTED</span>, restoring <span className="font-bold text-blue-400">15 MP</span>.</>
+                ) : lastLog.action === 'heal' ? (
+                  <>You used <span className="font-bold text-emerald-400">HEAL (12MP)</span> and restored <span className="font-bold text-emerald-400">{lastLog.heal ?? 0} HP</span>.</>
+                ) : lastLog.action === 'use_item' ? (
+                  <>You used <span className="font-bold text-blue-300">{lastLog.itemName}</span> and restored {lastLog.heal > 0 && <span className="text-emerald-400">{lastLog.heal} HP</span>} {lastLog.heal > 0 && lastLog.manaRestored > 0 && 'and'} {lastLog.manaRestored > 0 && <span className="text-blue-400">{lastLog.manaRestored} MP</span>}.</>
+                ) : (
+                  <>
+                    You used <span className="font-bold text-tertiary">{lastLog.action === 'heavy_attack' ? `HEAVY ATK (${manaCosts.heavyAtk}MP)` : `ATTACK (${manaCosts.normalAtk}MP)`}</span> for <span className="font-bold text-primary">{lastLog.playerDmg}</span> damage {lastLog.isCrit && <span className="text-secondary">(CRIT!)</span>}.
+                  </>
+                )}
+                {' '}
+                {lastLog.defendActive ? `Monster's damage was reduced!` : lastLog.monsterDmg > 0
+                  ? `Monster counter-attacked for ${lastLog.monsterDmg}.`
+                  : (lastLog.dodged ? 'You DODGED the counter-attack.' : '')}
+              </p>
+            ) : (
+              <p className="font-body text-sm text-outline italic text-center">The battle begins! Choose your action.</p>
+            )}
           </div>
 
           <div className="p-4 bg-surface-dim relative min-h-[140px]">
             {/* ── Main Category Selection ── */}
             {combatSubMenu === null && (
-               <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
-                  <button
-                    onClick={() => setCombatSubMenu('atk')}
-                    className="py-6 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest border-4 border-on-primary-container shadow-[4px_4px_0px_0px_rgba(72,50,0,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
-                    <span>COMBAT</span>
-                  </button>
-                  <button 
-                    onClick={() => setCombatSubMenu('item')}
-                    className="py-6 bg-secondary text-on-secondary font-headline font-bold uppercase tracking-widest border-4 border-on-secondary-container shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
-                    <span>USE ITEM</span>
-                  </button>
-               </div>
+              <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
+                <button
+                  onClick={() => setCombatSubMenu('atk')}
+                  className="py-6 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest border-4 border-on-primary-container shadow-[4px_4px_0px_0px_rgba(72,50,0,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                  <span>COMBAT</span>
+                </button>
+                <button
+                  onClick={() => setCombatSubMenu('item')}
+                  className="py-6 bg-secondary text-on-secondary font-headline font-bold uppercase tracking-widest border-4 border-on-secondary-container shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] active:translate-y-1 active:shadow-none transition-all flex flex-col justify-center items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
+                  <span>USE ITEM</span>
+                </button>
+              </div>
             )}
 
             {/* ── COMBAT Sub-menu ── */}
@@ -653,8 +653,8 @@ export default function Dungeon() {
             )}
 
             <div className="mt-4 flex flex-col items-center gap-2">
-              <button 
-                onClick={() => doCombatAction('flee')} 
+              <button
+                onClick={() => doCombatAction('flee')}
                 disabled={loading}
                 className="w-full py-2 bg-surface-container-highest text-on-surface-variant font-headline font-bold uppercase tracking-widest border-2 border-outline/30 flex justify-center items-center gap-2 text-[10px] opacity-70 hover:opacity-100 transition-opacity"
               >
@@ -741,7 +741,15 @@ export default function Dungeon() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div className="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden min-h-screen flex flex-col">
+    <div
+      className="text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden min-h-screen flex flex-col"
+      style={{
+        backgroundImage: "url('/maps/dungeon.gif')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
 
       <Navbar />
 
@@ -753,12 +761,12 @@ export default function Dungeon() {
       )}
 
       {/* ── Main ── */}
-      <main className="relative flex-1 w-full flex flex-col items-center justify-center p-4 bg-surface-dim">
+      <main className="relative flex-1 w-full flex flex-col items-center justify-center p-4">
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(circle at center, rgba(194,153,71,0.15) 0%, transparent 70%)' }} />
 
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
-          
+
           {/* OVERLAYS */}
           {renderCombatModal()}
           {renderLootModal()}
@@ -852,7 +860,7 @@ export default function Dungeon() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Start / Abandon run buttons */}
                 {!run ? (
                   <button
@@ -908,33 +916,33 @@ export default function Dungeon() {
 
           {/* ── Right Panel: Controls & Context Actions ── */}
           <section className="lg:col-span-3 space-y-6">
-            
+
             {/* Action Context Menu */}
             {run && (
-               <div className="bg-surface-container border-4 border-primary p-4 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)]">
-                 <h3 className="font-headline text-lg font-bold uppercase text-primary border-b-2 border-outline-variant mb-3 flex items-center gap-2">
-                   <span className="material-symbols-outlined">touch_app</span> Actions
-                 </h3>
-                 <div className="space-y-3">
-                   {showEngage ? (
-                     <button onClick={startCombat} disabled={loading} className="w-full py-3 bg-error text-on-error font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
-                       <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span> ENGAGE
-                     </button>
-                   ) : showChestBtn ? (
-                     <button onClick={doOpenChest} disabled={loading} className="w-full py-3 bg-yellow-600 text-yellow-50 font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
-                       <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span> OPEN CHEST
-                     </button>
-                   ) : showExitBtn ? (
-                     <button onClick={doNextFloor} disabled={loading} className="w-full py-3 bg-green-700 text-green-50 font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
-                       <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>door_open</span> NEXT FLOOR
-                     </button>
-                   ) : (
-                     <div className="py-3 bg-surface-variant text-outline border-2 border-dashed border-outline-variant text-center font-label italic text-sm">
-                       No actions available here.
-                     </div>
-                   )}
-                 </div>
-               </div>
+              <div className="bg-surface-container border-4 border-primary p-4 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)]">
+                <h3 className="font-headline text-lg font-bold uppercase text-primary border-b-2 border-outline-variant mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined">touch_app</span> Actions
+                </h3>
+                <div className="space-y-3">
+                  {showEngage ? (
+                    <button onClick={startCombat} disabled={loading} className="w-full py-3 bg-error text-on-error font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
+                      <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span> ENGAGE
+                    </button>
+                  ) : showChestBtn ? (
+                    <button onClick={doOpenChest} disabled={loading} className="w-full py-3 bg-yellow-600 text-yellow-50 font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
+                      <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span> OPEN CHEST
+                    </button>
+                  ) : showExitBtn ? (
+                    <button onClick={doNextFloor} disabled={loading} className="w-full py-3 bg-green-700 text-green-50 font-bold tracking-wider uppercase border-2 border-on-surface flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">
+                      <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>door_open</span> NEXT FLOOR
+                    </button>
+                  ) : (
+                    <div className="py-3 bg-surface-variant text-outline border-2 border-dashed border-outline-variant text-center font-label italic text-sm">
+                      No actions available here.
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* D-Pad */}
@@ -942,7 +950,7 @@ export default function Dungeon() {
               <span className="font-label text-xs uppercase text-outline mb-4">Navigation</span>
               <div className="grid grid-cols-3 gap-2">
                 <div />
-                <button onClick={() => move('up')}   className="w-14 h-14 bg-surface-variant text-on-surface border-2 border-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
+                <button onClick={() => move('up')} className="w-14 h-14 bg-surface-variant text-on-surface border-2 border-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
                   <span className="material-symbols-outlined">arrow_upward</span>
                 </button>
                 <div />
@@ -950,7 +958,7 @@ export default function Dungeon() {
                   <span className="material-symbols-outlined">arrow_back</span>
                 </button>
                 <div className="w-14 h-14 bg-surface border-2 border-dashed border-outline opacity-50 flex items-center justify-center">
-                   <span className="material-symbols-outlined text-xs">circle</span>
+                  <span className="material-symbols-outlined text-xs">circle</span>
                 </div>
                 <button onClick={() => move('right')} className="w-14 h-14 bg-surface-variant text-on-surface border-2 border-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
                   <span className="material-symbols-outlined">arrow_forward</span>
@@ -972,10 +980,10 @@ export default function Dungeon() {
         <div className="flex justify-around items-stretch">
           {[
             { icon: 'auto_stories', label: 'Grimoire', to: '/grimoire' },
-            { icon: 'psychology',   label: 'Aptitude', to: '/aptitude' },
-            { icon: 'castle',       label: 'Dungeon',  to: '/dungeon',  active: true },
-            { icon: 'shield',       label: 'Armory',   to: '/armory'  },
-            { icon: 'storefront',   label: 'Shop',     to: '/shop'    },
+            { icon: 'psychology', label: 'Aptitude', to: '/aptitude' },
+            { icon: 'castle', label: 'Dungeon', to: '/dungeon', active: true },
+            { icon: 'shield', label: 'Armory', to: '/armory' },
+            { icon: 'storefront', label: 'Shop', to: '/shop' },
           ].map(item => (
             <Link
               key={item.label}

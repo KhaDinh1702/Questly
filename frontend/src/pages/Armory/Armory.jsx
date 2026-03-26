@@ -241,15 +241,23 @@ export default function Armory() {
   ];
 
   return (
-    <div className="bg-background text-on-surface font-body min-h-screen pb-24">
+    <div
+      className="text-on-surface font-body min-h-screen pb-24"
+      style={{
+        backgroundImage: "url('/maps/Armory.gif')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navbar />
 
       <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Character Sprite & Class Selection */}
         <section className="lg:col-span-5 flex flex-col gap-6">
           <div className="bg-surface-container border-4 border-on-surface p-1 shadow-[8px_8px_0px_0px_rgba(31,28,11,1)]">
-            <div 
+            <div
               className="bg-surface-container-highest border-2 border-outline p-8 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden"
               style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px)' }}
             >
@@ -270,7 +278,7 @@ export default function Armory() {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
                 </div>
               </div>
-              
+
               {/* Class Selection Tabs */}
               <div className="w-full flex justify-center gap-2 mt-auto">
                 {CLASS_ORDER.map((cls) => (
@@ -292,11 +300,10 @@ export default function Armory() {
                 <button
                   type="button"
                   onClick={handleClassConfirm}
-                  className={`px-4 py-2 border-2 font-headline font-bold transition-colors ${
-                    selectedClass !== confirmedClass
+                  className={`px-4 py-2 border-2 font-headline font-bold transition-colors ${selectedClass !== confirmedClass
                       ? 'bg-primary text-on-primary border-primary-container'
                       : 'bg-tertiary text-on-tertiary border-tertiary-container'
-                  }`}
+                    }`}
                 >
                   {selectedClass !== confirmedClass ? 'Confirm New Class' : 'Class Confirmed'}
                 </button>
@@ -312,10 +319,10 @@ export default function Armory() {
                 </div>
               </div>
               {classMsg && <p className="text-xs font-bold text-primary mt-2">{classMsg}</p>}
-              
+
               {/* Visual Accent: Page Fold */}
-              <div 
-                className="absolute top-0 right-0 w-12 h-12 bg-surface-dim shadow-[-2px_2px_0px_0px_rgba(0,0,0,0.1)]" 
+              <div
+                className="absolute top-0 right-0 w-12 h-12 bg-surface-dim shadow-[-2px_2px_0px_0px_rgba(0,0,0,0.1)]"
                 style={{ clipPath: 'polygon(0 0, 100% 100%, 100% 0)' }}
               ></div>
             </div>
@@ -373,7 +380,7 @@ export default function Armory() {
 
         {/* Right Column: Inventory & Equipment */}
         <section className="lg:col-span-7 flex flex-col gap-8">
-          
+
           {/* Equipment Slots */}
           <div className="bg-surface-container-high p-6 border-4 border-on-surface shadow-[4px_4px_0px_0px_rgba(31,28,11,1)]">
             <h2 className="font-headline text-2xl font-extrabold text-primary mb-6">CURRENTLY EQUIPPED</h2>
@@ -382,37 +389,42 @@ export default function Armory() {
                 const userItemId = equipped?.[slot.key];
                 const entry = inventory.find((it) => it._id === userItemId);
                 return (
-                <button
-                  type="button"
-                  key={slot.key}
-                  onClick={async () => {
-                    if (!entry) return;
-                    try {
-                      await userApi.unequipItem(entry._id);
-                      setInventory((prev) => prev.map((it) => it._id === entry._id ? { ...it, isEquipped: false, slotEquipped: null } : it));
-                      setEquipped((prev) => ({ ...prev, [slot.key]: null }));
-                      setEquipMsg(`Unequipped from ${slot.label}: ${entry.item?.name ?? 'Item'}`);
-                    } catch (e) {
-                      setEquipMsg(e.response?.data?.error ?? 'Failed to unequip from slot.');
-                    }
-                    setTimeout(() => setEquipMsg(''), 2500);
-                  }}
-                  className="group flex flex-col items-center gap-2"
-                  title={entry ? `Click to unequip ${entry.item?.name ?? 'item'}` : `${slot.label} empty`}
-                >
-                  <div className={`w-16 h-16 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)] ${entry ? 'hover:border-error' : ''}`}>
-                    <div className="absolute inset-0 flex items-center justify-center bg-primary-fixed/20">
-                      <span className="material-symbols-outlined text-on-primary-fixed text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {entry ? (SLOT_ICON[slot.key] ?? slot.fallbackIcon) : slot.fallbackIcon}
-                      </span>
+                  <button
+                    type="button"
+                    key={slot.key}
+                    onClick={async () => {
+                      if (!entry) return;
+                      try {
+                        await userApi.unequipItem(entry._id);
+                        setInventory((prev) => prev.map((it) => it._id === entry._id ? { ...it, isEquipped: false, slotEquipped: null } : it));
+                        setEquipped((prev) => ({ ...prev, [slot.key]: null }));
+                        setEquipMsg(`Unequipped from ${slot.label}: ${entry.item?.name ?? 'Item'}`);
+                      } catch (e) {
+                        setEquipMsg(e.response?.data?.error ?? 'Failed to unequip from slot.');
+                      }
+                      setTimeout(() => setEquipMsg(''), 2500);
+                    }}
+                    className="group flex flex-col items-center gap-2"
+                    title={entry ? `Click to unequip ${entry.item?.name ?? 'item'}` : `${slot.label} empty`}
+                  >
+                    <div className={`w-16 h-16 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)] ${entry ? 'hover:border-error' : ''}`}>
+                      <div className="absolute inset-0 flex items-center justify-center bg-primary-fixed/20">
+                        {entry?.item?.imageUrl ? (
+                          <img src={entry.item.imageUrl} alt={entry.item.name} className="w-10 h-10 object-contain drop-shadow-sm" />
+                        ) : (
+                          <span className="material-symbols-outlined text-on-primary-fixed text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            {entry ? (SLOT_ICON[slot.key] ?? slot.fallbackIcon) : slot.fallbackIcon}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-[10px] font-bold text-outline uppercase">{slot.label}</span>
-                  <span className="text-[10px] text-outline-variant h-3">
-                    {entry?.item?.name ?? 'Empty'}
-                  </span>
-                </button>
-              )})}
+                    <span className="text-[10px] font-bold text-outline uppercase">{slot.label}</span>
+                    <span className="text-[10px] text-outline-variant h-3">
+                      {entry?.item?.name ?? 'Empty'}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -431,13 +443,16 @@ export default function Armory() {
                   key={entry._id}
                   type="button"
                   onClick={() => setSelectedItem(entry)}
-                  className={`aspect-square bg-surface-variant border-2 p-2 relative group cursor-pointer hover:bg-surface-container-highest transition-colors shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] ${
-                    entry.isEquipped ? 'border-primary' : 'border-outline'
-                  }`}
+                  className={`aspect-square bg-surface-variant border-2 p-2 relative group cursor-pointer hover:bg-surface-container-highest transition-colors shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] ${entry.isEquipped ? 'border-primary' : 'border-outline'
+                    }`}
                 >
-                  <span className="material-symbols-outlined text-primary text-3xl">
-                    {TYPE_ICON[entry.item?.type] ?? 'inventory_2'}
-                  </span>
+                  {entry.item?.imageUrl ? (
+                    <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-contain p-1 drop-shadow-sm" />
+                  ) : (
+                    <span className="material-symbols-outlined text-primary text-3xl flex items-center justify-center w-full h-full">
+                      {TYPE_ICON[entry.item?.type] ?? 'inventory_2'}
+                    </span>
+                  )}
                   {(entry.quantity ?? 1) > 1 && (
                     <span className="absolute bottom-1 right-1 text-xs font-bold bg-on-surface text-surface px-1">
                       x{entry.quantity}

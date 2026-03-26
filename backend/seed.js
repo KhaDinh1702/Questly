@@ -17,17 +17,17 @@ if (!MONGODB_URI) {
 }
 
 // ── Enums (mirrors src/config/constants.js) ──────────────────────────────────
-const RARITY    = { E: 'E', D: 'D', C: 'C', B: 'B', A: 'A', S: 'S', SS: 'SS' }
+const RARITY = { E: 'E', D: 'D', C: 'C', B: 'B', A: 'A', S: 'S', SS: 'SS' }
 const ITEM_TYPE = { EQUIPMENT: 'equipment', POTION: 'potion', MATERIAL: 'material', SCROLL: 'scroll' }
 const EQUIP_SLOT = { HEAD: 'head', BODY: 'body', LEGS: 'legs', FEET: 'feet', WEAPON: 'weapon', OFFHAND: 'offhand', RING: 'ring' }
-const CLASS     = { WARRIOR: 'warrior', ROGUE: 'rogue', MAGE: 'mage', ALL: 'all' }
+const CLASS = { WARRIOR: 'warrior', ROGUE: 'rogue', MAGE: 'mage', ALL: 'all' }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 function item({
   name, description = '', type, reqClass = CLASS.ALL,
   rarity = RARITY.E, equipSlot = null, statBonuses = {},
   price = 0, sellPrice = 0, stackable = false,
-  lootTableWeight = 1.0, specialTag = null,
+  lootTableWeight = 1.0, specialTag = null, imageUrl = null
 }) {
   return {
     name, description, type, reqClass, rarity, equipSlot,
@@ -40,7 +40,7 @@ function item({
     },
     price, sellPrice, stackable, lootTableWeight,
     specialTag: specialTag ?? null,   // 'daily_mythic' | 'daily_legendary' | 'gacha' | null
-    imageUrl: null,
+    imageUrl: imageUrl,
     createdAt: new Date(),
   }
 }
@@ -55,6 +55,7 @@ const ITEMS = [
     statBonuses: { hp: 35, def: 4, mr: 4, critDamage: 12 },
     price: 45000, sellPrice: 20000, stackable: false,
     lootTableWeight: 0.1, specialTag: 'daily_mythic',
+    imageUrl: '/items/Dragon_Heart_Potion.png'
   }),
 
   // ── Daily Limited – Legendary S ───────────────────────────────────────────
@@ -226,7 +227,7 @@ async function seed() {
   const client = new MongoClient(MONGODB_URI)
   try {
     await client.connect()
-    const db  = client.db('questly-db')
+    const db = client.db('questly-db')
     const col = db.collection('items')
 
     // Always wipe and re-seed to ensure latest catalog

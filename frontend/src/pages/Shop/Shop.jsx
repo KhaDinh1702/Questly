@@ -4,45 +4,45 @@ import { shopApi, userApi } from '../../services/api';
 import { formatBonusLines } from '../../utils/stats';
 
 /* ── shadow helpers ───────────────────────────────────────────────────────── */
-const pixelBorderMythic   = { boxShadow: '0 -4px 0 0 #7a5907, 0 4px 0 0 #7a5907, -4px 0 0 0 #7a5907, 4px 0 0 0 #7a5907' };
+const pixelBorderMythic = { boxShadow: '0 -4px 0 0 #7a5907, 0 4px 0 0 #7a5907, -4px 0 0 0 #7a5907, 4px 0 0 0 #7a5907' };
 const pixelBorderLegendary = { boxShadow: '0 -4px 0 0 #c29947, 0 4px 0 0 #c29947, -4px 0 0 0 #c29947, 4px 0 0 0 #c29947' };
 const carvedBevel = { boxShadow: 'inset 2px 2px 0px 0px #ffdea5, inset -2px -2px 0px 0px #483200' };
-const stoneBevel  = { boxShadow: 'inset 2px 2px 0px 0px #c7c6c6, inset -2px -2px 0px 0px #1b1c1c' };
+const stoneBevel = { boxShadow: 'inset 2px 2px 0px 0px #c7c6c6, inset -2px -2px 0px 0px #1b1c1c' };
 const gachaBorder = { boxShadow: '0 -4px 0 0 #483200, 0 4px 0 0 #483200, -4px 0 0 0 #483200, 4px 0 0 0 #483200, inset 4px 4px 0 0 #c29947' };
 
 /* ── constants ────────────────────────────────────────────────────────────── */
 const DROP_RATES = [
-  { label: 'Tier SS – Mythic',   rate: '0.1%', hi: true  },
-  { label: 'Tier S – Legendary', rate: '0.4%', hi: true  },
-  { label: 'Tier A – Epic',      rate: '2.5%', hi: false },
-  { label: 'Tier B – Rare',      rate: '7%',   hi: false },
-  { label: 'Tier C – Uncommon',  rate: '15%',  hi: false },
-  { label: 'Tier D – Weak',      rate: '25%',  hi: false },
-  { label: 'Tier E – Common',    rate: '50%',  hi: false },
+  { label: 'Tier SS – Mythic', rate: '0.1%', hi: true },
+  { label: 'Tier S – Legendary', rate: '0.4%', hi: true },
+  { label: 'Tier A – Epic', rate: '2.5%', hi: false },
+  { label: 'Tier B – Rare', rate: '7%', hi: false },
+  { label: 'Tier C – Uncommon', rate: '15%', hi: false },
+  { label: 'Tier D – Weak', rate: '25%', hi: false },
+  { label: 'Tier E – Common', rate: '50%', hi: false },
 ];
 
 const ITEM_TYPES = [
-  { label: 'Equipment',    value: 'equipment'  },
-  { label: 'Potion',       value: 'potion'     },
-  { label: 'Material',     value: 'material'   },
-  { label: 'Scroll',       value: 'scroll'     },
+  { label: 'Equipment', value: 'equipment' },
+  { label: 'Potion', value: 'potion' },
+  { label: 'Material', value: 'material' },
+  { label: 'Scroll', value: 'scroll' },
 ];
 
 const CLASSES = [
-  { label: 'Warrior', value: 'warrior', icon: 'swords'       },
-  { label: 'Rogue',   value: 'rogue',   icon: 'sprint'       },
-  { label: 'Mage',    value: 'mage',    icon: 'auto_stories' },
+  { label: 'Warrior', value: 'warrior', icon: 'swords' },
+  { label: 'Rogue', value: 'rogue', icon: 'sprint' },
+  { label: 'Mage', value: 'mage', icon: 'auto_stories' },
 ];
 
 const RARITIES = ['E', 'D', 'C', 'B', 'A', 'S', 'SS'];
 
 const RARITY_COLOR = {
-  E:  'text-stone-500',
-  D:  'text-stone-400',
-  C:  'text-emerald-600',
-  B:  'text-blue-600',
-  A:  'text-purple-600',
-  S:  'text-amber-600',
+  E: 'text-stone-500',
+  D: 'text-stone-400',
+  C: 'text-emerald-600',
+  B: 'text-blue-600',
+  A: 'text-purple-600',
+  S: 'text-amber-600',
   SS: 'text-primary',
 };
 
@@ -53,18 +53,27 @@ const RARITY_LABEL = {
 
 const TYPE_ICON = {
   equipment: 'swords',
-  potion:    'science',
-  material:  'category',
-  scroll:    'auto_stories',
+  potion: 'science',
+  material: 'category',
+  scroll: 'auto_stories',
 };
 
 /* ── countdown ────────────────────────────────────────────────────────────── */
-function useCountdown(secs) {
-  const [left, setLeft] = useState(secs);
+function useCountdown() {
+  const [left, setLeft] = useState(0);
+
   useEffect(() => {
-    const id = setInterval(() => setLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
+    function update() {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      setLeft(Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000)));
+    }
+    update();
+    const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
+
   const h = String(Math.floor(left / 3600)).padStart(2, '0');
   const m = String(Math.floor((left % 3600) / 60)).padStart(2, '0');
   const s = String(left % 60).padStart(2, '0');
@@ -74,22 +83,22 @@ function useCountdown(secs) {
 /* ── main component ───────────────────────────────────────────────────────── */
 export default function Shop() {
   /* currency */
-  const [gold,    setGold]    = useState(null);
+  const [gold, setGold] = useState(null);
   const [tickets, setTickets] = useState(null);
 
   /* filters */
   const [activeClasses, setActiveClasses] = useState(new Set());   // multi-select
-  const [activeTypes,   setActiveTypes]   = useState(new Set());   // multi-select
-  const [activeRarity,  setActiveRarity]  = useState('');          // single
+  const [activeTypes, setActiveTypes] = useState(new Set());   // multi-select
+  const [activeRarity, setActiveRarity] = useState('');          // single
 
   /* items */
-  const [allItems,     setAllItems]     = useState([]);
-  const [dailyMythic,  setDailyMythic]  = useState(null);
-  const [dailyLegend,  setDailyLegend]  = useState(null);
-  const [loading,      setLoading]      = useState(true);
-  const [buyMsg,       setBuyMsg]       = useState(null);
+  const [allItems, setAllItems] = useState([]);
+  const [dailyMythic, setDailyMythic] = useState(null);
+  const [dailyLegend, setDailyLegend] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [buyMsg, setBuyMsg] = useState(null);
 
-  const countdown = useCountdown(4 * 3600 + 22 * 60 + 15);
+  const countdown = useCountdown();
 
   /* ── fetch user (gold + tickets) ─────────────────────────────────────────── */
   useEffect(() => {
@@ -100,7 +109,7 @@ export default function Shop() {
         setGold(r.data.gold ?? 0);
         setTickets(r.data.ticketCount ?? 0);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   /* ── fetch all shop items once ────────────────────────────────────────────── */
@@ -112,7 +121,7 @@ export default function Shop() {
         setDailyLegend(items.find((i) => i.specialTag === 'daily_legendary') ?? null);
         setAllItems(items.filter((i) => !i.specialTag));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -121,8 +130,8 @@ export default function Shop() {
     const classOk = activeClasses.size === 0
       || activeClasses.has(item.reqClass)
       || item.reqClass === 'all';
-    const typeOk  = activeTypes.size  === 0 || activeTypes.has(item.type);
-    const rarityOk = !activeRarity    || item.rarity === activeRarity;
+    const typeOk = activeTypes.size === 0 || activeTypes.has(item.type);
+    const rarityOk = !activeRarity || item.rarity === activeRarity;
     return classOk && typeOk && rarityOk;
   });
 
@@ -152,7 +161,7 @@ export default function Shop() {
 
     // Check gold before attempting purchase
     if (gold < item.price) {
-      setBuyMsg(`❌ Not enough gold! You need ${(item.price - gold).toLocaleString()} more.`);
+      setBuyMsg(`Not enough gold! You need ${(item.price - gold).toLocaleString()} more.`);
       setTimeout(() => setBuyMsg(null), 3000);
       return;
     }
@@ -179,7 +188,7 @@ export default function Shop() {
 
     // Check tickets before attempting roll
     if (tickets < 1) {
-      setBuyMsg(`❌ You need at least 1 ticket to roll.`);
+      setBuyMsg(`You need at least 1 ticket to roll.`);
       setTimeout(() => setBuyMsg(null), 3000);
       return;
     }
@@ -188,7 +197,7 @@ export default function Shop() {
       const { data } = await shopApi.rollChest();
       const itemName = data.item?.name || 'Unknown Item';
       const tier = data.tierStr || '?';
-      setBuyMsg(`🎉 Rolled a [Tier ${tier}] ${itemName} ! Check your inventory.`);
+      setBuyMsg(`Rolled a [Tier ${tier}] ${itemName} ! Check your inventory.`);
       setTickets(data.newTicketBalance);
       localStorage.setItem('armoryInventoryVersion', String(Date.now()));
     } catch (e) {
@@ -210,7 +219,15 @@ export default function Shop() {
 
   /* ──────────────────────────────────────────────────────────────────────────── */
   return (
-    <div className="bg-surface-dim font-body text-on-surface min-h-screen selection:bg-primary-container/30">
+    <div
+      className="font-body text-on-surface min-h-screen selection:bg-primary-container/30"
+      style={{
+        backgroundImage: "url('/maps/shop.gif')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navbar />
 
       {/* toast */}
@@ -249,7 +266,7 @@ export default function Shop() {
         <section>
           <div className="mb-6">
             <span className="text-secondary font-bold uppercase tracking-widest text-xs">Divine Fortune</span>
-            <h2 className="text-4xl font-headline font-bold text-on-surface">Ancient Relic Chest</h2>
+            <h2 className="text-4xl font-headline font-bold text-white">Ancient Relic Chest</h2>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -304,7 +321,7 @@ export default function Shop() {
           <div className="flex flex-wrap justify-between items-end mb-6 gap-4">
             <div>
               <span className="text-primary font-bold uppercase tracking-widest text-xs">Timed Offers</span>
-              <h2 className="text-4xl font-headline font-bold text-on-surface">Daily Limited Goods</h2>
+              <h2 className="text-4xl font-headline font-bold text-white">Daily Limited Goods</h2>
             </div>
             <div className="bg-error-container text-error px-4 py-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">schedule</span>
@@ -448,7 +465,7 @@ export default function Shop() {
 /* ── sub-components ───────────────────────────────────────────────────────── */
 
 function DailyCard({ item, fallbackTier, onBuy, style, badgeClass, accentClass, btnStyle, btnClass, icon, iconClass }) {
-  const tier  = item?.rarity ?? fallbackTier;
+  const tier = item?.rarity ?? fallbackTier;
   const price = item?.price ?? '—';
   const lines = item ? formatBonusLines(item.statBonuses ?? {}, 3) : [];
 
@@ -456,10 +473,14 @@ function DailyCard({ item, fallbackTier, onBuy, style, badgeClass, accentClass, 
     <div className="relative bg-surface p-1" style={style}>
       <div className="bg-surface-container flex flex-col md:flex-row h-full">
         <div className="w-full md:w-44 h-44 bg-stone-900 overflow-hidden relative flex-shrink-0 flex items-center justify-center">
-          <span className={`material-symbols-outlined opacity-80 ${iconClass}`}
-            style={{ fontSize: '96px', fontVariationSettings: "'FILL' 1" }}>
-            {icon}
-          </span>
+          {item?.imageUrl ? (
+            <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-contain opacity-90 relative z-10 drop-shadow-lg" />
+          ) : (
+            <span className={`material-symbols-outlined opacity-80 ${iconClass}`}
+              style={{ fontSize: '96px', fontVariationSettings: "'FILL' 1" }}>
+              {icon}
+            </span>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
           <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 tracking-tighter ${badgeClass}`}>
             {tier === 'SS' ? 'MYTHIC SS' : tier === 'S' ? 'LEGENDARY S' : `TIER ${tier}`}
@@ -506,12 +527,16 @@ function ItemCard({ item, onBuy, stoneBevel }) {
   return (
     <div className="group relative bg-surface border-2 border-outline-variant/30 p-4 hover:border-primary/50 transition-colors">
       <div className="aspect-square bg-surface-variant mb-4 flex items-center justify-center relative overflow-hidden">
-        <span
-          className="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:scale-110 transition-transform"
-          style={{ fontSize: '72px', fontVariationSettings: "'FILL' 1" }}
-        >
-          {TYPE_ICON[item.type] ?? 'inventory_2'}
-        </span>
+        {item?.imageUrl ? (
+          <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-md" />
+        ) : (
+          <span
+            className="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:scale-110 transition-transform"
+            style={{ fontSize: '72px', fontVariationSettings: "'FILL' 1" }}
+          >
+            {TYPE_ICON[item.type] ?? 'inventory_2'}
+          </span>
+        )}
       </div>
       <h4 className="text-lg font-headline font-bold text-on-surface mb-1 leading-tight">{item.name}</h4>
       <p className={`text-xs font-black uppercase mb-3 ${RARITY_COLOR[item.rarity]}`}>
