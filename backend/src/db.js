@@ -1,44 +1,46 @@
-import { MongoClient } from 'mongodb'
+import { MongoClient, ServerApiVersion } from 'mongodb'
 import { getMongoUri } from './config/env'
 
 let client = null
-let connecting = null  // prevent parallel connect() races
 
 /**
  * Returns the MongoDB database instance.
- * Single long-lived client, reconnects only if truly closed.
+ * Uses a LAZY CONNECT strategy for Cloudflare Workers to avoid "Worker code had hung" errors.
  */
 export async function getDb(c) {
-  let mongoUri = getMongoUri(c)
-  if (!mongoUri) throw new Error('MONGODB_URI is not set. Check your .env file or Cloudflare secrets.')
-  
-  mongoUri = mongoUri.trim();
-  console.log(`[DB] Attempting connection with URI starting with: "${mongoUri.substring(0, 15)}..."`);
+  const mongoUri = getMongoUri(c)
+  if (!mongoUri) throw new Error('MONGODB_URI is not set. Check your Cloudflare secrets.')
 
-  // Already connected — reuse
-  if (client) return client.db('questly-db')
-
-  // Deduplicate concurrent connection attempts
-  if (!connecting) {
-    connecting = (async () => {
-      try {
-        client = new MongoClient(mongoUri, {
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 5000,
-          socketTimeoutMS: 15000,
-          maxPoolSize: 5,
-          minPoolSize: 1,
-        })
-        await client.connect()
-      } catch (err) {
-        client = null
-        throw err
-      } finally {
-        connecting = null
-      }
-    })()
+  // If client exists, check if it's actually initialized
+  if (client) {
+    return client.db('questly-db')
   }
 
-  await connecting
-  return client.db('questly-db')
+  console.log(`[DB] initializing new MongoClient (Lazy Mode)...`);
+  
+  try {
+    client = new MongoClient(mongoUri.trim(), {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+      // IMPORTANT: In Cloudflare Workers, we must be very careful with connection pooling
+      maxPoolSize: 1, 
+      minPoolSize: 0,
+      serverSelectionTimeoutMS: 20000, // Be patient for the edge connection
+      connectTimeoutMS: 20000,
+      socketTimeoutMS: 45000,
+      // No explicit client.connect() here to avoid hanging the promise
+    })
+
+    // We don't await client.connect() here. 
+    // The first command (like findOne) will trigger the connection.
+    
+    return client.db('questly-db')
+  } catch (err) {
+    console.error(`[DB] Error during client initialization:`, err.message)
+    client = null
+    throw err
+  }
 }

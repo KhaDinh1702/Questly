@@ -31,13 +31,13 @@ export function getEnv(c, key) {
 // ── Typed convenience accessors ───────────────────────────────
 
 /** MongoDB connection URI */
-export const getMongoUri  = (c) => getEnv(c, 'MONGODB_URI')
+export const getMongoUri = (c) => getEnv(c, 'MONGODB_URI')
 
 /** JWT signing secret */
 export const getJwtSecret = (c) => getEnv(c, 'JWT_SECRET')
 
 /** Current environment (development | production) */
-export const getNodeEnv   = (c) => getEnv(c, 'NODE_ENV') ?? 'production'
+export const getNodeEnv = (c) => getEnv(c, 'NODE_ENV') ?? 'production'
 
 /** HTTP port for standalone Node server */
-export const getPort      = (c) => parseInt(getEnv(c, 'PORT') ?? '8787', 10)
+export const getPort = (c) => parseInt(getEnv(c, 'PORT') ?? '8787', 10)
