@@ -24,23 +24,17 @@ const app = new Hono()
 // ── CORS ─────────────────────────────────────────────────────
 // All secrets are read from c.env (Cloudflare Workers secrets).
 // DO NOT hardcode MONGODB_URI, JWT_SECRET, or any sensitive value here.
-app.use('*', async (c, next) => {
-  const corsMiddleware = cors({
-    origin: (origin) => {
-      // Allow any localhost port for easy local testing
-      if (origin?.startsWith('http://localhost')) return origin
-      if (origin?.startsWith('http://127.0.0.1'))  return origin
-      // Production allowed origins
-      if (origin === 'https://questly.pages.dev') return origin
-      if (origin?.endsWith('.questly.pages.dev'))  return origin
-      return null
-    },
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-  return corsMiddleware(c, next)
-})
+app.use('*', cors({
+  origin: (origin) => {
+    if (!origin) return null
+    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) return origin
+    if (origin === 'https://questly.pages.dev' || origin.endsWith('.questly.pages.dev')) return origin
+    return null
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}))
 
 // ── Global rate limit: 60 requests/minute per IP ──────────────
 app.use('*', createRateLimiter({ windowMs: 60_000, max: 2000 }))
