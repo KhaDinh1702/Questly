@@ -141,6 +141,27 @@ export default function Dungeon() {
     fetchPlayerLevel();
   }, []);
 
+  // ── Auto-Flee on Tab Switch or Unmount ────────────────────
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && combatState) {
+        dungeonApi.combatAction('flee').catch(() => {});
+        setCombatState(null);
+        flash('You fled the combat by leaving the tab! The monster vanished.');
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Auto-flee on component unmount
+      if (combatState) {
+        dungeonApi.combatAction('flee').catch(() => {});
+      }
+    };
+  }, [combatState]);
+
   async function fetchPlayerLevel() {
     if (!localStorage.getItem('token')) return;
     try {
@@ -194,7 +215,18 @@ export default function Dungeon() {
     setPlayerY(data.currentPos.c);
     setFloor(data.currentFloor);
     setTurnCount(data.turnCount || 1);
-    setCombatState(data.combatState || null);
+    
+    // If the run loads with combat State active, it means the user left/refreshed during combat.
+    // They auto-fail/flee the combat.
+    if (data.combatState) {
+      dungeonApi.combatAction('flee').then(() => {
+        fetchActiveRun(); // refresh grid to get the cleared cell
+      }).catch(() => {});
+      setCombatState(null);
+      flash('The monster vanished while you were gone.');
+    } else {
+      setCombatState(null);
+    }
 
     const vSet = new Set(data.visitedCells.map(c => `${c.r}-${c.c}`));
     setVisited(vSet);

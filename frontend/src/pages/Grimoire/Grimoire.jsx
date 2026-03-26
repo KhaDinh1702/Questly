@@ -373,6 +373,7 @@ export default function Grimoire() {
   const [searchQuery,setSearchQuery]= useState('');
   const [loading,    setLoading]    = useState(true);
   const [publicLoading, setPublicLoading] = useState(false);
+  const [showWardenPopup, setShowWardenPopup] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const navigate = useNavigate();
 
@@ -511,7 +512,7 @@ export default function Grimoire() {
               <section className="mb-20">
                 <div className="flex items-end justify-between mb-8 border-b-2 border-primary/20 pb-2">
                   <h2 className="font-headline text-3xl font-bold text-primary-container">Private Scrolls</h2>
-                  <button onClick={() => { setEditingSet(null); setShowModal(true); }} className="text-primary-container flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <button onClick={() => { setEditingSet(null); setShowModal(true); setShowWardenPopup(false); }} className="text-primary-container flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <span className="material-symbols-outlined">add_circle</span>
                     <span className="font-label uppercase text-sm font-bold tracking-widest">Inscribe New</span>
                   </button>
@@ -604,9 +605,27 @@ export default function Grimoire() {
       </main>
 
       {/* FAB — Inscribe New */}
-      <div className="fixed bottom-8 right-8">
+      <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3">
+        {/* Warden Popup */}
+        {showWardenPopup && (
+          <div className="bg-stone-900 border-2 border-primary p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative flex items-start gap-3 w-64 animate-bounce">
+             <button onClick={() => setShowWardenPopup(false)} className="absolute top-1 right-1 text-stone-500 hover:text-stone-300">
+               <span className="material-symbols-outlined text-sm">close</span>
+             </button>
+             <div className="w-10 h-10 border-2 border-primary shrink-0 bg-stone-800 flex items-center justify-center overflow-hidden shadow-sm relative">
+                 <img src="/images/warden-archive.png" alt="Warden" className="w-full h-full object-cover relative z-10" onError={(e) => { e.target.style.display='none'; }} />
+                 <span className="material-symbols-outlined text-primary text-2xl absolute">psychology</span>
+             </div>
+             <div className="pr-2">
+               <p className="font-headline text-primary font-bold text-xs mb-1 uppercase tracking-widest leading-none">Warden</p>
+               <p className="font-body text-sm text-stone-300 leading-tight block">Create a new grimoire and study.</p>
+             </div>
+             {/* Pointer to FAB */}
+             <div className="absolute -bottom-[9px] right-6 w-4 h-4 bg-stone-900 border-b-2 border-r-2 border-primary rotate-45"></div>
+          </div>
+        )}
         <button
-          onClick={() => { setEditingSet(null); setShowModal(true); }}
+          onClick={() => { setEditingSet(null); setShowModal(true); setShowWardenPopup(false); }}
           className="w-16 h-16 bg-primary text-on-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:bg-primary-container active:translate-y-1 transition-all"
           style={{ boxShadow: 'inset 2px 2px 0px 0px #ffdea5, inset -2px -2px 0px 0px #483200, 4px 4px 0px 0px rgba(0,0,0,1)' }}
         >

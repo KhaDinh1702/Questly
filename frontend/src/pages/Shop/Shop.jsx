@@ -474,7 +474,7 @@ function DailyCard({ item, fallbackTier, onBuy, style, badgeClass, accentClass, 
       <div className="bg-surface-container flex flex-col md:flex-row h-full">
         <div className="w-full md:w-44 h-44 bg-stone-900 overflow-hidden relative flex-shrink-0 flex items-center justify-center">
           {item?.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-contain opacity-90 relative z-10 drop-shadow-lg" />
+            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover opacity-90 relative z-10 drop-shadow-lg" />
           ) : (
             <span className={`material-symbols-outlined opacity-80 ${iconClass}`}
               style={{ fontSize: '96px', fontVariationSettings: "'FILL' 1" }}>
@@ -525,10 +525,10 @@ function ItemCard({ item, onBuy, stoneBevel }) {
   const lines = formatBonusLines(item.statBonuses ?? {}, 3);
 
   return (
-    <div className="group relative bg-surface border-2 border-outline-variant/30 p-4 hover:border-primary/50 transition-colors">
-      <div className="aspect-square bg-surface-variant mb-4 flex items-center justify-center relative overflow-hidden">
+    <div className="group relative bg-surface border-2 border-outline-variant/30 p-4 hover:border-primary/50 transition-colors flex flex-col h-full">
+      <div className="aspect-square bg-surface-variant mb-4 flex items-center justify-center relative overflow-hidden flex-shrink-0">
         {item?.imageUrl ? (
-          <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-md" />
+          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform relative z-10 drop-shadow-md" />
         ) : (
           <span
             className="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:scale-110 transition-transform"
@@ -547,13 +547,13 @@ function ItemCard({ item, onBuy, stoneBevel }) {
           {item.reqClass} only
         </p>
       )}
-      <div className="space-y-0.5 text-sm opacity-80 border-t border-outline-variant/10 pt-3 min-h-[60px]">
+      <div className="space-y-0.5 text-sm opacity-80 border-t border-outline-variant/10 pt-3 min-h-[60px] flex-1">
         {lines.length > 0
           ? lines.map((l) => <p key={l}>{l}</p>)
           : <p className="italic text-outline">{item.description?.split('.')[0]}</p>
         }
       </div>
-      <div className="mt-5 flex items-center justify-between">
+      <div className="mt-5 flex items-center justify-between mt-auto">
         <span className="font-black text-lg">
           {item.price.toLocaleString()} <span className="text-primary text-sm">G</span>
         </span>

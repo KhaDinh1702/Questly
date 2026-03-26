@@ -29,7 +29,7 @@ const Home = () => {
         const me = res.data ?? {};
         const next = getPostAuthRoute(me);
         if (next !== '/') navigate(next, { replace: true });
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     const fetchLeaderboard = async () => {
@@ -99,7 +99,10 @@ const Home = () => {
               Aethelgard, where every choice is etched forever in the annals of
               history.
             </p>
-            <button className="bg-primary text-on-primary font-headline text-xl font-bold uppercase tracking-widest px-10 py-5 pixel-border-wood flex items-center gap-4 hover:bg-primary-container active:translate-y-1 active:shadow-none transition-all">
+            <button 
+              onClick={() => navigate('/grimoire')}
+              className="bg-primary text-on-primary font-headline text-xl font-bold uppercase tracking-widest px-10 py-5 pixel-border-wood flex items-center gap-4 hover:bg-primary-container active:translate-y-1 active:shadow-none transition-all"
+            >
               <span>Start Your Adventure</span>
               <span className="material-symbols-outlined" data-icon="swords">
                 swords
@@ -125,8 +128,8 @@ const Home = () => {
                   castle
                 </span>
                 <div className="mt-12 flex items-center gap-4">
-                  <button 
-                    onClick={prevMap} 
+                  <button
+                    onClick={prevMap}
                     className="bg-surface text-on-surface p-2 hover:bg-primary hover:text-on-primary transition-colors active:scale-95 border-2 border-on-surface shadow-[2px_2px_0_0_#1f1c0b] flex items-center justify-center"
                   >
                     <span className="material-symbols-outlined">chevron_left</span>
@@ -134,8 +137,8 @@ const Home = () => {
                   <div className="bg-on-surface text-surface px-6 py-3 font-label uppercase tracking-widest border-2 border-primary shadow-[4px_4px_0_0_var(--tw-colors-primary-container)]">
                     Current Map: {mapsData[currentMapIndex].name}
                   </div>
-                  <button 
-                    onClick={nextMap} 
+                  <button
+                    onClick={nextMap}
                     className="bg-surface text-on-surface p-2 hover:bg-primary hover:text-on-primary transition-colors active:scale-95 border-2 border-on-surface shadow-[2px_2px_0_0_#1f1c0b] flex items-center justify-center"
                   >
                     <span className="material-symbols-outlined">chevron_right</span>
@@ -169,9 +172,8 @@ const Home = () => {
                 topAdventurers.map((adv, index) => (
                   <div
                     key={adv._id}
-                    className={`flex items-center justify-between p-4 bg-surface hover:bg-surface-container transition-colors ${
-                      index === 0 ? 'border-l-4 border-primary-container' : ''
-                    }`}
+                    className={`flex items-center justify-between p-4 bg-surface hover:bg-surface-container transition-colors ${index === 0 ? 'border-l-4 border-primary-container' : ''
+                      }`}
                   >
                     <div className="flex items-center gap-4">
                       <span className="font-headline text-2xl font-black text-outline">
@@ -303,7 +305,7 @@ const Home = () => {
           </a>
         </nav>
         <p className="font-serif text-sm italic text-stone-700 dark:text-stone-300">
-          © 1242 Questly. All rights reserved.
+          © 2026 Questly. All rights reserved.
         </p>
       </footer>
     </div>

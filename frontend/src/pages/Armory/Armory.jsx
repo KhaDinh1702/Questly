@@ -410,7 +410,7 @@ export default function Armory() {
                     <div className={`w-16 h-16 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)] ${entry ? 'hover:border-error' : ''}`}>
                       <div className="absolute inset-0 flex items-center justify-center bg-primary-fixed/20">
                         {entry?.item?.imageUrl ? (
-                          <img src={entry.item.imageUrl} alt={entry.item.name} className="w-10 h-10 object-contain drop-shadow-sm" />
+                          <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-cover drop-shadow-sm" />
                         ) : (
                           <span className="material-symbols-outlined text-on-primary-fixed text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                             {entry ? (SLOT_ICON[slot.key] ?? slot.fallbackIcon) : slot.fallbackIcon}
@@ -447,7 +447,7 @@ export default function Armory() {
                     }`}
                 >
                   {entry.item?.imageUrl ? (
-                    <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-contain p-1 drop-shadow-sm" />
+                    <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-cover drop-shadow-sm" />
                   ) : (
                     <span className="material-symbols-outlined text-primary text-3xl flex items-center justify-center w-full h-full">
                       {TYPE_ICON[entry.item?.type] ?? 'inventory_2'}
