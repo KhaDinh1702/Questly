@@ -104,17 +104,35 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
             vnp_Params['vnp_BankCode'] = bankCode;
         }
 
-        vnp_Params = sortObject(vnp_Params);
+        // VNPay 2.1.0: Sort and remove empty parameters
+        // Filter empty values first to ensure they don't affect sorting or hash
+        let signParams = {};
+        for (let key in vnp_Params) {
+            if (vnp_Params[key] !== '' && vnp_Params[key] !== null && vnp_Params[key] !== undefined) {
+                // Ensure key starts with vnp_
+                if (key.startsWith('vnp_')) {
+                    signParams[key] = vnp_Params[key];
+                }
+            }
+        }
+        
+        signParams = sortObject(signParams);
 
-        // Standard VNPay 2.1.0: Sign the string WITHOUT encoding values
-        let signData = qs.stringify(vnp_Params, { encode: false });
+        // Standard VNPay 2.1.0 logic: 
+        // 1. Sort parameters alphabetically (done above)
+        // 2. Encode values with encodeURIComponent and REPLACE %20 with +
+        // 3. HMAC-SHA512
+        let signData = Object.keys(signParams)
+            .map(key => `${key}=${encodeURIComponent(signParams[key]).replace(/%20/g, "+")}`)
+            .join('&');
 
-        // Ensure we're using sha512
         const hmac = crypto.createHmac("sha512", secretKey);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
         vnp_Params['vnp_SecureHash'] = signed;
 
-        const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: true });
+        // Construct final URL carefully
+        const queryStr = qs.stringify(vnp_Params, { encode: true });
+        const finalUrl = vnpUrl.includes('?') ? `${vnpUrl}&${queryStr}` : `${vnpUrl}?${queryStr}`;
 
         // Save order to DB so we can update user tier upon callback
         await db.collection('orders').insertOne({
@@ -147,8 +165,6 @@ payment.get('/vnpay_return', async (c) => {
         delete vnp_Params['vnp_SecureHash'];
         delete vnp_Params['vnp_SecureHashType'];
 
-        vnp_Params = sortObject(vnp_Params);
-
         const secretKey = getEnv(c, 'VNP_HASHSECRET');
         if (!secretKey) {
             console.error('[PAYMENT] VNP_HASHSECRET missing in callback');
@@ -156,14 +172,22 @@ payment.get('/vnpay_return', async (c) => {
         }
         
         // VNPay 2.1.0: Sort parameters and ensure no empty values are included in hashing
-        // This is critical for signature matching
+        // Filter first, then sort
+        let signParams = {};
         for (let key in vnp_Params) {
-            if (vnp_Params[key] === '' || vnp_Params[key] === null || vnp_Params[key] === undefined) {
-                delete vnp_Params[key];
+            if (vnp_Params[key] !== '' && vnp_Params[key] !== null && vnp_Params[key] !== undefined) {
+                if (key.startsWith('vnp_')) {
+                    signParams[key] = vnp_Params[key];
+                }
             }
         }
+        
+        signParams = sortObject(signParams);
 
-        const signData = qs.stringify(vnp_Params, { encode: false });
+        const signData = Object.keys(signParams)
+            .map(key => `${key}=${encodeURIComponent(signParams[key]).replace(/%20/g, "+")}`)
+            .join('&');
+            
         const hmac = crypto.createHmac("sha512", secretKey);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
 
