@@ -180,31 +180,49 @@ users.put('/me/stats/allocate', requireAuth, async (c) => {
 })
 
 users.put('/me/avatar', requireAuth, async (c) => {
-  const db = await getDb(c)
-  const user = c.get('user')
-  const { avatarIcon, avatarColor, showFrame, selectedFrame } = await c.req.json()
+  try {
+    const db = await getDb(c)
+    const user = c.get('user')
+    const body = await c.req.json()
+    const { avatarIcon, avatarColor, showFrame, selectedFrame } = body
 
-  const validIcons = ['warrior', 'mage', 'rogue', 'archer', 'knight', 'ranger', 'wizard', 'dragon']
+    const validIcons = ['warrior', 'mage', 'rogue', 'archer', 'knight', 'ranger', 'wizard', 'dragon']
 
-  if (!avatarIcon || !validIcons.includes(avatarIcon)) {
-    return c.json({ error: 'Invalid avatar icon' }, 400)
+    if (!avatarIcon || !validIcons.includes(avatarIcon)) {
+      return c.json({ error: 'Invalid avatar icon' }, 400)
+    }
+    if (!avatarColor) {
+      return c.json({ error: 'Invalid avatar color' }, 400)
+    }
+
+    // Allow only known frame ids (yearly has two variants).
+    const validFrames = [null, undefined, 'monthly_1', '6months_1', '1year_1', '1year_2', 'Knight', 'Legend', 'Squire']
+    if (selectedFrame && !validFrames.includes(selectedFrame)) {
+      return c.json({ error: `Invalid frame selection: ${selectedFrame}` }, 400)
+    }
+
+    const _userId = toObjectId(user.id)
+    if (!_userId) throw new Error('Invalid User ID')
+
+    const updateData = { 
+      avatarIcon, 
+      avatarColor, 
+      showFrame: !!showFrame, 
+      selectedFrame: selectedFrame ?? null, 
+      updatedAt: new Date() 
+    }
+
+    await db.collection('users').updateOne(
+      { _id: _userId },
+      { $set: updateData }
+    )
+
+    console.log(`[USER] Avatar updated for ${user.id}:`, updateData)
+    return c.json({ message: 'Avatar updated', ...updateData })
+  } catch (err) {
+    console.error('[USER] Error updating avatar:', err)
+    return c.json({ error: 'Failed to update avatar' }, 500)
   }
-  if (!avatarColor) {
-    return c.json({ error: 'Invalid avatar color' }, 400)
-  }
-
-  // Allow only known frame ids (yearly has two variants).
-  const validFrames = [null, undefined, 'monthly_1', '6months_1', '1year_1', '1year_2']
-  if (!validFrames.includes(selectedFrame)) {
-    return c.json({ error: 'Invalid frame selection' }, 400)
-  }
-
-  await db.collection('users').updateOne(
-    { _id: toObjectId(user.id) },
-    { $set: { avatarIcon, avatarColor, showFrame: !!showFrame, selectedFrame: selectedFrame ?? null, updatedAt: new Date() } }
-  )
-
-  return c.json({ message: 'Avatar updated', avatarIcon, avatarColor, showFrame: !!showFrame, selectedFrame: selectedFrame ?? null })
 })
 
 users.get('/me/inventory', requireAuth, async (c) => {

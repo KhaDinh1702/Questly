@@ -7,6 +7,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { toObjectId } from '../helpers/db.js';
 import { createSubscriptionDocument } from '../models/Subscription.js';
 import { grantSubscriptionRewards } from '../services/rewardService.js';
+import { getEnv } from '../config/env.js';
 
 const payment = new Hono();
 
@@ -57,10 +58,15 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
             c.req.header('remote-addr') ||
             '127.0.0.1';
 
-        const tmnCode = process.env.VNP_TMNCODE?.trim();
-        const secretKey = process.env.VNP_HASHSECRET?.trim();
-        const vnpUrl = process.env.VNP_URL;
-        const returnUrl = process.env.VNP_RETURNURL;
+        const tmnCode = getEnv(c, 'VNP_TMNCODE')?.trim();
+        const secretKey = getEnv(c, 'VNP_HASHSECRET')?.trim();
+        const vnpUrl = getEnv(c, 'VNP_URL');
+        const returnUrl = getEnv(c, 'VNP_RETURNURL');
+
+        if (!tmnCode || !secretKey || !vnpUrl || !returnUrl) {
+            console.error('[PAYMENT] Missing VNPay configuration:', { tmnCode: !!tmnCode, secretKey: !!secretKey, vnpUrl: !!vnpUrl, returnUrl: !!returnUrl });
+            throw new Error('VNPay configuration missing in environment');
+        }
 
         const date = new Date();
         const createDate = getVnpDate(date);
@@ -144,7 +150,11 @@ payment.get('/vnpay_return', async (c) => {
 
         vnp_Params = sortObject(vnp_Params);
 
-        const secretKey = process.env.VNP_HASHSECRET;
+        const secretKey = getEnv(c, 'VNP_HASHSECRET');
+        if (!secretKey) {
+            console.error('[PAYMENT] VNP_HASHSECRET missing in callback');
+            throw new Error('VNP_HASHSECRET missing');
+        }
         
         // Fix: Use encode: true to match VNPay's URL-encoded hashing
         const signData = qs.stringify(vnp_Params, { encode: true });
@@ -232,7 +242,7 @@ payment.get('/vnpay_return', async (c) => {
         }
 
         // Redirect back to frontend with status
-        const frontendUrl = process.env.VNP_FRONTEND_URL || 'http://localhost:5173/payment-result';
+        const frontendUrl = getEnv(c, 'VNP_FRONTEND_URL') || 'http://localhost:5173/payment-result';
         return c.redirect(`${frontendUrl}?status=${status}&orderId=${orderId}&code=${responseCode}`);
     } catch (err) {
         console.error('[PAYMENT] Error handling return:', err);
