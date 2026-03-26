@@ -52,9 +52,9 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
         const db = await getDb(c);
         const user = c.get('user');
 
-        const ipAddr = c.req.header('x-forwarded-for') || 
-                       c.req.header('remote-addr') || 
-                       '127.0.0.1';
+        const ipAddr = c.req.header('x-forwarded-for') ||
+            c.req.header('remote-addr') ||
+            '127.0.0.1';
 
         const tmnCode = process.env.VNP_TMNCODE?.trim();
         const secretKey = process.env.VNP_HASHSECRET?.trim();
@@ -63,21 +63,21 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
 
         const date = new Date();
         const createDate = getVnpDate(date);
-        
+
         // More unique TxnRef
         const orderId = `${Math.floor(Date.now() / 1000)}-${Math.floor(Math.random() * 1000)}`;
 
         const body = await c.req.json();
         const amount = body.amount;
         const bankCode = body.bankCode || '';
-        
+
         // Use a very simple slug for orderInfo to avoid encoding issues for now
         const tierName = body.tierName || 'Subscription';
         const orderInfo = `Questly_${tierName.replace(/\s+/g, '_')}_${orderId}`;
-        
+
         const orderType = body.orderType || 'billpayment';
         let locale = body.language || 'vn';
-        
+
         const currCode = 'VND';
         let vnp_Params = {};
         vnp_Params['vnp_Version'] = '2.1.0';
@@ -92,7 +92,7 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
         vnp_Params['vnp_ReturnUrl'] = returnUrl;
         vnp_Params['vnp_IpAddr'] = ipAddr;
         vnp_Params['vnp_CreateDate'] = createDate;
-        
+
         if (bankCode !== '') {
             vnp_Params['vnp_BankCode'] = bankCode;
         }
@@ -102,12 +102,12 @@ payment.post('/create_payment_url', requireAuth, async (c) => {
         // Standard VNPay 2.1.0: Sign the encoded string
         // We'll try both encoded and unencoded if this fails.
         let signData = qs.stringify(vnp_Params, { encode: true });
-        
+
         // Ensure we're using sha512
         const hmac = crypto.createHmac("sha512", secretKey);
-        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex"); 
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
         vnp_Params['vnp_SecureHash'] = signed;
-        
+
         const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: true });
 
         // Save order to DB so we can update user tier upon callback
@@ -144,14 +144,16 @@ payment.get('/vnpay_return', async (c) => {
         vnp_Params = sortObject(vnp_Params);
 
         const secretKey = process.env.VNP_HASHSECRET;
-        const signData = qs.stringify(vnp_Params, { encode: false });
+        
+        // Fix: Use encode: true to match VNPay's URL-encoded hashing
+        const signData = qs.stringify(vnp_Params, { encode: true });
         const hmac = crypto.createHmac("sha512", secretKey);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
 
         const isSignatureValid = (secureHash === signed);
         const responseCode = vnp_Params['vnp_ResponseCode'];
         const status = isSignatureValid ? (responseCode === '00' ? 'success' : 'failed') : 'invalid_signature';
-        
+
         const orderId = vnp_Params['vnp_TxnRef'];
         console.log(`[PAYMENT] Return Order ${orderId} | Status: ${status} | Code: ${responseCode}`);
 
@@ -160,14 +162,14 @@ payment.get('/vnpay_return', async (c) => {
             if (order && order.status === 'pending') {
                 // Update order
                 await db.collection('orders').updateOne({ orderId }, { $set: { status: 'success' } });
-                
+
                 // Keep naming simple: match the frontend names with subscription Tier names if possible,
                 // otherwise just set it to 'monthly' or what was purchased.
                 // Assuming tierName comes in as something like 'Monthly', 'Yearly', etc.
                 const tierName = order.tierName || '';
-                let mappedTier = tierName === 'Legend' ? 'yearly' 
-                    : tierName === 'Knight' ? '6months' 
-                    : 'monthly';
+                let mappedTier = tierName === 'Legend' ? 'yearly'
+                    : tierName === 'Knight' ? '6months'
+                        : 'monthly';
 
                 let durationDays = 30;
                 if (mappedTier === 'yearly') durationDays = 365;
@@ -209,12 +211,12 @@ payment.get('/vnpay_return', async (c) => {
 
                 await db.collection('users').updateOne(
                     { _id: toObjectId(order.userId) },
-                    { 
-                        $set: { 
-                            subscriptionTier: finalTier, 
+                    {
+                        $set: {
+                            subscriptionTier: finalTier,
                             subExpiryDate: subEndDate,
-                            updatedAt: new Date() 
-                        } 
+                            updatedAt: new Date()
+                        }
                     }
                 );
                 console.log(`[PAYMENT] Updated user ${order.userId} to tier ${finalTier}`);

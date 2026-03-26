@@ -196,7 +196,10 @@ export default function GrimoireStudy() {
   if (studyComplete) {
     const finalScore = Math.round((knownCount / set.cards.length) * 100);
     return (
-      <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col">
+      <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+        <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+          <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
+        </div>
         <Navbar />
         <main className="flex-grow flex items-center justify-center p-6">
           <div className="bg-surface-container-high p-12 max-w-2xl w-full text-center border-2 border-primary-container shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)]">
@@ -236,7 +239,10 @@ export default function GrimoireStudy() {
   const currentCard = set.cards[currentIndex];
 
   return (
-    <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col">
+    <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+      <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+        <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
+      </div>
       <Navbar />
       
       {/* HUD Bar */}

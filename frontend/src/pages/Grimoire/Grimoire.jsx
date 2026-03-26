@@ -487,7 +487,10 @@ export default function Grimoire() {
     : [...publicSets].sort((a, b) => (b.studiedCount ?? 0) - (a.studiedCount ?? 0));
 
   return (
-    <div className="bg-stone-900 font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+    <div className="relative font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+      <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+        <img alt="Library background" className="w-full h-full object-cover opacity-25 mix-blend-luminosity" src="/maps/bg_library.png" />
+      </div>
       <Navbar />
       <HudBar />
 

@@ -134,7 +134,10 @@ export default function Aptitude() {
   // ─── LOBBY ───────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col">
+      <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+        <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+          <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
+        </div>
         <Navbar />
         <main className="flex-grow flex flex-col items-center justify-center p-6 gap-6 max-w-2xl mx-auto w-full">
 
@@ -264,7 +267,10 @@ export default function Aptitude() {
     const passed = finalScore >= 50;
 
     return (
-      <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col border-t-8 border-tertiary">
+      <div className="relative font-body text-on-surface min-h-screen flex flex-col border-t-8 border-tertiary">
+        <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+          <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
+        </div>
         <Navbar />
         <main className="flex-grow flex items-center justify-center p-6">
           <div className="bg-surface-container-high p-12 max-w-xl w-full text-center border-2 border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)]">
@@ -365,7 +371,10 @@ export default function Aptitude() {
   const currentQuestion = questions[currentIndex];
 
   return (
-    <div className="bg-stone-900 font-body text-on-surface min-h-screen flex flex-col">
+    <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+      <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
+        <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
+      </div>
       <Navbar />
 
       {/* Mode banner */}

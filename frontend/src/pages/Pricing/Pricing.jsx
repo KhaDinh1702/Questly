@@ -119,8 +119,12 @@ const Pricing = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-surface font-body selection:bg-primary-container selection:text-on-primary-container parchment-texture">
-            <Navbar />
+        <div className="relative min-h-screen bg-surface font-body selection:bg-primary-container selection:text-on-primary-container parchment-texture">
+            <div className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
+                <img alt="Throne Room Background" className="w-full h-full object-cover" src="/maps/throne_room_2deneme4.gif" />
+            </div>
+            <div className="relative z-10">
+                <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 py-16">
                 {/* Hero Header */}
@@ -227,6 +231,7 @@ const Pricing = () => {
                     <Link className="font-body text-xs uppercase text-surface opacity-80 hover:opacity-100 hover:text-primary transition-colors" to="#">Support</Link>
                 </div>
             </footer>
+            </div>
         </div>
     );
 };
