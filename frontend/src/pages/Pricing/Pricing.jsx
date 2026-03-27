@@ -56,13 +56,13 @@ const Pricing = () => {
         {
             name: "Squire",
             rank: "Rank I",
-            price: "59,000",
+            price: "99,000",
             period: "Month",
             description: "A formal oath to the crown grants greater capacity.",
             features: [
                 "8 Aptitude Tests Per Day",
                 "No Crow's Eye (Ad) Views",
-                "+5 Backpack Loot Slots",
+                "10 Backpack Loot Slots",
                 "Priority Messenger Support"
             ],
             buttonText: "Begin Journey",
@@ -76,13 +76,13 @@ const Pricing = () => {
         {
             name: "Knight",
             rank: "Rank II",
-            price: "249,000",
+            price: "418,000",
             period: "6 Months",
             description: "Valorous service brings noble status and rewards.",
             features: [
                 "12 Aptitude Tests Per Day",
                 "No Crow's Eye (Ad) Views",
-                "+8 Backpack Loot Slots",
+                "16 Backpack Loot Slots",
                 "Grade B Equipment Set",
                 "Custom Royal Heraldry"
             ],
@@ -97,14 +97,15 @@ const Pricing = () => {
         {
             name: "Legend",
             rank: "Rank III",
-            price: "480,000",
+            price: "806,000",
             period: "Year",
             description: "Etch your name into the annals as a true lord of the realm.",
             features: [
                 "16 Aptitude Tests Per Day",
                 "No Crow's Eye (Ad) Views",
-                "+12 Backpack Loot Slots",
+                "20 Backpack Loot Slots",
                 "Grade B Set + Grade S Scroll",
+                "Custom Royal Heraldry",
                 "Early Artifact Access"
             ],
             buttonText: "Claim Throne",

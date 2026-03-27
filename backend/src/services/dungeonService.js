@@ -364,7 +364,7 @@ export async function combatAction(db, userId, action, itemId = null) {
 
   const user = await db.collection('users').findOne(
     { _id: _userId },
-    { projection: { stats: 1, gold: 1, class: 1, dungeonMoves: 1 } },
+    { projection: { stats: 1, gold: 1, class: 1, dungeonMoves: 1, subscriptionTier: 1 } },
   )
   if (!user) return { ok: false, reason: 'User not found' }
   await repairPlayerStats(db, user)

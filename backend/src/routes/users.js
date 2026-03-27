@@ -11,7 +11,7 @@
 import { Hono } from 'hono'
 import { getDb } from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
-import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints } from '../services/userService.js'
+import { getUserById, getUserByUsername, getLeaderboard, equipItem, unequipItem, allocateStatPoints, getMaxBackpackSlots } from '../services/userService.js'
 import { toObjectId } from '../helpers/db.js'
 import { CLASS_CHANGE_COST } from '../config/constants.js'
 import { getBaseStats } from '../helpers/gameLogic.js'
@@ -23,7 +23,11 @@ users.get('/me', requireAuth, async (c) => {
   const user = c.get('user')
   const profile = await getUserById(db, user.id)
   if (!profile) return c.json({ error: 'User not found' }, 404)
-  return c.json(profile)
+  
+  // Include calculated maxBackpackSlots for UI use
+  const maxBackpackSlots = getMaxBackpackSlots(profile)
+  
+  return c.json({ ...profile, maxBackpackSlots })
 })
 
 users.put('/me/character', requireAuth, async (c) => {

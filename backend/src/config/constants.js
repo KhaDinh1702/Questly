@@ -30,8 +30,8 @@ export const BACKPACK_SLOTS = {
   BONUS: {
     free: 0,
     monthly: 5,
-    '6months': 8,
-    yearly: 12,
+    '6months': 11,
+    yearly: 15,
   }
 }
 

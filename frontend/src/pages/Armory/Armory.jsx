@@ -56,6 +56,7 @@ export default function Armory() {
   const [classMsg, setClassMsg] = useState('');
   const [equipMsg, setEquipMsg] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [capacity, setCapacity] = useState(5);
 
   async function refreshInventoryAndEquip() {
     const token = localStorage.getItem('token');
@@ -69,6 +70,7 @@ export default function Armory() {
     setEquipped(me.equipped ?? {});
     setInventory(invRes.data ?? []);
     setGold(me.gold ?? 0);
+    setCapacity(me.maxBackpackSlots ?? 5);
   }
 
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function Armory() {
         setGold(me.gold ?? 0);
         setEquipped(me.equipped ?? {});
         setInventory(invRes.data ?? []);
+        setCapacity(me.maxBackpackSlots ?? 5);
       } catch (e) {
         if (cancelled) return;
         setError(e.response?.data?.error ?? 'Failed to load armory data.');
@@ -227,7 +230,6 @@ export default function Armory() {
   const totalStats = useMemo(() => mergeCoreStats(stats, equippedBonus), [stats, equippedBonus]);
   const expToNext = Math.max(100, level * 100);
   const expPct = Math.max(0, Math.min(100, Math.round((exp / expToNext) * 100)));
-  const capacity = 16;
   const usedSlots = inventory.length;
   const displayedInventory = inventory.slice(0, capacity);
   const emptySlots = Math.max(0, capacity - displayedInventory.length);
