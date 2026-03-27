@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { dungeonApi, userApi } from '../../services/api';
 import Navbar from '../../components/Navbar';
@@ -134,6 +134,11 @@ export default function Dungeon() {
   const [chestLoot, setChestLoot] = useState(null); // loot item
   const [chestReward, setChestReward] = useState(null); // { rewardType, goldEarned, ticketsEarned }
   const [playerClass, setPlayerClass] = useState('warrior'); // Track player class for mana costs
+  const combatStateRef = useRef(null);
+
+  useEffect(() => {
+    combatStateRef.current = combatState;
+  }, [combatState]);
 
   // ── Init & Fetch ──────────────────────────────────────────
   useEffect(() => {
@@ -144,7 +149,7 @@ export default function Dungeon() {
   // ── Auto-Flee on Tab Switch or Unmount ────────────────────
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && combatState) {
+      if (document.hidden && combatStateRef.current) {
         dungeonApi.combatAction('flee').catch(() => {});
         setCombatState(null);
         flash('You fled the combat by leaving the tab! The monster vanished.');
@@ -155,12 +160,14 @@ export default function Dungeon() {
 
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityChange);
-      // Auto-flee on component unmount
-      if (combatState) {
+      // Auto-flee on component unmount ONLY IF we are actually leaving the page
+      // (not just updating state). Since this hook has no dependencies,
+      // it only runs once and clean up on unmount.
+      if (combatStateRef.current) {
         dungeonApi.combatAction('flee').catch(() => {});
       }
     };
-  }, [combatState]);
+  }, []); // Run once on mount
 
   async function fetchPlayerLevel() {
     if (!localStorage.getItem('token')) return;
