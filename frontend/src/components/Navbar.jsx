@@ -6,6 +6,7 @@ import frameMonthly1 from '../assets/images/frames/frame_monthly_1.png';
 import frame6Months1 from '../assets/images/frames/frame_6months_1.png';
 import frame1Year1 from '../assets/images/frames/frame_1year_1.png';
 import frame1Year2 from '../assets/images/frames/frame_1year_2.png';
+import logoImg from '../assets/images/logo/logo.png';
 
 const NAV_LINKS = [
   { label: 'Grimoire',  to: '/grimoire'  },
@@ -192,9 +193,17 @@ export default function Navbar() {
       {/* Brand */}
       <Link
         to="/"
-        className="text-xl lg:text-2xl font-black text-yellow-900 font-serif uppercase tracking-widest hover:opacity-80 transition-opacity whitespace-nowrap"
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
       >
-        Questly
+        <img 
+          src={logoImg} 
+          alt="Questly" 
+          className="h-10 lg:h-12 w-auto object-contain"
+          style={{ imageRendering: 'pixelated' }}
+        />
+        <span className="text-xl lg:text-2xl font-black text-yellow-900 font-serif uppercase tracking-widest whitespace-nowrap hidden sm:block">
+          Questly
+        </span>
       </Link>
 
       {/* Desktop nav */}

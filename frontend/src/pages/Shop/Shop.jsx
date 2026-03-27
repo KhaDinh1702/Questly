@@ -244,7 +244,7 @@ export default function Shop() {
         {/* ── Gacha Chest ─────────────────────────────────────────────────── */}
         <section>
           <div className="mb-6">
-            <span className="text-secondary font-bold uppercase tracking-widest text-xs">Divine Fortune</span>
+            <span className="text-amber-200 font-black uppercase tracking-[0.2em] text-[10px] drop-shadow-md">Divine Fortune</span>
             <h2 className="text-4xl font-headline font-bold text-white">Ancient Relic Chest</h2>
           </div>
 
@@ -299,7 +299,7 @@ export default function Shop() {
         <section>
           <div className="flex flex-wrap justify-between items-end mb-6 gap-4">
             <div>
-              <span className="text-primary font-bold uppercase tracking-widest text-xs">Timed Offers</span>
+              <span className="text-amber-200 font-black uppercase tracking-[0.2em] text-[10px] drop-shadow-md">Timed Offers</span>
               <h2 className="text-4xl font-headline font-bold text-white">Daily Limited Goods</h2>
             </div>
             <div className="bg-error-container text-error px-4 py-2 flex items-center gap-2">
