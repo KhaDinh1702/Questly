@@ -57,9 +57,9 @@ export default {
         "on-primary-container": "#483200"
       },
       fontFamily: {
-        "headline": ["Newsreader", "serif"],
-        "body": ["Noto Serif", "serif"],
-        "label": ["Noto Serif", "serif"]
+        "headline": ["'Pixelify Sans'", "sans-serif"],
+        "body": ["'Pixelify Sans'", "sans-serif"],
+        "label": ["'Pixelify Sans'", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0px",
