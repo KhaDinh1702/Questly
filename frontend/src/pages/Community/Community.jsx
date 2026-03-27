@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import Navbar from '../../components/Navbar';
 import { ImageWithFallback } from '../../components/ImageWithFallback';
@@ -7,6 +8,22 @@ import { getIdentityTitle, getNameRarity, getRarityTextClass } from '../../utils
 import tavernBg from '../../assets/images/background/tarvern.png';
 
 const tavernImageUrl = tavernBg;
+
+import frameMonthly1 from '../../assets/images/frames/frame_monthly_1.png';
+import frame6Months1 from '../../assets/images/frames/frame_6months_1.png';
+import frame1Year1 from '../../assets/images/frames/frame_1year_1.png';
+import frame1Year2 from '../../assets/images/frames/frame_1year_2.png';
+
+const getFrameAsset = (tier, picked) => {
+  if (tier === 'yearly') {
+    if (picked === '1year_2') return frame1Year2;
+    return frame1Year1;
+  }
+  if (tier === '6months') return frame6Months1;
+  return frameMonthly1;
+};
+
+const isPremium = (tier) => ['monthly', '6months', 'yearly'].includes(tier);
 
 const AVATAR_ICON_TO_SYMBOL = {
   warrior: 'shield',
@@ -32,6 +49,7 @@ function relationshipActionLabel(relationship) {
 }
 
 export default function Community() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('leaderboard'); // 'leaderboard' | 'friends'
   const [players, setPlayers] = useState([]);
   const [friends, setFriends] = useState([]);
@@ -40,7 +58,11 @@ export default function Community() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  async function refreshAll() {
+  const refreshAll = useMemo(() => async () => {
+    if (!localStorage.getItem('token')) {
+      navigate('/login');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -54,15 +76,21 @@ export default function Community() {
       setRequests(reqRes.data?.requests ?? []);
       setReqCount(reqRes.data?.count ?? 0);
     } catch (e) {
+      if (e.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       setError(e.response?.data?.error ?? 'Failed to load community data.');
     } finally {
       setLoading(false);
     }
-  }
+  }, [navigate]);
 
   useEffect(() => {
     refreshAll();
-  }, []);
+  }, [refreshAll]);
 
   const friendBadge = useMemo(() => {
     if (reqCount > 0) return reqCount;
@@ -88,6 +116,7 @@ export default function Community() {
       }
       await refreshAll();
     } catch (e) {
+      if (e.response?.status === 401) navigate('/login');
       setError(e.response?.data?.error ?? 'Action failed.');
     }
   }
@@ -97,6 +126,7 @@ export default function Community() {
       await communityApi.acceptRequest(fromUserId);
       await refreshAll();
     } catch (e) {
+      if (e.response?.status === 401) navigate('/login');
       setError(e.response?.data?.error ?? 'Failed to accept request.');
     }
   }
@@ -106,6 +136,7 @@ export default function Community() {
       await communityApi.declineRequest(fromUserId);
       await refreshAll();
     } catch (e) {
+      if (e.response?.status === 401) navigate('/login');
       setError(e.response?.data?.error ?? 'Failed to decline request.');
     }
   }
@@ -239,14 +270,26 @@ export default function Community() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3">
-                            <div
-                              className="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-white/20"
-                              style={{ backgroundColor: p.avatarColor ?? '#3B82F6' }}
-                              title="Avatar"
-                            >
-                              <span className="material-symbols-outlined text-white">
-                                {AVATAR_ICON_TO_SYMBOL[p.avatarIcon] ?? 'account_circle'}
-                              </span>
+                            <div className="relative">
+                              <div
+                                className="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-white/20"
+                                style={{ backgroundColor: p.avatarColor ?? '#3B82F6' }}
+                                title="Avatar"
+                              >
+                                <span className="material-symbols-outlined text-white">
+                                  {AVATAR_ICON_TO_SYMBOL[p.avatarIcon] ?? 'account_circle'}
+                                </span>
+                              </div>
+                              {isPremium(p.subscriptionTier) && p.showFrame !== false && (
+                                <div className="absolute -inset-2 pointer-events-none">
+                                  <img 
+                                    src={getFrameAsset(p.subscriptionTier, p.selectedFrame)} 
+                                    alt="" 
+                                    className="w-full h-full object-contain scale-[1.15]"
+                                    style={{ imageRendering: 'pixelated' }}
+                                  />
+                                </div>
+                              )}
                             </div>
 
                             <div className="min-w-0">
@@ -312,12 +355,34 @@ export default function Community() {
                             key={p._id}
                             className="bg-black/30 border-2 border-[#5a4a35] p-4 flex items-center justify-between gap-4"
                           >
-                            <div className="min-w-0">
-                              <div className={`font-black truncate ${nameClass}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="relative flex-shrink-0">
+                                <div
+                                  className="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-white/20"
+                                  style={{ backgroundColor: p.avatarColor ?? '#3B82F6' }}
+                                >
+                                  <span className="material-symbols-outlined text-white">
+                                    {AVATAR_ICON_TO_SYMBOL[p.avatarIcon] ?? 'account_circle'}
+                                  </span>
+                                </div>
+                                {isPremium(p.subscriptionTier) && p.showFrame !== false && (
+                                  <div className="absolute -inset-2 pointer-events-none">
+                                    <img 
+                                      src={getFrameAsset(p.subscriptionTier, p.selectedFrame)} 
+                                      alt="" 
+                                      className="w-full h-full object-contain scale-[1.15]"
+                                      style={{ imageRendering: 'pixelated' }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className={`font-black truncate ${nameClass}`}>
                                 {p.username}#{pad4(p.identityId)}
                               </div>
                               <div className="text-xs text-[#8b7355]">
                                 <span className="uppercase font-bold">{title}</span> • Level {p.level}
+                              </div>
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -361,13 +426,35 @@ export default function Community() {
                             key={p._id}
                             className="bg-black/30 border-2 border-[#5a4a35] p-4 flex items-center justify-between gap-4"
                           >
-                            <div className="min-w-0">
-                              <div className={`font-black truncate ${nameClass}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="relative flex-shrink-0">
+                                <div
+                                  className="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-white/20"
+                                  style={{ backgroundColor: p.avatarColor ?? '#3B82F6' }}
+                                >
+                                  <span className="material-symbols-outlined text-white">
+                                    {AVATAR_ICON_TO_SYMBOL[p.avatarIcon] ?? 'account_circle'}
+                                  </span>
+                                </div>
+                                {isPremium(p.subscriptionTier) && p.showFrame !== false && (
+                                  <div className="absolute -inset-2 pointer-events-none">
+                                    <img 
+                                      src={getFrameAsset(p.subscriptionTier, p.selectedFrame)} 
+                                      alt="" 
+                                      className="w-full h-full object-contain scale-[1.15]"
+                                      style={{ imageRendering: 'pixelated' }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className={`font-black truncate ${nameClass}`}>
                                 {p.username}#{pad4(p.identityId)}
                               </div>
                               <div className="text-xs text-[#8b7355]">
                                 <span className="uppercase font-bold">{title}</span> • Level {p.level} •{' '}
                                 {(p.totalScore ?? 0).toLocaleString()} pts
+                              </div>
                               </div>
                             </div>
                             <button

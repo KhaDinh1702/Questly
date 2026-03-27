@@ -15,6 +15,9 @@ import Shop from './pages/Shop/Shop'
 import Pricing from './pages/Pricing/Pricing'
 import PaymentResult from './pages/Pricing/PaymentResult'
 import Community from './pages/Community/Community'
+import Support from './pages/Support/Support'
+import TermsOfService from './pages/Legal/TermsOfService'
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy'
 
 function App() {
   return (
@@ -35,6 +38,9 @@ function App() {
         <Route path="/community" element={<Community />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/payment-result" element={<PaymentResult />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

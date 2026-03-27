@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { userApi } from '../services/api';
 import frameMonthly1 from '../assets/images/frames/frame_monthly_1.png';
 import frame6Months1 from '../assets/images/frames/frame_6months_1.png';
@@ -92,6 +92,20 @@ export default function Navbar() {
   const [avatarColor, setAvatarColor] = useState(user?.avatarColor || DEFAULT_COLOR_HEX);
   const [showFrame, setShowFrame] = useState(user?.showFrame ?? true);
   const [selectedFrame, setSelectedFrame] = useState(user?.selectedFrame ?? null);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -280,10 +294,29 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile hamburger (hidden on desktop) */}
-      <button className="xl:hidden material-symbols-outlined text-yellow-900 p-2">
-        menu
-      </button>
+      {/* Hamburger menu with dropdown (always visible on the right) */}
+      <div className="relative" ref={menuRef}>
+        <button
+          onClick={() => setShowMenu((v) => !v)}
+          className="material-symbols-outlined text-yellow-900 p-2 hover:bg-orange-100 rounded-none transition-colors"
+          title="More"
+        >
+          menu
+        </button>
+
+        {showMenu && (
+          <div className="absolute right-0 top-full mt-1 w-48 bg-orange-50 border-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] z-[200] flex flex-col">
+            <Link
+              to="/support"
+              onClick={() => setShowMenu(false)}
+              className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-stone-700 uppercase tracking-wider text-sm hover:bg-orange-100 hover:text-yellow-900 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">help</span>
+              Support
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Avatar Selection Modal */}
       {showAvatarModal && (

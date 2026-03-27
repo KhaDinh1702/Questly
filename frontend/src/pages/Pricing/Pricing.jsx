@@ -7,11 +7,11 @@ const Pricing = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubscribe = async (tier) => {
-        if (tier.price === "0") return;
+        if (tier.vndAmount === 0) return;
 
         setLoading(true);
         try {
-            const amount = parseInt(tier.price.replace(/,/g, ''));
+            const amount = tier.vndAmount;
             const response = await paymentApi.createPaymentUrl({
                 amount: amount,
                 tierName: tier.name,
@@ -36,7 +36,8 @@ const Pricing = () => {
         {
             name: "Novice",
             rank: "Rank 0",
-            price: "0",
+            price: "Free",
+            vndAmount: 0,
             period: "Forever",
             description: "Begin your quest with the basic tools of mortality.",
             features: [
@@ -56,7 +57,8 @@ const Pricing = () => {
         {
             name: "Squire",
             rank: "Rank I",
-            price: "99,000",
+            price: "$3.76",
+            vndAmount: 99000,
             period: "Month",
             description: "A formal oath to the crown grants greater capacity.",
             features: [
@@ -76,7 +78,8 @@ const Pricing = () => {
         {
             name: "Knight",
             rank: "Rank II",
-            price: "418,000",
+            price: "$18.75",
+            vndAmount: 418000,
             period: "6 Months",
             description: "Valorous service brings noble status and rewards.",
             features: [
@@ -97,7 +100,8 @@ const Pricing = () => {
         {
             name: "Legend",
             rank: "Rank III",
-            price: "806,000",
+            price: "$37.59",
+            vndAmount: 806000,
             period: "Year",
             description: "Etch your name into the annals as a true lord of the realm.",
             features: [
@@ -130,12 +134,33 @@ const Pricing = () => {
                 <main className="flex-grow flex flex-col items-center justify-center max-w-7xl mx-auto px-6 py-4 overflow-hidden w-full">
                     {/* Hero Header - Compact */}
                     <header className="text-center mb-6 relative">
-                        <h1 className="font-headline text-5xl md:text-6xl font-black text-on-surface mb-2 uppercase tracking-tighter italic">
+                        <h1 className="font-headline text-5xl md:text-6xl font-black uppercase tracking-tighter italic gold-shimmer">
                             Royal Tiers
                         </h1>
-                        <p className="font-headline text-sm text-outline max-w-2xl mx-auto uppercase tracking-widest font-bold">
+                        <p className="font-headline text-sm max-w-2xl mx-auto uppercase tracking-widest font-bold mt-2 px-4 py-1 rounded"
+                            style={{
+                                color: '#ffe066',
+                                textShadow: '0 0 12px rgba(255,224,0,0.9), 0 0 4px #fff, 0 1px 3px rgba(0,0,0,0.9)',
+                                background: 'rgba(0,0,0,0.45)',
+                                display: 'inline-block'
+                            }}>
                             Choose your destiny within the kingdom's ledgers
                         </p>
+                        <style>{`
+                          @keyframes goldShimmer {
+                            0%   { background-position: -200% center; }
+                            100% { background-position: 200% center; }
+                          }
+                          .gold-shimmer {
+                            background: linear-gradient(90deg, #b8860b 0%, #ffd700 30%, #fffacd 50%, #ffd700 70%, #b8860b 100%);
+                            background-size: 200% auto;
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            background-clip: text;
+                            animation: goldShimmer 3s linear infinite;
+                            filter: drop-shadow(0 0 6px rgba(255,215,0,0.4));
+                          }
+                        `}</style>
                     </header>
 
                     {/* Pricing Grid - Scaled to fit */}
@@ -157,27 +182,29 @@ const Pricing = () => {
 
                                 <div className={`flex items-baseline gap-1 mb-3 border-b-2 ${tier.isPopular ? 'border-primary' : 'border-outline-variant'} pb-2`}>
                                     <span className={`font-headline text-2xl font-black`}>{tier.price}</span>
-                                    <span className="font-label text-[10px] uppercase opacity-60">G / {tier.period}</span>
+                                    {tier.price !== "Free" && (
+                                        <span className="font-label text-xs uppercase opacity-70"> / {tier.period}</span>
+                                    )}
                                 </div>
 
-                                <p className="mb-4 italic opacity-80 text-[10px] leading-tight">
+                                <p className="mb-4 italic opacity-90 text-xs leading-snug">
                                     "{tier.description}"
                                 </p>
 
-                                <ul className="space-y-1 mb-4 flex-grow">
+                                <ul className="space-y-1.5 mb-4 flex-grow">
                                     {tier.features.map((feature, fIndex) => (
-                                        <li key={fIndex} className="flex items-start gap-1">
-                                            <span className={`material-symbols-outlined ${tier.color} text-sm`}>
+                                        <li key={fIndex} className="flex items-start gap-1.5">
+                                            <span className={`material-symbols-outlined ${tier.color} text-base flex-shrink-0`}>
                                                 {tier.isPopular ? 'verified' : 'check_small'}
                                             </span>
-                                            <span className="font-body text-[10px] uppercase leading-tight">{feature}</span>
+                                            <span className="font-body text-xs leading-snug">{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
 
                                 <button
                                     onClick={() => handleSubscribe(tier)}
-                                    disabled={loading || tier.price === "0"}
+                                    disabled={loading || tier.vndAmount === 0}
                                     className={`w-full ${tier.btnBg} ${tier.btnText} py-2 font-headline text-sm uppercase carved-bevel active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     {loading ? 'Scribing...' : tier.buttonText}
@@ -186,17 +213,16 @@ const Pricing = () => {
                         ))}
                     </div>
 
-                    {/* Footer - Compact and inline with content if possible */}
-                    <footer className="w-full border-t border-black/10 flex flex-col items-center justify-center py-4 px-4 space-y-2 bg-black/5 backdrop-blur-sm">
-                        <div className="text-sm font-bold text-stone-900 font-headline uppercase tracking-widest">
+                    <footer className="bg-stone-200 w-full border-t-2 border-stone-300 flex flex-col items-center justify-center py-8 px-4 space-y-3">
+                        <div className="text-lg font-bold text-stone-900 font-headline uppercase tracking-widest">
                             Questly
                         </div>
-                        <nav className="flex space-x-4">
-                            {['Terms', 'Privacy', 'Support'].map(link => (
-                                <a key={link} className="text-stone-600 font-serif text-[10px] italic hover:text-amber-700 underline underline-offset-2 transition-opacity opacity-80" href="#">{link}</a>
-                            ))}
+                        <nav className="flex space-x-6">
+                            <Link className="text-stone-600 font-serif text-sm italic hover:text-amber-700 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" to="/terms">Terms of Service</Link>
+                            <Link className="text-stone-600 font-serif text-sm italic hover:text-amber-700 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" to="/privacy">Privacy Policy</Link>
+                            <Link className="text-stone-600 font-serif text-sm italic hover:text-amber-700 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" to="/support">Support</Link>
                         </nav>
-                        <p className="font-serif text-[10px] italic text-stone-700">
+                        <p className="font-serif text-sm italic text-stone-700">
                             © 2026 Questly. All rights reserved.
                         </p>
                     </footer>

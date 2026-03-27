@@ -36,7 +36,7 @@ const TYPE_ICON = {
 };
 
 const SLOT_ICON = {
-  head: 'helm',
+  head: 'smart_toy',
   weapon: 'swords',
   offhand: 'shield',
   body: 'shield_person',

@@ -285,24 +285,24 @@ const Home = () => {
           Questly
         </div>
         <nav className="flex space-x-6">
-          <a
+          <Link
             className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
-            href="#"
+            to="/terms"
           >
             Terms of Service
-          </a>
-          <a
+          </Link>
+          <Link
             className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
-            href="#"
+            to="/privacy"
           >
             Privacy Policy
-          </a>
-          <a
+          </Link>
+          <Link
             className="text-stone-600 dark:text-stone-400 font-serif text-sm italic hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100"
-            href="#"
+            to="/support"
           >
             Support
-          </a>
+          </Link>
         </nav>
         <p className="font-serif text-sm italic text-stone-700 dark:text-stone-300">
           © 2026 Questly. All rights reserved.
