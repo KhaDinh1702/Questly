@@ -59,7 +59,9 @@ export default {
       fontFamily: {
         "headline": ["'Pixelify Sans'", "sans-serif"],
         "body": ["'Pixelify Sans'", "sans-serif"],
-        "label": ["'Pixelify Sans'", "sans-serif"]
+        "label": ["'Pixelify Sans'", "sans-serif"],
+        "serif": ["'Pixelify Sans'", "sans-serif"],
+        "sans": ["'Pixelify Sans'", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0px",

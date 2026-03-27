@@ -231,13 +231,6 @@ export default function Navbar() {
         <div className="flex gap-2 items-center">
           {user ? (
             <>
-              <button
-                className="material-symbols-outlined text-yellow-900 p-2 active:translate-y-0.5 transition-transform hover:bg-orange-100 rounded-none"
-                title="Notifications"
-              >
-                notifications
-              </button>
-
               {/* Square Avatar with Icon Selection */}
               <div className="relative">
                 <button
@@ -261,7 +254,7 @@ export default function Navbar() {
               </div>
 
               {/* Username & Identity */}
-              <div className="hidden min-[1150px]:flex flex-col leading-tight select-none mr-1">
+              <div className="hidden min-[1150px]:flex flex-col leading-tight select-none mr-2">
                 <div className="text-[10px] font-black uppercase tracking-widest text-stone-500 hidden 2xl:block">
                   {identityTitle}
                 </div>
@@ -274,21 +267,6 @@ export default function Navbar() {
                   )}
                 </div>
               </div>
-
-              <button
-                onClick={handleAccount}
-                className="material-symbols-outlined text-yellow-900 p-2 active:translate-y-0.5 transition-transform hover:bg-orange-100 rounded-none"
-                title={user.username}
-              >
-                settings
-              </button>
-              <button
-                onClick={handleLogout}
-                className="material-symbols-outlined text-yellow-900 p-2 active:translate-y-0.5 transition-transform hover:bg-error-container hover:text-error rounded-none ml-2"
-                title="Logout"
-              >
-                logout
-              </button>
             </>
           ) : (
             <div className="flex items-center gap-4 text-sm font-serif uppercase tracking-wider">
@@ -310,19 +288,45 @@ export default function Navbar() {
           className="material-symbols-outlined text-yellow-900 p-2 hover:bg-orange-100 rounded-none transition-colors"
           title="More"
         >
-          menu
+          {showMenu ? 'close' : 'menu'}
         </button>
 
         {showMenu && (
-          <div className="absolute right-0 top-full mt-1 w-48 bg-orange-50 border-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] z-[200] flex flex-col">
+          <div className="absolute right-0 top-full mt-1 w-56 bg-orange-50 border-4 border-yellow-900 shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] z-[200] flex flex-col">
+            {user && (
+              <>
+                <button
+                  className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-stone-700 uppercase tracking-wider text-sm hover:bg-orange-100 hover:text-yellow-900 transition-colors border-b-2 border-yellow-900/10 text-left"
+                >
+                  <span className="material-symbols-outlined text-[18px]">notifications</span>
+                  Notifications
+                </button>
+                <button
+                  onClick={() => { handleAccount(); setShowMenu(false); }}
+                  className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-stone-700 uppercase tracking-wider text-sm hover:bg-orange-100 hover:text-yellow-900 transition-colors border-b-2 border-yellow-900/10 text-left"
+                >
+                  <span className="material-symbols-outlined text-[18px]">settings</span>
+                  Settings
+                </button>
+              </>
+            )}
             <Link
               to="/support"
               onClick={() => setShowMenu(false)}
-              className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-stone-700 uppercase tracking-wider text-sm hover:bg-orange-100 hover:text-yellow-900 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-stone-700 uppercase tracking-wider text-sm hover:bg-orange-100 hover:text-yellow-900 transition-colors border-b-2 border-yellow-900/10"
             >
               <span className="material-symbols-outlined text-[18px]">help</span>
               Support
             </Link>
+            {user && (
+              <button
+                onClick={() => { handleLogout(); setShowMenu(false); }}
+                className="flex items-center gap-2 px-4 py-3 font-serif font-semibold text-error uppercase tracking-wider text-sm hover:bg-error-container hover:text-error transition-colors text-left"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+                Logout
+              </button>
+            )}
           </div>
         )}
       </div>
