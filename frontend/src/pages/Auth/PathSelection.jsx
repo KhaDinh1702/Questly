@@ -98,11 +98,11 @@ export default function PathSelection() {
         <span className="material-symbols-outlined cursor-pointer text-[#7a5907]" onClick={() => navigate('/character-selection')}>arrow_back</span>
       </header>
 
-      <main className="stone-texture flex flex-col items-center py-12 px-4">
+      <main className="stone-texture flex flex-col items-center py-6 px-4">
         <div className="max-w-7xl w-full">
           <div className="text-center mb-16">
-            <h1 className="font-headline text-6xl md:text-7xl font-extrabold uppercase tracking-tighter text-on-surface mb-2">Choose Your Path</h1>
-            <p className="font-headline italic text-2xl text-primary">Warden: "What is your goal?"</p>
+            <h1 className="font-headline text-4xl md:text-5xl font-extrabold uppercase tracking-tighter text-on-surface mb-1">Choose Your Path</h1>
+            <p className="font-headline italic text-lg text-primary">Warden: "What is your goal?"</p>
           </div>
 
           {error && <div className="max-w-md mx-auto bg-error-container text-on-error-container p-4 mb-8 border-l-4 border-error text-sm font-bold text-center">{error}</div>}
@@ -116,13 +116,13 @@ export default function PathSelection() {
                   onClick={() => setSelectedPath(path.id)}
                   className={`ornate-frame p-1 transition-all duration-300 cursor-pointer ${isSelected ? 'ring-8 ring-primary/20 -translate-y-4 z-10 scale-105' : 'hover:-translate-y-2'}`}
                 >
-                  <div className={`border p-6 h-full flex flex-col ${isSelected ? 'border-primary bg-surface-container-low shadow-2xl relative' : 'border-outline'}`}>
+                  <div className={`border p-4 h-full flex flex-col ${isSelected ? 'border-primary bg-surface-container-low shadow-2xl relative' : 'border-outline'}`}>
                     {isSelected && <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-8 py-1.5 font-headline uppercase text-sm tracking-[0.3em] pixel-bevel z-20 animate-pulse">Selected</div>}
-                    <h2 className="font-headline text-4xl font-bold text-center text-primary uppercase mb-3">{path.name}</h2>
-                    <p className="text-on-surface-variant text-sm italic mb-8 text-center">{path.description}</p>
+                    <h2 className="font-headline text-3xl font-bold text-center text-primary uppercase mb-1">{path.name}</h2>
+                    <p className="text-on-surface-variant text-xs italic mb-4 text-center">{path.description}</p>
 
                     <section className="mb-6">
-                      <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4 border-b border-outline-variant pb-1 text-center">Rewards</h3>
+                      <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2 border-b border-outline-variant pb-1 text-center">Rewards</h3>
                       <div className="grid grid-cols-1 gap-2">
                         {path.skills.map((skill) => (
                           <div key={skill} className={`flex items-center gap-2 text-xs p-2 ${isSelected ? 'bg-primary/10 border border-primary/20 font-bold' : 'bg-surface-container-highest/30'}`}>
@@ -151,7 +151,7 @@ export default function PathSelection() {
             })}
           </div>
 
-          <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-8 border-t-2 border-primary/20 pt-8">
+          <div className="mt-10 flex flex-col md:flex-row justify-between items-end gap-8 border-t-2 border-primary/20 pt-8">
             <p className="text-on-surface text-base italic border-l-4 border-primary pl-6 py-2 leading-relaxed max-w-xl">
               Warden: "The path you choose is dangerous. Are you truly certain?"
             </p>

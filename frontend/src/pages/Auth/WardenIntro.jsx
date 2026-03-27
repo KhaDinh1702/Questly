@@ -113,7 +113,7 @@ export default function WardenIntro() {
             }}
           />
 
-          <div className="p-8 sm:p-12 md:p-16">
+          <div className="p-4 sm:p-6 md:p-8">
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -129,7 +129,7 @@ export default function WardenIntro() {
               className="relative mb-10"
             >
               <h1
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-[#c4a35a] font-serif text-center tracking-wider relative"
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl text-[#c4a35a] font-serif text-center tracking-wider relative"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   textShadow: '0 0 20px rgba(196,163,90,0.6), 2px 2px 0 #5a4a35, 4px 4px 0 #3a2a15',
@@ -138,11 +138,11 @@ export default function WardenIntro() {
                 THE LAST ARCHIVE
               </h1>
               <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 w-16 h-1 bg-[#c4a35a]"
+                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-12 h-0.5 bg-[#c4a35a]"
                 style={{ imageRendering: 'pixelated' }}
               />
               <div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-6 w-16 h-1 bg-[#c4a35a]"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4 w-12 h-0.5 bg-[#c4a35a]"
                 style={{ imageRendering: 'pixelated' }}
               />
             </motion.div>
@@ -151,7 +151,7 @@ export default function WardenIntro() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.6 }}
-              className="space-y-6 text-[#d4c4a8] mb-10"
+              className="space-y-4 text-[#d4c4a8] mb-6"
             >
               <motion.p
                 initial={{ opacity: 0, x: -20 }}
@@ -191,7 +191,7 @@ export default function WardenIntro() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 1.5 }}
-                className="relative mt-10 border-4 border-[#c4a35a] bg-black/40 p-6 sm:p-8"
+                className="relative mt-6 border-4 border-[#c4a35a] bg-black/40 p-4 sm:p-6"
                 style={{ imageRendering: 'pixelated' }}
               >
                 <div className="absolute top-0 left-0 w-2 h-2 bg-[#c4a35a]" />
@@ -213,7 +213,7 @@ export default function WardenIntro() {
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.8, delay: 1.7 }}
-              className="h-1 bg-[#c4a35a] mb-8"
+              className="h-1 bg-[#c4a35a] mb-6"
               style={{ imageRendering: 'pixelated' }}
             />
 

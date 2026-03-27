@@ -135,13 +135,13 @@ const CharacterSelection = () => {
         </div>
       </header>
 
-      <main className="stone-texture flex flex-col items-center py-12 px-4 min-h-[calc(100vh-73px)]">
+      <main className="stone-texture flex flex-col items-center py-6 px-4 min-h-[calc(100vh-73px)]">
         <div className="max-w-7xl w-full">
           <div className="text-center mb-16 relative">
-            <h1 className="font-headline text-6xl md:text-8xl font-extrabold uppercase tracking-tighter text-on-surface mb-2">The Great Register</h1>
+            <h1 className="font-headline text-4xl md:text-5xl font-extrabold uppercase tracking-tighter text-on-surface mb-1">The Great Register</h1>
             <div className="flex justify-center items-center gap-4">
               <div className="h-px w-24 bg-primary"></div>
-              <p className="font-headline italic text-2xl text-primary">Choose your destiny within the ink</p>
+              <p className="font-headline italic text-lg text-primary">Choose your destiny within the ink</p>
               <div className="h-px w-24 bg-primary"></div>
             </div>
           </div>
@@ -166,13 +166,13 @@ const CharacterSelection = () => {
                     isSelected ? 'ring-8 ring-primary/20 -translate-y-4 z-10 scale-105' : 'hover:-translate-y-2'
                   }`}
                 >
-                  <div className={`border p-6 h-full flex flex-col transition-colors ${isSelected ? 'border-primary bg-surface-container-low shadow-2xl relative' : 'border-outline'}`}>
+                  <div className={`border p-4 h-full flex flex-col transition-colors ${isSelected ? 'border-primary bg-surface-container-low shadow-2xl relative' : 'border-outline'}`}>
                     {isSelected && (
                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-8 py-1.5 font-headline uppercase text-sm tracking-[0.3em] pixel-bevel z-20 animate-pulse">
                         Selected
                       </div>
                     )}
-                    <div className={`relative mb-8 portrait-arch aspect-[4/5] flex items-center justify-center border-4 border-primary overflow-hidden ${isSelected ? 'bg-primary/10 shadow-inner' : 'bg-surface-container-low'}`}>
+                    <div className={`relative mb-4 portrait-arch aspect-square sm:aspect-[4/5] flex items-center justify-center border-4 border-primary overflow-hidden ${isSelected ? 'bg-primary/10 shadow-inner' : 'bg-surface-container-low'}`}>
                       <div className={`absolute inset-0 dither-pattern ${isSelected ? 'opacity-20' : 'opacity-10'}`}></div>
                       {cls.image ? (
                         <img src={cls.image} alt={cls.name} className="w-full h-full object-cover" />
@@ -184,12 +184,12 @@ const CharacterSelection = () => {
                       <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-transparent ${isSelected ? 'to-primary/20' : 'to-surface-container-low/20'}`}></div>
                     </div>
 
-                    <h2 className="font-headline text-4xl font-bold text-center text-primary uppercase mb-2 tracking-widest">{cls.name}</h2>
-                    <p className="text-on-surface-variant text-sm italic mb-8 leading-relaxed text-center px-4">
+                    <h2 className="font-headline text-3xl font-bold text-center text-primary uppercase mb-1 tracking-widest">{cls.name}</h2>
+                    <p className="text-on-surface-variant text-xs italic mb-4 leading-relaxed text-center px-4">
                       {cls.description}
                     </p>
 
-                    <div className="space-y-8 flex-grow">
+                    <div className="space-y-4 flex-grow">
                       <section>
                         <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4 border-b border-outline-variant pb-1 text-center">Primary Skills</h3>
                         <div className="grid grid-cols-2 gap-2">
@@ -202,7 +202,7 @@ const CharacterSelection = () => {
                       </section>
 
                       <section>
-                        <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4 border-b border-outline-variant pb-1 text-center">Attributes</h3>
+                        <h3 className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2 border-b border-outline-variant pb-1 text-center">Attributes</h3>
                         <div className="space-y-4 px-2">
                           {Object.entries(cls.attributes).map(([attr, val]) => (
                             <div key={attr} className="space-y-1">
@@ -223,7 +223,7 @@ const CharacterSelection = () => {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleForgePath(); }}
                         disabled={loading}
-                        className="mt-10 bg-primary text-on-primary font-headline py-5 px-6 text-2xl uppercase font-bold tracking-[0.2em] pixel-bevel hover:bg-primary-container hover:text-on-primary-container transition-all active:translate-y-1 shadow-lg disabled:opacity-50"
+                        className="mt-6 bg-primary text-on-primary font-headline py-3 px-6 text-xl uppercase font-bold tracking-[0.2em] pixel-bevel hover:bg-primary-container hover:text-on-primary-container transition-all active:translate-y-1 shadow-lg disabled:opacity-50"
                       >
                         {loading ? 'Forging...' : 'Forge This Path'}
                       </button>
@@ -234,7 +234,7 @@ const CharacterSelection = () => {
             })}
           </div>
 
-          <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-8 border-t-2 border-primary/20 pt-8">
+          <div className="mt-10 flex flex-col md:flex-row justify-between items-end gap-8 border-t-2 border-primary/20 pt-8">
             <div className="max-w-xl">
               <div className="flex items-center gap-4 mb-4">
                 <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
