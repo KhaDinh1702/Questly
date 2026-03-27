@@ -29,21 +29,21 @@ function HudBar() {
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>directions_walk</span>
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Turns</span>
+          <span className="text-[10px] uppercase font-bold text-stone-400 tracking-tighter">Turns</span>
           <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.turns.toLocaleString()}</span>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>generating_tokens</span>
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Gold</span>
+          <span className="text-[10px] uppercase font-bold text-stone-400 tracking-tighter">Gold</span>
           <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.gold.toLocaleString()}</span>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>confirmation_number</span>
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-stone-500 tracking-tighter">Tickets</span>
+          <span className="text-[10px] uppercase font-bold text-stone-400 tracking-tighter">Tickets</span>
           <span className="text-lg font-headline font-bold text-surface-container-high leading-none">{stats.tickets.toLocaleString()}</span>
         </div>
       </div>
@@ -115,7 +115,7 @@ function MyDeckCard({ set, onStudy, onDelete, onEdit, featured }) {
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1">
           <span className={`text-[10px] font-bold uppercase tracking-widest ${statusColor}`}>{statusLabel}</span>
-          <span className="text-[10px] font-bold text-stone-500">{cardCount} Scrolls</span>
+          <span className="text-[10px] font-bold text-stone-700">{cardCount} Scrolls</span>
         </div>
         <div className="w-full bg-stone-800 h-1.5">
           <div
@@ -506,7 +506,7 @@ export default function Grimoire() {
               {/* Page header */}
               <div className="mb-16">
                 <h1 className="font-headline text-5xl font-extrabold text-surface-container-high mb-2">The Grimoire</h1>
-                <p className="text-stone-400 max-w-2xl font-body italic">"Master the scrolls of old. Every sigil memorized is a blade sharpened against the void."</p>
+                <p className="text-stone-700 max-w-2xl font-body italic">"Master the scrolls of old. Every sigil memorized is a blade sharpened against the void."</p>
               </div>
 
               {/* Private Grimoires */}
@@ -520,7 +520,7 @@ export default function Grimoire() {
                 </div>
                 {privateSets.length === 0 ? (
                   <div className="bg-stone-800/30 border-2 border-dashed border-stone-700 p-12 text-center">
-                    <p className="text-stone-500 italic">"No proprietary scrolls found in your collection."</p>
+                    <p className="text-stone-700 italic">"No proprietary scrolls found in your collection."</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -567,7 +567,7 @@ export default function Grimoire() {
             <h2 className="font-headline text-3xl font-bold text-tertiary-fixed-dim">Realm Knowledge</h2>
             <div className="flex flex-col md:flex-row md:items-center gap-4 w-full md:w-auto">
               <div className="relative flex-grow md:w-64">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-sm">search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-600 text-sm">search</span>
                 <input 
                   type="text" 
                   placeholder="Search community scrolls..." 
@@ -579,7 +579,7 @@ export default function Grimoire() {
                 />
               </div>
               <div className="flex gap-4">
-                <span className="text-stone-500 font-label text-xs uppercase self-center hidden lg:block">Filter by:</span>
+                <span className="text-stone-700 font-label text-xs uppercase self-center hidden lg:block">Filter by:</span>
                 <button
                   onClick={() => setFilter('popular')}
                   className={`px-3 py-1 text-xs font-bold uppercase transition-colors ${filter === 'popular' ? 'bg-stone-800 text-stone-200 border border-stone-600' : 'border border-stone-700 text-stone-400 hover:bg-stone-800'}`}
