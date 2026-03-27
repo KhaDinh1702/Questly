@@ -488,14 +488,15 @@ export default function Grimoire() {
     : [...publicSets].sort((a, b) => (b.studiedCount ?? 0) - (a.studiedCount ?? 0));
 
   return (
-    <div className="relative font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+    <div className="relative font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container h-screen flex flex-col overflow-hidden">
       <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
         <img alt="Library background" className="w-full h-full object-cover opacity-25 mix-blend-luminosity" src="/maps/bg_library.png" />
       </div>
       <Navbar />
       <HudBar />
 
-      <main className="max-w-7xl mx-auto px-6 py-12 w-full">
+      <main className="flex-grow overflow-y-auto w-full custom-scrollbar">
+        <div className="max-w-7xl mx-auto px-6 py-12 w-full">
         {(() => {
           const privateSets   = mySets.filter(s => !s.acquired);
           const communitySets = mySets.filter(s => s.acquired);
@@ -602,7 +603,8 @@ export default function Grimoire() {
             )}
           </div>
         </section>
-      </main>
+          </div>
+        </main>
 
       {/* FAB — Inscribe New */}
       <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3">

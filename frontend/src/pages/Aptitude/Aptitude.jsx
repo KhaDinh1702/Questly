@@ -144,12 +144,13 @@ export default function Aptitude() {
   // ─── LOBBY ───────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+      <div className="relative font-body text-on-surface h-screen flex flex-col overflow-hidden">
         <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
           <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
         </div>
         <Navbar />
-        <main className="flex-grow flex flex-col items-center justify-center p-6 gap-6 max-w-2xl mx-auto w-full">
+        <main className="flex-grow overflow-y-auto w-full custom-scrollbar">
+          <div className="flex flex-col items-center justify-center p-6 gap-6 max-w-2xl mx-auto w-full py-12">
 
           <div className="text-center">
             <h1 className="font-headline text-5xl font-black text-primary mb-2">The Aptitude Trial</h1>
@@ -262,10 +263,11 @@ export default function Aptitude() {
           <button onClick={() => navigate('/grimoire')} className="text-stone-500 hover:text-stone-300 text-sm font-bold uppercase tracking-widest transition-colors">
             ← Return to Grimoire
           </button>
-        </main>
-      </div>
-    );
-  }
+        </div>
+      </main>
+    </div>
+  );
+}
 
   // ─── LOADING ─────────────────────────────────────────────────
   if (phase === 'loading') {
@@ -282,13 +284,14 @@ export default function Aptitude() {
     const passed = finalScore >= 50;
 
     return (
-      <div className="relative font-body text-on-surface min-h-screen flex flex-col border-t-8 border-tertiary">
+      <div className="relative font-body text-on-surface h-screen flex flex-col overflow-hidden border-t-8 border-tertiary">
         <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
           <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
         </div>
         <Navbar />
-        <main className="flex-grow flex items-center justify-center p-6">
-          <div className="bg-surface-container-high p-12 max-w-xl w-full text-center border-2 border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)]">
+        <main className="flex-grow overflow-y-auto w-full custom-scrollbar">
+          <div className="flex items-center justify-center p-6 py-12">
+            <div className="bg-surface-container-high p-12 max-w-xl w-full text-center border-2 border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)]">
 
             {/* Practice mode banner */}
             {testMode === 'practice' && (
@@ -376,6 +379,7 @@ export default function Aptitude() {
                 Return to Grimoire
               </button>
             </div>
+            </div>
           </div>
         </main>
       </div>
@@ -386,51 +390,52 @@ export default function Aptitude() {
   const currentQuestion = questions[currentIndex];
 
   return (
-    <div className="relative font-body text-on-surface min-h-screen flex flex-col">
+    <div className="relative font-body text-on-surface h-screen flex flex-col overflow-hidden">
       <div className="fixed inset-0 w-full h-full z-[-1] bg-stone-900 overflow-hidden">
         <img alt="Library background" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" src="/maps/bg_library.png" />
       </div>
       <Navbar />
 
-      {/* Mode banner */}
-      {testMode === 'practice' && (
-        <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
-          Practice Test — no rewards this run.
-          {remainingPracticeAttempts !== null && remainingPracticeAttempts !== undefined ? (
-            <span className="block font-bold text-stone-300 mt-1 normal-case tracking-wider">
-              Remaining practice attempts: {remainingPracticeAttempts}
-            </span>
-          ) : null}
-        </div>
-      )}
-      {testMode === 'real' && !rewardEligible && (
-        <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
-          Real Test — daily reward limit reached. No rewards this run.
-        </div>
-      )}
+      <div className="flex-grow overflow-y-auto w-full custom-scrollbar">
+        {/* Mode banner */}
+        {testMode === 'practice' && (
+          <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
+            Practice Test — no rewards this run.
+            {remainingPracticeAttempts !== null && remainingPracticeAttempts !== undefined ? (
+              <span className="block font-bold text-stone-300 mt-1 normal-case tracking-wider">
+                Remaining practice attempts: {remainingPracticeAttempts}
+              </span>
+            ) : null}
+          </div>
+        )}
+        {testMode === 'real' && !rewardEligible && (
+          <div className="w-full bg-stone-800 text-stone-400 text-center text-xs font-bold uppercase tracking-widest py-2">
+            Real Test — daily reward limit reached. No rewards this run.
+          </div>
+        )}
 
-      {/* Early leave warning (Real Test) */}
-      {testMode === 'real' && testSetId && (
-        <div className="w-full bg-white bg-error-container/20 border border-error/30 text-error text-center text-xs font-bold uppercase tracking-widest py-2 px-4">
-          Warning: If you leave this Real Test before finishing (refresh, close tab, or navigate away), you will lose your Real Test attempt for this flashcard set and you won&apos;t be able to take the Real Test again. Practice will remain available.
-        </div>
-      )}
+        {/* Early leave warning (Real Test) */}
+        {testMode === 'real' && testSetId && (
+          <div className="w-full bg-white bg-error-container/20 border border-error/30 text-error text-center text-xs font-bold uppercase tracking-widest py-2 px-4">
+            Warning: If you leave this Real Test before finishing (refresh, close tab, or navigate away), you will lose your Real Test attempt for this flashcard set and you won&apos;t be able to take the Real Test again. Practice will remain available.
+          </div>
+        )}
 
-      {/* Progress Bar */}
-      <div className="w-full bg-stone-950 px-6 py-4 flex flex-col items-center">
-        <div className="w-full max-w-3xl flex justify-between text-[10px] uppercase font-bold text-stone-500 tracking-widest mb-2">
-          <span>Question {currentIndex + 1}</span>
-          <span>{questions.length - currentIndex - 1} Remaining</span>
+        {/* Progress Bar */}
+        <div className="w-full bg-stone-950 px-6 py-4 flex flex-col items-center">
+          <div className="w-full max-w-3xl flex justify-between text-[10px] uppercase font-bold text-stone-500 tracking-widest mb-2">
+            <span>Question {currentIndex + 1}</span>
+            <span>{questions.length - currentIndex - 1} Remaining</span>
+          </div>
+          <div className="w-full max-w-3xl h-1 bg-stone-800">
+            <div
+              className="h-full bg-secondary transition-all duration-300"
+              style={{ width: `${(currentIndex / questions.length) * 100}%` }}
+            />
+          </div>
         </div>
-        <div className="w-full max-w-3xl h-1 bg-stone-800">
-          <div
-            className="h-full bg-secondary transition-all duration-300"
-            style={{ width: `${(currentIndex / questions.length) * 100}%` }}
-          />
-        </div>
-      </div>
 
-      <main className="flex-grow flex flex-col items-center p-6 w-full max-w-4xl mx-auto mt-8">
+        <main className="flex flex-col items-center p-6 w-full max-w-4xl mx-auto mt-8 pb-12">
         <div className="w-full text-center mb-12">
           <span className="inline-block px-3 py-1 bg-stone-800 text-stone-400 uppercase tracking-widest text-[10px] font-bold mb-6 border border-stone-700">What is the meaning of</span>
           <h2 className="font-headline text-3xl md:text-5xl font-black text-surface-container-high leading-tight">
@@ -462,5 +467,6 @@ export default function Aptitude() {
         </div>
       </main>
     </div>
+  </div>
   );
 }

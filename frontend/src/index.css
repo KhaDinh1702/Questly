@@ -51,4 +51,17 @@
   .parchment-shadow {
       box-shadow: 15px 15px 40px rgba(0,0,0,0.6);
   }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(72, 50, 0, 0.5);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(194, 153, 71, 0.8);
+  }
 }

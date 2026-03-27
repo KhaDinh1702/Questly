@@ -781,7 +781,7 @@ export default function Dungeon() {
   // ── Render ────────────────────────────────────────────────
   return (
     <div
-      className="text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden min-h-screen flex flex-col"
+      className="text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container h-screen overflow-hidden flex flex-col"
       style={{
         backgroundImage: "url('/maps/dungeon.gif')",
         backgroundSize: 'cover',
@@ -789,7 +789,6 @@ export default function Dungeon() {
         backgroundAttachment: 'fixed'
       }}
     >
-
       <Navbar />
 
       {/* ── Toast message ── */}

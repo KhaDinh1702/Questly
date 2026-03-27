@@ -5,6 +5,7 @@ import warriorImg from '../../assets/images/classes/warrior.jpg';
 import mageImg from '../../assets/images/classes/mage.png';
 import rogueImg from '../../assets/images/classes/rogue.jpg';
 import { computeClassScaledStats, formatBonusLines, getEquippedBonusFromInventory, mergeCoreStats } from '../../utils/stats';
+import './Armory.css';
 
 const CLASS_ORDER = ['warrior', 'rogue', 'mage'];
 
@@ -39,6 +40,8 @@ const SLOT_ICON = {
   weapon: 'swords',
   offhand: 'shield',
   body: 'shield_person',
+  legs: 'stat_3',
+  feet: 'footprint',
   ring1: 'diamond',
   ring2: 'diamond',
 };
@@ -57,6 +60,7 @@ export default function Armory() {
   const [equipMsg, setEquipMsg] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [capacity, setCapacity] = useState(5);
+  const [activeTab, setActiveTab] = useState('Character');
 
   async function refreshInventoryAndEquip() {
     const token = localStorage.getItem('token');
@@ -238,281 +242,285 @@ export default function Armory() {
     { key: 'weapon', label: 'Main Hand', fallbackIcon: 'swords' },
     { key: 'offhand', label: 'Off Hand', fallbackIcon: 'shield' },
     { key: 'body', label: 'Torso', fallbackIcon: 'shield_person' },
+    { key: 'legs', label: 'Legs', fallbackIcon: 'stat_3' },
+    { key: 'feet', label: 'Feet', fallbackIcon: 'footprint' },
     { key: 'ring1', label: 'Ring 1', fallbackIcon: 'diamond' },
     { key: 'ring2', label: 'Ring 2', fallbackIcon: 'diamond' },
   ];
 
   return (
     <div
-      className="text-on-surface font-body min-h-screen pb-24"
+      className="text-on-surface font-body min-h-screen pb-24 flex flex-col"
       style={{
         backgroundImage: "url('/maps/Armory.gif')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
       }}
     >
       <Navbar />
 
-      <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* Left Column: Character Sprite & Class Selection */}
-        <section className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-surface-container border-4 border-on-surface p-1 shadow-[8px_8px_0px_0px_rgba(31,28,11,1)]">
-            <div
-              className="bg-surface-container-highest border-2 border-outline p-8 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden"
-              style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px)' }}
-            >
-              {/* Character portrait — same assets as Character Selection */}
-              <div className="relative z-10 w-full max-w-[200px] mx-auto mb-6">
-                <div
-                  className="relative aspect-[4/5] border-4 border-primary overflow-hidden bg-surface-container-low shadow-[inset_0_0_24px_rgba(0,0,0,0.35)]"
-                  style={{
-                    clipPath:
-                      'polygon(0% 100%, 0% 15%, 5% 8%, 15% 3%, 30% 1%, 50% 0%, 70% 1%, 85% 3%, 95% 8%, 100% 15%, 100% 100%)',
-                  }}
-                >
-                  <img
-                    src={CLASS_IMAGE[selectedClass] ?? CLASS_IMAGE.warrior}
-                    alt={CLASS_LABEL[selectedClass]}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-                </div>
-              </div>
-
-              {/* Class Selection Tabs */}
-              <div className="w-full flex justify-center gap-2 mt-auto">
-                {CLASS_ORDER.map((cls) => (
-                  <button
-                    key={cls}
-                    onClick={() => handleClassChange(cls)}
-                    className={`px-4 py-2 font-headline font-bold border-2 active:translate-y-0.5 transition-all
-                      ${selectedClass === cls
-                        ? 'bg-primary text-on-primary border-on-primary-container shadow-[2px_2px_0px_0px_rgba(72,50,0,1)]'
-                        : 'bg-surface-container-low text-primary border-outline shadow-[2px_2px_0px_0px_rgba(128,118,102,1)] hover:bg-surface-container-high'
-                      }`}
-                  >
-                    <span className="material-symbols-outlined text-sm mr-1">{CLASS_ICON[cls]}</span>
-                    {CLASS_LABEL[cls]}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleClassConfirm}
-                  className={`px-4 py-2 border-2 font-headline font-bold transition-colors ${selectedClass !== confirmedClass
-                      ? 'bg-primary text-on-primary border-primary-container'
-                      : 'bg-tertiary text-on-tertiary border-tertiary-container'
-                    }`}
-                >
-                  {selectedClass !== confirmedClass ? 'Confirm New Class' : 'Class Confirmed'}
-                </button>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-outline">
-                    Current: {CLASS_LABEL[confirmedClass]}
-                  </span>
-                  {selectedClass !== confirmedClass && (
-                    <span className="text-[10px] font-black text-primary-container animate-pulse">
-                      CHANGE COST: 1,000G
-                    </span>
-                  )}
-                </div>
-              </div>
-              {classMsg && <p className="text-xs font-bold text-primary mt-2">{classMsg}</p>}
-
-              {/* Visual Accent: Page Fold */}
-              <div
-                className="absolute top-0 right-0 w-12 h-12 bg-surface-dim shadow-[-2px_2px_0px_0px_rgba(0,0,0,0.1)]"
-                style={{ clipPath: 'polygon(0 0, 100% 100%, 100% 0)' }}
-              ></div>
-            </div>
+      <main className="journal-container">
+        <div className="journal-book relative transition-transform">
+          
+          {/* Tabs */}
+          <div className="journal-tab-group">
+            {['Character', 'Bestiary', 'Items'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`journal-tab ${activeTab === tab ? 'active' : ''}`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
-          {/* Stats Panel */}
-          <div className="bg-surface-container p-6 border-4 border-on-surface shadow-[4px_4px_0px_0px_rgba(31,28,11,1)]">
-            <h2 className="font-headline text-2xl font-extrabold text-primary mb-4 border-b-2 border-primary-container pb-2">
-              CHARACTER ATTRIBUTES
-            </h2>
-            <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-outline uppercase tracking-tighter">Level</span>
-                <span className="font-headline text-xl font-bold">{level}</span>
-              </div>
-              <div className="flex flex-col text-right">
-                <span className="text-xs font-bold text-outline uppercase tracking-tighter">Experience</span>
-                <span className="font-headline text-xl font-bold">{exp.toLocaleString()} / {expToNext.toLocaleString()}</span>
-              </div>
-              <div className="col-span-2 bg-surface-variant h-3 border border-outline relative">
-                <div className="absolute inset-0 bg-primary-container" style={{ width: `${expPct}%` }}></div>
-              </div>
+          {/* Left Page: Profile, Stats, Equipment, Compact Grid */}
+          <div className="journal-page journal-page-left custom-scrollbar overflow-y-auto">
+            {activeTab === 'Character' && (
+              <>
+                <div className="flex justify-between items-start mb-4">
+                  <h1 className="medieval-text text-4xl text-black/80">{CLASS_LABEL[confirmedClass]}</h1>
+                  <div className="text-right">
+                    <p className="pixel-text text-xl">LVL {level}</p>
+                    <p className="pixel-text text-sm text-black/50">{exp.toLocaleString()} / {expToNext.toLocaleString()}</p>
+                  </div>
+                </div>
 
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">HP</span>
-                <span className="font-headline font-bold text-error">{totalStats.hp}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">MP</span>
-                <span className="font-headline font-bold text-tertiary">{totalStats.mp}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">AD</span>
-                <span className="font-headline font-bold">{totalStats.ad}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">AP</span>
-                <span className="font-headline font-bold">{totalStats.ap}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">Armor</span>
-                <span className="font-headline font-bold">{totalStats.armor}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-outline-variant py-1">
-                <span className="text-sm font-bold uppercase">MR</span>
-                <span className="font-headline font-bold">{totalStats.mr}</span>
-              </div>
-              <div className="flex justify-between items-center py-1 mt-2 bg-yellow-900/10 px-2 border border-yellow-900/20">
-                <span className="text-sm font-bold uppercase text-yellow-900">Current Gold</span>
-                <span className="font-headline font-bold text-yellow-800">{gold.toLocaleString()}G</span>
-              </div>
-            </div>
-          </div>
-        </section>
+                <div className="flex gap-4 items-start mb-4">
+                  {/* Portrait */}
+                  <div className="w-28 flex-shrink-0 aspect-[3/4] border-2 border-black/20 shadow-lg bg-surface-container overflow-hidden">
+                    <img
+                      src={CLASS_IMAGE[selectedClass] ?? CLASS_IMAGE.warrior}
+                      alt="Portrait"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-        {/* Right Column: Inventory & Equipment */}
-        <section className="lg:col-span-7 flex flex-col gap-8">
+                  {/* Stat Table */}
+                  <div className="flex-grow">
+                    <div className="stat-table">
+                      {[
+                        { label: 'Health', value: totalStats.hp, color: 'text-error' },
+                        { label: 'Mana', value: totalStats.mp, color: 'text-tertiary' },
+                        { label: 'Attack', value: totalStats.ad },
+                        { label: 'Power', value: totalStats.ap },
+                        { label: 'Armor', value: totalStats.armor },
+                        { label: 'Resistance', value: totalStats.mr },
+                      ].map((s) => (
+                        <div key={s.label} className="stat-row">
+                          <span className="stat-label">{s.label}</span>
+                          <span className={`stat-value ${s.color ?? ''}`}>{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-          {/* Equipment Slots */}
-          <div className="bg-surface-container-high p-6 border-4 border-on-surface shadow-[4px_4px_0px_0px_rgba(31,28,11,1)]">
-            <h2 className="font-headline text-2xl font-extrabold text-primary mb-6">CURRENTLY EQUIPPED</h2>
-            <div className="flex flex-wrap gap-6 justify-center lg:justify-start">
-              {equippedSlots.map((slot) => {
-                const userItemId = equipped?.[slot.key];
-                const entry = inventory.find((it) => it._id === userItemId);
-                return (
-                  <button
-                    type="button"
-                    key={slot.key}
-                    onClick={async () => {
-                      if (!entry) return;
-                      try {
-                        await userApi.unequipItem(entry._id);
-                        setInventory((prev) => prev.map((it) => it._id === entry._id ? { ...it, isEquipped: false, slotEquipped: null } : it));
-                        setEquipped((prev) => ({ ...prev, [slot.key]: null }));
-                        setEquipMsg(`Unequipped from ${slot.label}: ${entry.item?.name ?? 'Item'}`);
-                      } catch (e) {
-                        setEquipMsg(e.response?.data?.error ?? 'Failed to unequip from slot.');
-                      }
-                      setTimeout(() => setEquipMsg(''), 2500);
-                    }}
-                    className="group flex flex-col items-center gap-2"
-                    title={entry ? `Click to unequip ${entry.item?.name ?? 'item'}` : `${slot.label} empty`}
-                  >
-                    <div className={`w-16 h-16 bg-surface-variant border-2 border-outline flex items-center justify-center relative shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)] ${entry ? 'hover:border-error' : ''}`}>
-                      <div className="absolute inset-0 flex items-center justify-center bg-primary-fixed/20">
+                {/* Equipment Row */}
+                <h3 className="pixel-text text-lg mb-2 uppercase border-b border-black/10">Equipped</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {equippedSlots.map((slot) => {
+                    const userItemId = equipped?.[slot.key];
+                    const entry = inventory.find((it) => it._id === userItemId);
+                    return (
+                      <button
+                        key={slot.key}
+                        onClick={() => entry && setSelectedItem(entry)}
+                        className={`w-10 h-10 border-2 bg-black/5 flex items-center justify-center relative transition-colors ${
+                          entry ? 'border-primary' : 'border-black/20'
+                        }`}
+                        title={slot.label}
+                      >
                         {entry?.item?.imageUrl ? (
-                          <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-cover drop-shadow-sm" />
+                          <img src={entry.item.imageUrl} alt={slot.label} className="w-full h-full object-contain" />
                         ) : (
-                          <span className="material-symbols-outlined text-on-primary-fixed text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            {entry ? (SLOT_ICON[slot.key] ?? slot.fallbackIcon) : slot.fallbackIcon}
+                          <span className="material-symbols-outlined text-sm opacity-20">
+                            {SLOT_ICON[slot.key] ?? 'help'}
                           </span>
                         )}
+                        {entry && selectedItem?._id === entry._id && (
+                           <div className="absolute inset-0 border-2 border-primary animate-pulse" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Inventory Grid (Compact) */}
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="pixel-text text-lg uppercase">Backpack</h3>
+                  <span className="pixel-text text-xs text-black/40">{inventory.length} / {capacity}</span>
+                </div>
+                <div className="grid grid-cols-6 gap-1">
+                  {displayedInventory.map((entry) => (
+                    <button
+                      key={entry._id}
+                      onClick={() => setSelectedItem(entry)}
+                      className={`aspect-square border p-1 bg-black/5 hover:bg-black/10 transition-colors ${
+                        selectedItem?._id === entry._id ? 'border-primary ring-1 ring-primary' : 'border-black/10'
+                      } ${entry.isEquipped ? 'bg-primary/10' : ''}`}
+                    >
+                      {entry.item?.imageUrl ? (
+                        <img src={entry.item.imageUrl} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="material-symbols-outlined text-xl opacity-40">
+                          {TYPE_ICON[entry.item?.type] ?? 'inventory_2'}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  {Array.from({ length: emptySlots }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square border border-black/5 bg-black/2" />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {activeTab === 'Bestiary' && (
+              <div className="text-center py-20 italic pixel-text opacity-40">Monster records not yet discovered...</div>
+            )}
+            {activeTab === 'Items' && (
+              <div className="text-center py-20 italic pixel-text opacity-40">World artifacts will appear here.</div>
+            )}
+          </div>
+
+          <div className="journal-spine" />
+
+          {/* Right Page: Secondary Info & Detailed Tooltip */}
+          <div className="journal-page journal-page-right custom-scrollbar overflow-y-auto">
+            {activeTab === 'Character' && (
+              <>
+                <div className="mb-4 p-3 bg-black/5 border border-black/10">
+                  <h3 className="pixel-text text-lg border-b border-black/10 mb-2">World Status</h3>
+                  <div className="flex justify-between text-sm pixel-text mb-1">
+                    <span>Gold (Kept)</span>
+                    <span className="text-yellow-800 font-bold">{gold.toLocaleString()} G</span>
+                  </div>
+                  <div className="flex justify-between text-sm pixel-text mb-1 opacity-50">
+                    <span>Relics Found</span>
+                    <span>0</span>
+                  </div>
+                </div>
+
+                {/* Selected Item Detail / Tooltip */}
+                <div className="flex-grow flex flex-col">
+                  {selectedItem ? (
+                    <div className="flex-grow flex flex-col">
+                      <div className="flex gap-4 mb-4">
+                        <div className="w-16 h-16 bg-black/5 border-2 border-black/20 p-2 flex items-center justify-center">
+                          {selectedItem.item?.imageUrl ? (
+                            <img src={selectedItem.item.imageUrl} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="material-symbols-outlined text-4xl opacity-50">
+                              {TYPE_ICON[selectedItem.item?.type] ?? 'inventory_2'}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <h2 className="medieval-text text-2xl mb-0">{selectedItem.item?.name}</h2>
+                          <p className="pixel-text text-sm text-black/60 capitalize">{selectedItem.item?.type} | {selectedItem.item?.rarity}</p>
+                        </div>
+                      </div>
+
+                      <div className="pixel-text text-sm italic mb-4 leading-relaxed p-3 bg-black/2 border-l-4 border-black/10 uppercase font-bold text-black/40">
+                        "{selectedItem.item?.description || 'A simple object with unknown power.'}"
+                      </div>
+
+                      <div className="bg-black/5 p-4 border border-black/10 mb-6">
+                        <h4 className="pixel-text text-xs uppercase mb-2 opacity-60 font-bold">Attunements</h4>
+                        <div className="space-y-1">
+                          {formatBonusLines(selectedItem.item?.statBonuses ?? {}, 4).map((line) => (
+                            <div key={line} className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-primary/40 rotate-45" />
+                              <span className="pixel-text text-sm">{line}</span>
+                            </div>
+                          ))}
+                          {(!selectedItem.item?.statBonuses || Object.keys(selectedItem.item.statBonuses).length === 0) && (
+                            <p className="pixel-text text-xs italic opacity-40">No magical attunements.</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-auto">
+                        <div className="flex gap-2">
+                          {selectedItem.item?.type === 'equipment' && (
+                            <>
+                              {selectedItem.isEquipped ? (
+                                <button
+                                  onClick={handleUnequipSelected}
+                                  className="pixel-text px-4 py-2 bg-red-900 text-white border-2 border-black/40 hover:bg-red-800 transition-colors text-sm"
+                                >
+                                  Unequip
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={handleEquipSelected}
+                                  className="pixel-text px-4 py-2 bg-[#4a3728] text-white border-2 border-black/40 hover:bg-[#5a4738] transition-colors text-sm"
+                                >
+                                  Equip {getEquipTargetSlot(selectedItem.item, equipped)}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        {equipMsg && <p className="pixel-text text-xs mt-2 text-primary">{equipMsg}</p>}
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-outline uppercase">{slot.label}</span>
-                    <span className="text-[10px] text-outline-variant h-3">
-                      {entry?.item?.name ?? 'Empty'}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Inventory Grid */}
-          <div className="bg-surface-container p-6 border-4 border-on-surface shadow-[4px_4px_0px_0px_rgba(31,28,11,1)] relative overflow-hidden">
-            <div className="flex justify-between items-end mb-6">
-              <h2 className="font-headline text-3xl font-extrabold text-primary">LEATHER RUCKSACK</h2>
-              <span className="text-xs font-bold text-outline-variant uppercase bg-on-surface px-2 py-1 text-surface">
-                Capacity: {usedSlots}/{capacity}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4 max-w-md mx-auto lg:mx-0">
-              {displayedInventory.map((entry) => (
-                <button
-                  key={entry._id}
-                  type="button"
-                  onClick={() => setSelectedItem(entry)}
-                  className={`aspect-square bg-surface-variant border-2 p-2 relative group cursor-pointer hover:bg-surface-container-highest transition-colors shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] ${entry.isEquipped ? 'border-primary' : 'border-outline'
-                    }`}
-                >
-                  {entry.item?.imageUrl ? (
-                    <img src={entry.item.imageUrl} alt={entry.item.name} className="w-full h-full object-cover drop-shadow-sm" />
                   ) : (
-                    <span className="material-symbols-outlined text-primary text-3xl flex items-center justify-center w-full h-full">
-                      {TYPE_ICON[entry.item?.type] ?? 'inventory_2'}
-                    </span>
-                  )}
-                  {(entry.quantity ?? 1) > 1 && (
-                    <span className="absolute bottom-1 right-1 text-xs font-bold bg-on-surface text-surface px-1">
-                      x{entry.quantity}
-                    </span>
-                  )}
-                </button>
-              ))}
-
-              {Array.from({ length: emptySlots }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square bg-surface-variant border-2 border-outline p-2 relative group cursor-pointer hover:bg-surface-container-highest transition-colors shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)]"></div>
-              ))}
-            </div>
-
-            {/* Item Detail Tooltip Simulation */}
-            <div className="mt-6 p-4 border-2 border-primary bg-surface-container-low">
-              {loading && <p className="text-sm italic">Loading armory...</p>}
-              {!loading && error && <p className="text-sm text-error">{error}</p>}
-              {!loading && !error && !selectedItem && (
-                <p className="text-sm italic text-on-surface-variant">No items in inventory yet. Buy from shop or roll the gacha chest.</p>
-              )}
-              {!loading && !error && selectedItem && (
-                <>
-                  <h3 className="font-headline font-bold text-lg text-on-surface">{selectedItem.item?.name ?? 'Unknown Item'}</h3>
-                  <p className="text-xs italic text-on-surface-variant mb-2">{selectedItem.item?.description ?? 'No description.'}</p>
-                  <div className="flex flex-wrap gap-4">
-                    {formatBonusLines(selectedItem.item?.statBonuses ?? {}, 4).map((line) => (
-                      <span key={line} className="text-[10px] font-bold uppercase text-primary">{line}</span>
-                    ))}
-                  </div>
-                  {selectedItem.item?.type === 'equipment' ? (
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handleEquipSelected}
-                        className="px-3 py-2 bg-primary text-on-primary font-bold text-xs uppercase"
-                      >
-                        Equip to {getEquipTargetSlot(selectedItem.item, equipped)}
-                      </button>
-                      {selectedItem.isEquipped && (
-                        <button
-                          type="button"
-                          onClick={handleUnequipSelected}
-                          className="px-3 py-2 bg-error text-on-error font-bold text-xs uppercase"
-                        >
-                          Unequip
-                        </button>
-                      )}
+                    <div className="flex-grow flex items-center justify-center text-center p-10 opacity-30 italic pixel-text">
+                      Select an item from your backpack to see details.
                     </div>
-                  ) : (
-                    <p className="mt-3 text-xs text-outline italic">Only equipment items can be equipped.</p>
                   )}
-                  {equipMsg && <p className="text-xs font-bold mt-2 text-primary">{equipMsg}</p>}
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'Bestiary' && (
+              <div className="text-center py-20 px-10 italic pixel-text opacity-40">
+                Study the creatures of the dungeon to fill these pages...
+              </div>
+            )}
+            {activeTab === 'Items' && (
+              <div className="text-center py-20 px-10 italic pixel-text opacity-40">
+                Collect special artifacts during your journey.
+              </div>
+            )}
           </div>
-        </section>
+
+        </div>
       </main>
+
+      {/* Class Change at Bottom (Floating) */}
+      <footer className="fixed bottom-0 left-0 right-0 p-4 flex justify-center bg-black/20 backdrop-blur-sm z-50">
+        <div className="flex items-center gap-6 bg-[#f4e4bc] p-3 border-4 border-[#4a3728] shadow-2xl">
+          <div className="flex gap-2">
+            {CLASS_ORDER.map((cls) => (
+              <button
+                key={cls}
+                onClick={() => handleClassChange(cls)}
+                className={`w-12 h-12 flex items-center justify-center border-2 transition-all ${
+                  selectedClass === cls ? 'bg-primary border-black/40 scale-110 shadow-lg' : 'bg-black/10 border-black/10'
+                }`}
+              >
+                <span className="material-symbols-outlined">{CLASS_ICON[cls]}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-col">
+            <button
+              onClick={handleClassConfirm}
+              className={`px-6 py-2 pixel-text text-lg border-2 border-black/40 transition-colors ${
+                selectedClass !== confirmedClass ? 'bg-primary text-white' : 'bg-green-800 text-white opacity-50'
+              }`}
+            >
+              {selectedClass !== confirmedClass ? `Change to ${CLASS_LABEL[selectedClass]} (1000G)` : `Confirmed: ${CLASS_LABEL[confirmedClass]}`}
+            </button>
+            {classMsg && <p className="pixel-text text-[10px] text-center mt-1 text-primary-fixed">{classMsg}</p>}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

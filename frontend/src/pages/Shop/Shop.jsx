@@ -220,7 +220,7 @@ export default function Shop() {
   /* ──────────────────────────────────────────────────────────────────────────── */
   return (
     <div
-      className="font-body text-on-surface min-h-screen selection:bg-primary-container/30"
+      className="font-body text-on-surface h-screen overflow-hidden flex flex-col selection:bg-primary-container/30"
       style={{
         backgroundImage: "url('/maps/shop.gif')",
         backgroundSize: 'cover',
@@ -230,35 +230,14 @@ export default function Shop() {
     >
       <Navbar />
 
+      <div className="flex-grow overflow-y-auto w-full custom-scrollbar">
+
       {/* toast */}
       {buyMsg && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-6 py-3 font-bold shadow-lg text-sm">
           {buyMsg}
         </div>
       )}
-
-      {/* ── currency bar ────────────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-amber-50 shadow-sm">
-        <div className="flex justify-end items-center px-6 py-3 gap-4">
-          <div className="flex items-center gap-2 bg-surface-container-high px-3 py-1 border-b-2 border-primary">
-            <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-              payments
-            </span>
-            <span className="font-bold text-on-surface">
-              {gold === null ? '—' : `${gold.toLocaleString()} G`}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-secondary-container px-3 py-1 border-b-2 border-secondary">
-            <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-              confirmation_number
-            </span>
-            <span className="font-bold text-on-secondary-container">
-              {tickets === null ? '—' : `${tickets} Tickets`}
-            </span>
-          </div>
-        </div>
-        <div className="bg-stone-200 h-px w-full opacity-20" />
-      </div>
 
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-12">
 
@@ -345,100 +324,103 @@ export default function Shop() {
           </div>
         </section>
 
-        {/* ── Filter Bar ──────────────────────────────────────────────────── */}
-        <section className="bg-surface-container-low border-2 border-outline/10 p-4 space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-outline">Filter Items</h3>
+        {/* ── Currency & Filters (Not Fixed) ────────────────────────────────── */}
+        <section className="bg-amber-50/90 border-2 border-stone-300 p-6 space-y-6 shadow-md shadow-black/20">
+          <div className="flex justify-between items-center border-b border-stone-300 pb-4">
+            <h3 className="font-headline font-black text-xl text-yellow-900 uppercase tracking-widest">Shop Navigation</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-white px-3 py-1 border-2 border-primary shadow-[2px_2px_0_0_rgba(122,89,7,0.3)]">
+                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+                <span className="font-bold text-on-surface">{gold === null ? '—' : `${gold.toLocaleString()} G`}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-3 py-1 border-2 border-secondary shadow-[2px_2px_0_0_rgba(31,28,11,0.3)]">
+                <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>confirmation_number</span>
+                <span className="font-bold text-stone-700">{tickets === null ? '—' : `${tickets} Tickets`}</span>
+              </div>
+            </div>
+          </div>
 
-          {/* Class filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-outline-variant mr-1">Class:</span>
-            {CLASSES.map((cls) => {
-              const active = activeClasses.has(cls.value);
-              return (
+          <div className="flex flex-wrap gap-8 items-start">
+            {/* Class filter */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 mr-2">Class:</span>
+              {CLASSES.map((cls) => {
+                const active = activeClasses.has(cls.value);
+                return (
+                  <button
+                    key={cls.value}
+                    onClick={() => toggleClass(cls.value)}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all border-2 active:scale-95
+                      ${active
+                        ? 'bg-primary text-on-primary border-primary'
+                        : 'bg-white text-stone-600 border-stone-200 hover:border-primary/50 text-outline'
+                      }`}
+                    style={active ? carvedBevel : undefined}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">{cls.icon}</span>
+                    {cls.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Type filter */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 mr-2">Type:</span>
+              {ITEM_TYPES.map((t) => {
+                const active = activeTypes.has(t.value);
+                return (
+                  <button
+                    key={t.value}
+                    onClick={() => toggleType(t.value)}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all border-2 active:scale-95
+                      ${active
+                        ? 'bg-tertiary text-on-tertiary border-tertiary'
+                        : 'bg-white text-stone-600 border-stone-200 hover:border-tertiary/50'
+                      }`}
+                    style={active ? stoneBevel : undefined}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">{TYPE_ICON[t.value]}</span>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Rarity filter */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 mr-2">Rarity:</span>
+              {RARITIES.map((r) => (
                 <button
-                  key={cls.value}
-                  onClick={() => toggleClass(cls.value)}
-                  className={`flex items-center gap-2 px-4 py-2 font-bold transition-all border-2 active:scale-95
-                    ${active
-                      ? 'bg-primary text-on-primary border-primary'
-                      : 'bg-surface text-on-surface border-outline-variant hover:bg-surface-variant'
+                  key={r}
+                  onClick={() => toggleRarity(r)}
+                  className={`px-3 py-1 text-[10px] font-black uppercase border-2 transition-all active:scale-95
+                    ${activeRarity === r
+                      ? 'bg-stone-800 text-white border-stone-800'
+                      : `bg-white border-stone-200 hover:border-stone-400 ${RARITY_COLOR[r]}`
                     }`}
-                  style={active ? carvedBevel : undefined}
                 >
-                  <span className="material-symbols-outlined text-sm">{cls.icon}</span>
-                  {cls.label}
-                  {active && <span className="material-symbols-outlined text-xs">check</span>}
+                  {r}
                 </button>
-              );
-            })}
-            {activeClasses.size > 0 && (
-              <button onClick={() => setActiveClasses(new Set())}
-                className="text-xs font-bold text-error hover:underline ml-1">
-                Clear
-              </button>
-            )}
+              ))}
+            </div>
           </div>
 
-          {/* Type filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-outline-variant mr-1">Type:</span>
-            {ITEM_TYPES.map((t) => {
-              const active = activeTypes.has(t.value);
-              return (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest italic">
+              Showing {filtered.length} of {allItems.length} items
+              {(activeClasses.size > 0 || activeTypes.size > 0 || activeRarity) && (
                 <button
-                  key={t.value}
-                  onClick={() => toggleType(t.value)}
-                  className={`flex items-center gap-2 px-3 py-1.5 text-sm font-bold transition-all border active:scale-95
-                    ${active
-                      ? 'bg-tertiary text-on-tertiary border-tertiary'
-                      : 'bg-surface text-on-surface border-outline-variant hover:bg-surface-variant'
-                    }`}
-                  style={active ? stoneBevel : undefined}
+                  onClick={() => { setActiveClasses(new Set()); setActiveTypes(new Set()); setActiveRarity(''); }}
+                  className="ml-3 font-black text-error hover:underline cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-sm">{TYPE_ICON[t.value]}</span>
-                  {t.label}
+                  Reset all filters
                 </button>
-              );
-            })}
-            {activeTypes.size > 0 && (
-              <button onClick={() => setActiveTypes(new Set())}
-                className="text-xs font-bold text-error hover:underline ml-1">
-                Clear
-              </button>
-            )}
+              )}
+            </p>
           </div>
-
-          {/* Rarity filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-outline-variant mr-1">Rarity:</span>
-            {RARITIES.map((r) => (
-              <button
-                key={r}
-                onClick={() => toggleRarity(r)}
-                className={`px-3 py-1 text-xs font-black uppercase border-2 transition-all active:scale-95
-                  ${activeRarity === r
-                    ? 'bg-on-surface text-surface border-on-surface'
-                    : `bg-surface border-outline-variant hover:bg-surface-variant ${RARITY_COLOR[r]}`
-                  }`}
-              >
-                {r} – {RARITY_LABEL[r]}
-              </button>
-            ))}
-          </div>
-
-          {/* Result count */}
-          <p className="text-xs text-outline italic">
-            Showing {filtered.length} of {allItems.length} items
-            {(activeClasses.size > 0 || activeTypes.size > 0 || activeRarity) && (
-              <button
-                onClick={() => { setActiveClasses(new Set()); setActiveTypes(new Set()); setActiveRarity(''); }}
-                className="ml-3 font-bold text-error hover:underline"
-              >
-                Reset all filters
-              </button>
-            )}
-          </p>
         </section>
+
 
         {/* ── Item Grid ───────────────────────────────────────────────────── */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
@@ -456,9 +438,9 @@ export default function Shop() {
             <ItemCard key={item._id} item={item} onBuy={handleBuy} stoneBevel={stoneBevel} />
           ))}
         </section>
-
       </div>
     </div>
+  </div>
   );
 }
 
