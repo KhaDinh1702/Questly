@@ -57,11 +57,11 @@ export default {
         "on-primary-container": "#483200"
       },
       fontFamily: {
-        "headline": ["'Pixelify Sans'", "sans-serif"],
-        "body": ["'Pixelify Sans'", "sans-serif"],
-        "label": ["'Pixelify Sans'", "sans-serif"],
-        "serif": ["'Pixelify Sans'", "sans-serif"],
-        "sans": ["'Pixelify Sans'", "sans-serif"]
+        "headline": ["'Outfit'", "sans-serif"],
+        "body": ["'Outfit'", "sans-serif"],
+        "label": ["'Outfit'", "sans-serif"],
+        "serif": ["'Outfit'", "sans-serif"],
+        "sans": ["'Outfit'", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0px",
